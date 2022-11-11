@@ -27,7 +27,7 @@ import (
 	flags "github.com/jessevdk/go-flags"
 	"golang.org/x/net/netutil"
 
-	"github.com/spidernet-io/spiderdoctor/api/v1/server/restapi"
+	"github.com/spidernet-io/spiderdoctor/api/v1/controllerServer/server/restapi"
 )
 
 const (

@@ -7,11 +7,37 @@ import (
 	"fmt"
 	"github.com/go-openapi/loads"
 	"github.com/go-openapi/runtime/middleware"
-	"github.com/spidernet-io/spiderdoctor/api/v1/server"
-	"github.com/spidernet-io/spiderdoctor/api/v1/server/restapi"
-	"github.com/spidernet-io/spiderdoctor/api/v1/server/restapi/healthy"
+	"github.com/spidernet-io/spiderdoctor/api/v1/agentServer/models"
+	"github.com/spidernet-io/spiderdoctor/api/v1/agentServer/server"
+	"github.com/spidernet-io/spiderdoctor/api/v1/agentServer/server/restapi"
+	"github.com/spidernet-io/spiderdoctor/api/v1/agentServer/server/restapi/echo"
+	"github.com/spidernet-io/spiderdoctor/api/v1/agentServer/server/restapi/healthy"
 	"go.uber.org/zap"
 )
+
+// ---------- test request Handler
+type echoHandler struct {
+	logger *zap.Logger
+}
+
+func (s *echoHandler) Handle(r echo.GetParams) middleware.Responder {
+	s.logger.Debug("HTTP request from " + r.HTTPRequest.RemoteAddr)
+
+	message := "{ \n"
+	for k, v := range r.HTTPRequest.Header {
+		message += fmt.Sprintf("      \"%s\": \"%s\"\n", k, v)
+	}
+	message += "}"
+
+	t := echo.NewGetOK()
+	t.Payload = &models.EchoRes{
+		ClientIP:      r.HTTPRequest.RemoteAddr,
+		RequestHeader: message,
+		RequestURL:    r.HTTPRequest.RequestURI,
+		ServerName:    globalConfig.PodName,
+	}
+	return t
+}
 
 // ---------- readiness Healthy Handler
 type readinessHealthyHandler struct {
@@ -67,6 +93,7 @@ func SetupHttpServer() {
 	api.HealthyGetHealthyReadinessHandler = &readinessHealthyHandler{logger: logger.Named("route: readiness health")}
 	api.HealthyGetHealthyLivenessHandler = &livenessHealthyHandler{logger: logger.Named("route: liveness health")}
 	api.HealthyGetHealthyStartupHandler = &startupHealthyHandler{logger: logger.Named("route: startup health")}
+	api.EchoGetHandler = &echoHandler{logger: logger.Named("route: request")}
 
 	//
 	srv := server.NewServer(api)

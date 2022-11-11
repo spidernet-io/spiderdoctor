@@ -22,7 +22,8 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 
-	"github.com/spidernet-io/spiderdoctor/api/v1/server/restapi/healthy"
+	"github.com/spidernet-io/spiderdoctor/api/v1/agentServer/server/restapi/echo"
+	"github.com/spidernet-io/spiderdoctor/api/v1/agentServer/server/restapi/healthy"
 )
 
 // NewHTTPServerAPIAPI creates a new HTTPServerAPI instance
@@ -47,6 +48,9 @@ func NewHTTPServerAPIAPI(spec *loads.Document) *HTTPServerAPIAPI {
 
 		JSONProducer: runtime.JSONProducer(),
 
+		EchoGetHandler: echo.GetHandlerFunc(func(params echo.GetParams) middleware.Responder {
+			return middleware.NotImplemented("operation echo.Get has not yet been implemented")
+		}),
 		HealthyGetHealthyLivenessHandler: healthy.GetHealthyLivenessHandlerFunc(func(params healthy.GetHealthyLivenessParams) middleware.Responder {
 			return middleware.NotImplemented("operation healthy.GetHealthyLiveness has not yet been implemented")
 		}),
@@ -59,7 +63,7 @@ func NewHTTPServerAPIAPI(spec *loads.Document) *HTTPServerAPIAPI {
 	}
 }
 
-/*HTTPServerAPIAPI http server */
+/*HTTPServerAPIAPI agent http server */
 type HTTPServerAPIAPI struct {
 	spec            *loads.Document
 	context         *middleware.Context
@@ -92,6 +96,8 @@ type HTTPServerAPIAPI struct {
 	//   - application/json
 	JSONProducer runtime.Producer
 
+	// EchoGetHandler sets the operation handler for the get operation
+	EchoGetHandler echo.GetHandler
 	// HealthyGetHealthyLivenessHandler sets the operation handler for the get healthy liveness operation
 	HealthyGetHealthyLivenessHandler healthy.GetHealthyLivenessHandler
 	// HealthyGetHealthyReadinessHandler sets the operation handler for the get healthy readiness operation
@@ -175,6 +181,9 @@ func (o *HTTPServerAPIAPI) Validate() error {
 		unregistered = append(unregistered, "JSONProducer")
 	}
 
+	if o.EchoGetHandler == nil {
+		unregistered = append(unregistered, "echo.GetHandler")
+	}
 	if o.HealthyGetHealthyLivenessHandler == nil {
 		unregistered = append(unregistered, "healthy.GetHealthyLivenessHandler")
 	}
@@ -272,6 +281,10 @@ func (o *HTTPServerAPIAPI) initHandlerCache() {
 		o.handlers = make(map[string]map[string]http.Handler)
 	}
 
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"][""] = echo.NewGet(o.context, o.EchoGetHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}

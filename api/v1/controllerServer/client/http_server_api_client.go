@@ -13,7 +13,7 @@ import (
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
 
-	"github.com/spidernet-io/spiderdoctor/api/v1/client/healthy"
+	"github.com/spidernet-io/spiderdoctor/api/v1/controllerServer/client/healthy"
 )
 
 // Default HTTP server API HTTP client.

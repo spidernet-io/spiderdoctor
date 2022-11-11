@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"github.com/go-openapi/loads"
 	"github.com/go-openapi/runtime/middleware"
-	"github.com/spidernet-io/spiderdoctor/api/v1/server"
-	"github.com/spidernet-io/spiderdoctor/api/v1/server/restapi"
-	"github.com/spidernet-io/spiderdoctor/api/v1/server/restapi/healthy"
+	"github.com/spidernet-io/spiderdoctor/api/v1/controllerServer/server"
+	"github.com/spidernet-io/spiderdoctor/api/v1/controllerServer/server/restapi"
+	"github.com/spidernet-io/spiderdoctor/api/v1/controllerServer/server/restapi/healthy"
 	"go.uber.org/zap"
 )
 

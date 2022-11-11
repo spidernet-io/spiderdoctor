@@ -13,11 +13,12 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 
-	"github.com/spidernet-io/spiderdoctor/api/v1/server/restapi"
-	"github.com/spidernet-io/spiderdoctor/api/v1/server/restapi/healthy"
+	"github.com/spidernet-io/spiderdoctor/api/v1/agentServer/server/restapi"
+	"github.com/spidernet-io/spiderdoctor/api/v1/agentServer/server/restapi/echo"
+	"github.com/spidernet-io/spiderdoctor/api/v1/agentServer/server/restapi/healthy"
 )
 
-//go:generate swagger generate server --target ../../v1 --name HTTPServerAPI --spec ../openapi.yaml --api-package restapi --server-package server --principal interface{} --default-scheme unix --exclude-main
+//go:generate swagger generate server --target ../../agentServer --name HTTPServerAPI --spec ../openapi.yaml --api-package restapi --server-package server --principal interface{} --default-scheme unix --exclude-main
 
 func configureFlags(api *restapi.HTTPServerAPIAPI) {
 	// api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{ ... }
@@ -41,6 +42,11 @@ func configureAPI(api *restapi.HTTPServerAPIAPI) http.Handler {
 
 	api.JSONProducer = runtime.JSONProducer()
 
+	if api.EchoGetHandler == nil {
+		api.EchoGetHandler = echo.GetHandlerFunc(func(params echo.GetParams) middleware.Responder {
+			return middleware.NotImplemented("operation echo.Get has not yet been implemented")
+		})
+	}
 	if api.HealthyGetHealthyLivenessHandler == nil {
 		api.HealthyGetHealthyLivenessHandler = healthy.GetHealthyLivenessHandlerFunc(func(params healthy.GetHealthyLivenessParams) middleware.Responder {
 			return middleware.NotImplemented("operation healthy.GetHealthyLiveness has not yet been implemented")

@@ -399,12 +399,14 @@ build_doc:
 
 .PHONY: validate_openapi_sdk
 validate_openapi_sdk:
-	tools/golang/goSwagger.sh validate $(OPENAPI_SDK_DIR)
-
+	tools/golang/goSwagger.sh validate ${ROOT_DIR}/api/v1/controllerServer
+	tools/golang/goSwagger.sh validate ${ROOT_DIR}/api/v1/agentServer
 
 .PHONY: update_openapi_sdk
 update_openapi_sdk:
-	tools/golang/goSwagger.sh clean $(OPENAPI_SDK_DIR)
-	tools/golang/goSwagger.sh generate $(OPENAPI_SDK_DIR)
+	tools/golang/goSwagger.sh clean ${ROOT_DIR}/api/v1/controllerServer
+	tools/golang/goSwagger.sh generate ${ROOT_DIR}/api/v1/controllerServer
+	tools/golang/goSwagger.sh clean ${ROOT_DIR}/api/v1/agentServer
+	tools/golang/goSwagger.sh generate ${ROOT_DIR}/api/v1/agentServer
 
 
