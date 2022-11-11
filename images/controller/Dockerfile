@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 #====modify====
-ARG BASE_IMAGE=ghcr.io/spidernet-io/spiderdoctor/controller-base:8cb581ff70d86749ec471936daad3c9fda58339f
+ARG BASE_IMAGE=ghcr.io/spidernet-io/spiderdoctor/controller-base:a92605cfa38fa69a15439e19e0a762a4bd121481
 ARG GOLANG_IMAGE=docker.io/library/golang:1.19@sha256:25de7b6b28219279a409961158c547aadd0960cf2dcbc533780224afa1157fd4
 
 # TARGETARCH is an automatic platform ARG enabled by Docker BuildKit.
