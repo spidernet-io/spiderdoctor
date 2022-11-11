@@ -3,7 +3,7 @@
 
 #====modify====
 ARG BASE_IMAGE=ghcr.io/spidernet-io/spiderdoctor/agent-base:bfd810bfe3a2073060d813a6aa0b906207d4c6b6
-ARG GOLANG_IMAGE=docker.io/library/golang:1.19@sha256:25de7b6b28219279a409961158c547aadd0960cf2dcbc533780224afa1157fd4
+ARG GOLANG_IMAGE=docker.io/library/golang:1.19@sha256:bf4b15c14a715b9c2d278809254268d57dd74bbee69489e781e9303c814160d5
 
 # TARGETARCH is an automatic platform ARG enabled by Docker BuildKit.
 # like amd64 arm64
