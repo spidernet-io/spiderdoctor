@@ -6,6 +6,7 @@ package proto;
 
 message ExecRequestMsg {
   string command = 1;
+  string timeoutSecond = 2;
 }
 
 message ExecResponseMsg {
@@ -18,3 +19,4 @@ service CmdService {
   // execute a remote command
   rpc ExecRemoteCmd( ExecRequestMsg ) returns (ExecResponseMsg) {}
 }
+
