@@ -1,4 +1,4 @@
-package grpc
+package grpcManager
 
 import (
 	"context"
@@ -45,10 +45,10 @@ func (s *myGrpcServer) ExecRemoteCmd(ctx context.Context, req *agentGrpc.ExecReq
 
 	StdoutMsg, StderrMsg, exitedCode, e := utils.RunFrondendCmd(clientctx, req.Command, nil, "")
 
-	logger.Sugar().Infof("stderrMsg=%v", StderrMsg)
-	logger.Sugar().Infof("StdoutMsg=%v", StdoutMsg)
-	logger.Sugar().Infof("exitedCode=%v", exitedCode)
-	logger.Sugar().Infof("error=%v", e)
+	logger.Sugar().Infof("stderrMsg = %v", StderrMsg)
+	logger.Sugar().Infof("StdoutMsg = %v", StdoutMsg)
+	logger.Sugar().Infof("exitedCode = %v", exitedCode)
+	logger.Sugar().Infof("error = %v", e)
 
 	b := agentGrpc.ExecResponseMsg{
 		Stdmsg: StdoutMsg,

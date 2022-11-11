@@ -1,4 +1,4 @@
-package grpc
+package grpcManager
 
 import (
 	"crypto/tls"
@@ -15,7 +15,7 @@ import (
 )
 
 type GrpcServerManager interface {
-	Run(address string)
+	Run(listenAddress string)
 	UpdateHealthStatus(status healthpb.HealthCheckResponse_ServingStatus)
 }
 
@@ -81,9 +81,9 @@ func NewGrpcServer(logger *zap.Logger, tlsCaPath, tlsCertPath, tlskeyPath string
 }
 
 // address: "127.0.0.1:5000" or ":5000"
-func (t *grpcServer) Run(address string) {
+func (t *grpcServer) Run(listenAddress string) {
 
-	d, err := net.Listen("tcp", address)
+	d, err := net.Listen("tcp", listenAddress)
 	if err != nil {
 		t.logger.Sugar().Fatalf("failed to listen: %v", err)
 	}
