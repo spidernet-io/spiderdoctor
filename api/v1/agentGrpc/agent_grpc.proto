@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option go_package = "github.com/spidernet-io/spiderdoctor/api/v1/agentGrpc";
+
+package proto;
+
+message ExecRequestMsg {
+  string command = 1;
+}
+
+message ExecResponseMsg {
+  string stdmsg = 1;
+  string stderr = 2;
+  int32 code = 3;
+}
+
+service CmdService {
+  // execute a remote command
+  rpc ExeRemoteCmd( ExecRequestMsg ) returns (ExecResponseMsg) {}
+}
