@@ -6,7 +6,7 @@ package proto;
 
 message ExecRequestMsg {
   string command = 1;
-  string timeoutSecond = 2;
+  string timeoutsecond = 2;
 }
 
 message ExecResponseMsg {
