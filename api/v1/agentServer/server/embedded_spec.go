@@ -33,7 +33,7 @@ func init() {
     "title": "http server API",
     "version": "v1"
   },
-  "basePath": "/v1",
+  "basePath": "/",
   "paths": {
     "/": {
       "get": {
@@ -115,7 +115,10 @@ func init() {
         },
         "requestHeader": {
           "description": "request header",
-          "type": "string"
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "requestUrl": {
           "description": "request url",
@@ -145,7 +148,7 @@ func init() {
     "title": "http server API",
     "version": "v1"
   },
-  "basePath": "/v1",
+  "basePath": "/",
   "paths": {
     "/": {
       "get": {
@@ -227,7 +230,10 @@ func init() {
         },
         "requestHeader": {
           "description": "request header",
-          "type": "string"
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "requestUrl": {
           "description": "request url",

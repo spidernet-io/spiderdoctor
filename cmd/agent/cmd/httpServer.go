@@ -13,6 +13,7 @@ import (
 	"github.com/spidernet-io/spiderdoctor/api/v1/agentServer/server/restapi/echo"
 	"github.com/spidernet-io/spiderdoctor/api/v1/agentServer/server/restapi/healthy"
 	"go.uber.org/zap"
+	"os"
 )
 
 // ---------- test request Handler
@@ -23,18 +24,25 @@ type echoHandler struct {
 func (s *echoHandler) Handle(r echo.GetParams) middleware.Responder {
 	s.logger.Debug("HTTP request from " + r.HTTPRequest.RemoteAddr)
 
-	message := "{ \n"
-	for k, v := range r.HTTPRequest.Header {
-		message += fmt.Sprintf("      \"%s\": \"%s\"\n", k, v)
+	hostname := globalConfig.PodName
+	if len(hostname) == 0 {
+		hostname, _ = os.Hostname()
 	}
-	message += "}"
+	head := map[string]string{}
+	for k, v := range r.HTTPRequest.Header {
+		t := ""
+		for _, m := range v {
+			t += " " + m + " "
+		}
+		head[k] = t
+	}
 
 	t := echo.NewGetOK()
 	t.Payload = &models.EchoRes{
 		ClientIP:      r.HTTPRequest.RemoteAddr,
-		RequestHeader: message,
+		RequestHeader: head,
 		RequestURL:    r.HTTPRequest.RequestURI,
-		ServerName:    globalConfig.PodName,
+		ServerName:    hostname,
 	}
 	return t
 }

@@ -94,7 +94,7 @@ spec:
           {{- if semverCompare ">=1.20-0" .Capabilities.KubeVersion.Version }}
           startupProbe:
             httpGet:
-              path: /v1/healthy/startup
+              path: /healthy/startup
               port: {{ .Values.spiderdoctorController.httpServer.port }}
               scheme: HTTP
             failureThreshold: {{ .Values.spiderdoctorController.httpServer.startupProbe.failureThreshold }}
@@ -103,7 +103,7 @@ spec:
           {{- end }}
           livenessProbe:
             httpGet:
-              path: /v1/healthy/liveness
+              path: /healthy/liveness
               port: {{ .Values.spiderdoctorController.httpServer.port }}
               scheme: HTTP
             initialDelaySeconds: 60
@@ -113,7 +113,7 @@ spec:
             timeoutSeconds: 5
           readinessProbe:
             httpGet:
-              path: /v1/healthy/readiness
+              path: /healthy/readiness
               port: {{ .Values.spiderdoctorController.httpServer.port }}
               scheme: HTTP
             initialDelaySeconds: 5

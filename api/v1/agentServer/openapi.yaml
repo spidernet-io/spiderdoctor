@@ -6,7 +6,7 @@ info:
   version: v1
 x-schemes:
   - http
-basePath: "/v1"
+basePath: "/"
 produces:
   - application/json
 consumes:
@@ -73,4 +73,6 @@ definitions:
         type: string
       requestHeader:
         description: request header
-        type: string
+        type: object
+        additionalProperties:
+          type: string

@@ -8,7 +8,7 @@
 //	Schemes:
 //	  unix
 //	Host: localhost
-//	BasePath: /v1
+//	BasePath: /
 //	Version: v1
 //
 //	Consumes:

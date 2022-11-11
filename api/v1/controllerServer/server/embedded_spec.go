@@ -33,7 +33,7 @@ func init() {
     "title": "http server API",
     "version": "v1"
   },
-  "basePath": "/v1",
+  "basePath": "/",
   "paths": {
     "/healthy/liveness": {
       "get": {
@@ -104,7 +104,7 @@ func init() {
     "title": "http server API",
     "version": "v1"
   },
-  "basePath": "/v1",
+  "basePath": "/",
   "paths": {
     "/healthy/liveness": {
       "get": {
