@@ -163,26 +163,26 @@ spiderdoctorAgent:
   securityContext: {}
   # runAsUser: 0
 
-  healthServer:
-    ## @param spiderdoctorAgent.healthServer.port the http Port for spiderdoctorAgent, for health checking
-    port: 5710
+  httpServer:
+    ## @param spiderdoctorAgent.httpServer.port the http Port for spiderdoctorAgent, for health checking
+    port: 80
 
     startupProbe:
-      ## @param spiderdoctorAgent.healthServer.startupProbe.failureThreshold the failure threshold of startup probe for spiderdoctorAgent health checking
+      ## @param spiderdoctorAgent.httpServer.startupProbe.failureThreshold the failure threshold of startup probe for spiderdoctorAgent health checking
       failureThreshold: 60
-      ## @param spiderdoctorAgent.healthServer.startupProbe.periodSeconds the period seconds of startup probe for spiderdoctorAgent health checking
+      ## @param spiderdoctorAgent.httpServer.startupProbe.periodSeconds the period seconds of startup probe for spiderdoctorAgent health checking
       periodSeconds: 2
 
     livenessProbe:
-      ## @param spiderdoctorAgent.healthServer.livenessProbe.failureThreshold the failure threshold of startup probe for spiderdoctorAgent health checking
+      ## @param spiderdoctorAgent.httpServer.livenessProbe.failureThreshold the failure threshold of startup probe for spiderdoctorAgent health checking
       failureThreshold: 6
-      ## @param spiderdoctorAgent.healthServer.livenessProbe.periodSeconds the period seconds of startup probe for spiderdoctorAgent health checking
+      ## @param spiderdoctorAgent.httpServer.livenessProbe.periodSeconds the period seconds of startup probe for spiderdoctorAgent health checking
       periodSeconds: 10
 
     readinessProbe:
-      ## @param spiderdoctorAgent.healthServer.readinessProbe.failureThreshold the failure threshold of startup probe for spiderdoctorAgent health checking
+      ## @param spiderdoctorAgent.httpServer.readinessProbe.failureThreshold the failure threshold of startup probe for spiderdoctorAgent health checking
       failureThreshold: 3
-      ## @param spiderdoctorAgent.healthServer.readinessProbe.periodSeconds the period seconds of startup probe for spiderdoctorAgent health checking
+      ## @param spiderdoctorAgent.httpServer.readinessProbe.periodSeconds the period seconds of startup probe for spiderdoctorAgent health checking
       periodSeconds: 10
 
   prometheus:
@@ -372,29 +372,29 @@ spiderdoctorController:
     ## @param spiderdoctorController.podDisruptionBudget.minAvailable minimum number/percentage of pods that should remain scheduled.
     minAvailable: 1
 
-  healthServer:
+  httpServer:
     ## @param spiderdoctorController.port the http Port for spiderdoctorController, for health checking and http service
-    port: 5720
+    port: 80
 
     startupProbe:
-      ## @param spiderdoctorController.healthServer.startupProbe.failureThreshold the failure threshold of startup probe for spiderdoctorController health checking
+      ## @param spiderdoctorController.httpServer.startupProbe.failureThreshold the failure threshold of startup probe for spiderdoctorController health checking
       failureThreshold: 30
 
-      ## @param spiderdoctorController.healthServer.startupProbe.periodSeconds the period seconds of startup probe for spiderdoctorController health checking
+      ## @param spiderdoctorController.httpServer.startupProbe.periodSeconds the period seconds of startup probe for spiderdoctorController health checking
       periodSeconds: 2
 
     livenessProbe:
-      ## @param spiderdoctorController.healthServer.livenessProbe.failureThreshold the failure threshold of startup probe for spiderdoctorController health checking
+      ## @param spiderdoctorController.httpServer.livenessProbe.failureThreshold the failure threshold of startup probe for spiderdoctorController health checking
       failureThreshold: 6
 
-      ## @param spiderdoctorController.healthServer.livenessProbe.periodSeconds the period seconds of startup probe for spiderdoctorController health checking
+      ## @param spiderdoctorController.httpServer.livenessProbe.periodSeconds the period seconds of startup probe for spiderdoctorController health checking
       periodSeconds: 10
 
     readinessProbe:
-      ## @param spiderdoctorController.healthServer.readinessProbe.failureThreshold the failure threshold of startup probe for spiderdoctorController health checking
+      ## @param spiderdoctorController.httpServer.readinessProbe.failureThreshold the failure threshold of startup probe for spiderdoctorController health checking
       failureThreshold: 3
 
-      ## @param spiderdoctorController.healthServer.readinessProbe.periodSeconds the period seconds of startup probe for spiderdoctorController health checking
+      ## @param spiderdoctorController.httpServer.readinessProbe.periodSeconds the period seconds of startup probe for spiderdoctorController health checking
       periodSeconds: 10
 
   ## @param spiderdoctorController.webhookPort the http port for spiderdoctorController webhook

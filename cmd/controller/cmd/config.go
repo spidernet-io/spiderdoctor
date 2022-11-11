@@ -51,7 +51,7 @@ type _envMapping struct {
 var envMapping = []_envMapping{
 	{"ENV_ENABLED_METRIC", "false", &globalConfig.EnableMetric},
 	{"ENV_METRIC_HTTP_PORT", "", &globalConfig.MetricPort},
-	{"ENV_HTTP_PORT", "8787", &globalConfig.HttpPort},
+	{"ENV_HTTP_PORT", "80", &globalConfig.HttpPort},
 	{"ENV_GOPS_LISTEN_PORT", "", &globalConfig.GopsPort},
 	{"ENV_WEBHOOK_PORT", "", &globalConfig.WebhookPort},
 	{"ENV_PYROSCOPE_PUSH_SERVER_ADDRESS", "", &globalConfig.PyroscopeServerAddress},

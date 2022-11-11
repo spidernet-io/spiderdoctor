@@ -86,7 +86,7 @@ spec:
             protocol: TCP
           {{- end }}
           - name: http
-            containerPort: {{ .Values.spiderdoctorController.healthServer.port }}
+            containerPort: {{ .Values.spiderdoctorController.httpServer.port }}
             protocol: TCP
           - name: webhook
             containerPort: {{ .Values.spiderdoctorController.webhookPort }}
@@ -95,31 +95,31 @@ spec:
           startupProbe:
             httpGet:
               path: /v1/healthy/startup
-              port: {{ .Values.spiderdoctorController.healthServer.port }}
+              port: {{ .Values.spiderdoctorController.httpServer.port }}
               scheme: HTTP
-            failureThreshold: {{ .Values.spiderdoctorController.healthServer.startupProbe.failureThreshold }}
-            periodSeconds: {{ .Values.spiderdoctorController.healthServer.startupProbe.periodSeconds }}
+            failureThreshold: {{ .Values.spiderdoctorController.httpServer.startupProbe.failureThreshold }}
+            periodSeconds: {{ .Values.spiderdoctorController.httpServer.startupProbe.periodSeconds }}
             successThreshold: 1
           {{- end }}
           livenessProbe:
             httpGet:
               path: /v1/healthy/liveness
-              port: {{ .Values.spiderdoctorController.healthServer.port }}
+              port: {{ .Values.spiderdoctorController.httpServer.port }}
               scheme: HTTP
             initialDelaySeconds: 60
-            periodSeconds: {{ .Values.spiderdoctorController.healthServer.livenessProbe.periodSeconds }}
+            periodSeconds: {{ .Values.spiderdoctorController.httpServer.livenessProbe.periodSeconds }}
             successThreshold: 1
-            failureThreshold: {{ .Values.spiderdoctorController.healthServer.livenessProbe.failureThreshold }}
+            failureThreshold: {{ .Values.spiderdoctorController.httpServer.livenessProbe.failureThreshold }}
             timeoutSeconds: 5
           readinessProbe:
             httpGet:
               path: /v1/healthy/readiness
-              port: {{ .Values.spiderdoctorController.healthServer.port }}
+              port: {{ .Values.spiderdoctorController.httpServer.port }}
               scheme: HTTP
             initialDelaySeconds: 5
-            periodSeconds: {{ .Values.spiderdoctorController.healthServer.readinessProbe.periodSeconds }}
+            periodSeconds: {{ .Values.spiderdoctorController.httpServer.readinessProbe.periodSeconds }}
             successThreshold: 1
-            failureThreshold: {{ .Values.spiderdoctorController.healthServer.readinessProbe.failureThreshold }}
+            failureThreshold: {{ .Values.spiderdoctorController.httpServer.readinessProbe.failureThreshold }}
             timeoutSeconds: 5
           {{- with .Values.spiderdoctorController.resources }}
           resources:
@@ -137,7 +137,7 @@ spec:
             - name: ENV_WEBHOOK_PORT
               value: {{ .Values.spiderdoctorController.webhookPort | quote }}
             - name: ENV_HTTP_PORT
-              value: {{ .Values.spiderdoctorController.healthServer.port | quote }}
+              value: {{ .Values.spiderdoctorController.httpServer.port | quote }}
             - name: ENV_POD_NAME
               valueFrom:
                 fieldRef:

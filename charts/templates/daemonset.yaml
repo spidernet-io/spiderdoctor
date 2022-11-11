@@ -105,31 +105,31 @@ spec:
           startupProbe:
             httpGet:
               path: /v1/healthy/startup
-              port: {{ .Values.spiderdoctorAgent.healthServer.port }}
+              port: {{ .Values.spiderdoctorAgent.httpServer.port }}
               scheme: HTTP
-            failureThreshold: {{ .Values.spiderdoctorAgent.healthServer.startupProbe.failureThreshold }}
-            periodSeconds: {{ .Values.spiderdoctorAgent.healthServer.startupProbe.periodSeconds }}
+            failureThreshold: {{ .Values.spiderdoctorAgent.httpServer.startupProbe.failureThreshold }}
+            periodSeconds: {{ .Values.spiderdoctorAgent.httpServer.startupProbe.periodSeconds }}
             successThreshold: 1
           {{- end }}
           livenessProbe:
             httpGet:
               path: /v1/healthy/liveness
-              port: {{ .Values.spiderdoctorAgent.healthServer.port }}
+              port: {{ .Values.spiderdoctorAgent.httpServer.port }}
               scheme: HTTP
             initialDelaySeconds: 60
-            periodSeconds: {{ .Values.spiderdoctorAgent.healthServer.livenessProbe.periodSeconds }}
+            periodSeconds: {{ .Values.spiderdoctorAgent.httpServer.livenessProbe.periodSeconds }}
             successThreshold: 1
-            failureThreshold: {{ .Values.spiderdoctorAgent.healthServer.livenessProbe.failureThreshold }}
+            failureThreshold: {{ .Values.spiderdoctorAgent.httpServer.livenessProbe.failureThreshold }}
             timeoutSeconds: 5
           readinessProbe:
             httpGet:
               path: /v1/healthy/readiness
-              port: {{ .Values.spiderdoctorAgent.healthServer.port }}
+              port: {{ .Values.spiderdoctorAgent.httpServer.port }}
               scheme: HTTP
             initialDelaySeconds: 5
-            periodSeconds: {{ .Values.spiderdoctorAgent.healthServer.readinessProbe.periodSeconds }}
+            periodSeconds: {{ .Values.spiderdoctorAgent.httpServer.readinessProbe.periodSeconds }}
             successThreshold: 1
-            failureThreshold: {{ .Values.spiderdoctorAgent.healthServer.readinessProbe.failureThreshold }}
+            failureThreshold: {{ .Values.spiderdoctorAgent.httpServer.readinessProbe.failureThreshold }}
             timeoutSeconds: 5
           {{- with .Values.spiderdoctorAgent.resources }}
           resources:
@@ -143,7 +143,7 @@ spec:
             - name: ENV_METRIC_HTTP_PORT
               value: {{ .Values.spiderdoctorAgent.prometheus.port | quote }}
             - name: ENV_HTTP_PORT
-              value: {{ .Values.spiderdoctorAgent.healthServer.port | quote }}
+              value: {{ .Values.spiderdoctorAgent.httpServer.port | quote }}
             - name: ENV_GOPS_LISTEN_PORT
               value: {{ .Values.spiderdoctorAgent.debug.gopsPort | quote }}
             - name: ENV_POD_NAME
