@@ -16,5 +16,5 @@ message ExecResponseMsg {
 
 service CmdService {
   // execute a remote command
-  rpc ExeRemoteCmd( ExecRequestMsg ) returns (ExecResponseMsg) {}
+  rpc ExecRemoteCmd( ExecRequestMsg ) returns (ExecResponseMsg) {}
 }

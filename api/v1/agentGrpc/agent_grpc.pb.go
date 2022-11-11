@@ -172,8 +172,8 @@ var file_agent_grpc_proto_goTypes = []interface{}{
 	(*ExecResponseMsg)(nil), // 1: proto.ExecResponseMsg
 }
 var file_agent_grpc_proto_depIdxs = []int32{
-	0, // 0: proto.CmdService.ExeRemoteCmd:input_type -> proto.ExecRequestMsg
-	1, // 1: proto.CmdService.ExeRemoteCmd:output_type -> proto.ExecResponseMsg
+	0, // 0: proto.CmdService.ExecRemoteCmd:input_type -> proto.ExecRequestMsg
+	1, // 1: proto.CmdService.ExecRemoteCmd:output_type -> proto.ExecResponseMsg
 	1, // [1:2] is the sub-list for method output_type
 	0, // [0:1] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
