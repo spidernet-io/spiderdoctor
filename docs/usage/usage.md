@@ -2,32 +2,19 @@
 
 ```shell
 
-cat <<EOF > mybook1.yaml
+cat <<EOF > example.yaml
 apiVersion: spiderdoctor.spidernet.io/v1
-kind: Mybook
+kind: Netdoctor
 metadata:
   name: test1
 spec:
-  ipVersion: 4
-  subnet: "1.0.0.0/8"
+  schedule:
+    roundNumber: 1
+    interval: 60
+  enabledIPv4: true
+  enabledIPv6: true
 EOF
 
-kubectl apply -f mybook1.yaml
-
-
-cat <<EOF > mybook2.yaml
-apiVersion: spiderdoctor.spidernet.io/v1
-kind: Mybook
-metadata:
-  name: test2
-spec:
-  ipVersion: 4
-  subnet: "2.0.0.0/8"
-EOF
-
-kubectl apply -f mybook2.yaml
-
+kubectl apply -f example.yaml
 
 ```
-
-

@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func NewStdoutLogger(loglevel string) *zap.Logger {
+func NewStdoutLogger(loglevel string, Name string) *zap.Logger {
 
 	// log level
 	l := zapcore.InfoLevel
@@ -41,6 +41,7 @@ func NewStdoutLogger(loglevel string) *zap.Logger {
 	encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	encoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
 	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
+	encoderConfig.NameKey = Name
 
 	m := zapcore.NewCore(
 		zapcore.NewJSONEncoder(encoderConfig),
