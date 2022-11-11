@@ -6,6 +6,9 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"time"
+
+	"github.com/spidernet-io/spiderdoctor/pkg/utils"
 )
 
 // ------ implement
@@ -19,14 +22,28 @@ func (s *myGrpcServer) ExecRemoteCmd(ctx context.Context, req *agentGrpc.ExecReq
 	logger := s.logger.With(
 		zap.String("SubnetName", req.Command),
 	)
+	logger.Sugar().Infof("request: %+v", req)
 
 	if len(req.Command) == 0 {
 		logger.Error("grpc server ExecRemoteCmd: got empty command \n")
 		return nil, status.Error(codes.InvalidArgument, "request command is empty")
 	}
+	if len(req.Timeoutsecond) == 0 {
+		logger.Error("grpc server ExecRemoteCmd: got empty timeout \n")
+		return nil, status.Error(codes.InvalidArgument, "request command is empty")
+	}
 
-	timeout_second := 60
-	StdoutMsg, StderrMsg, exitedCode, e := myos.RunCmd(req.Command, nil, "", timeout_second)
+	clientctx, cancel := context.WithDeadline(context.Background(), time.Duration(req.Timeoutsecond*time.Second))
+	defer cancel()
+	go func() {
+		select {
+		case <-clientctx.Done():
+		case <-ctx.Done():
+			cancel()
+		}
+	}()
+
+	StdoutMsg, StderrMsg, exitedCode, e := utils.RunFrondendCmd(clientctx, req.Command, nil, "")
 
 	logger.Sugar().Infof("stderrMsg=%v", StderrMsg)
 	logger.Sugar().Infof("StdoutMsg=%v", StdoutMsg)

@@ -14,8 +14,7 @@ import (
 	"time"
 )
 
-type GrpcServer interface {
-	RegisterService()
+type GrpcServerManager interface {
 	Run(address string)
 	UpdateHealthStatus(status healthpb.HealthCheckResponse_ServingStatus)
 }
@@ -32,7 +31,7 @@ const (
 	DefaultServerKeepAlivedAlowPeerInterval = 5 * time.Second
 )
 
-func NewGrpcServer(logger *zap.Logger, tlsCaPath, tlsCertPath, tlskeyPath string) GrpcServer {
+func NewGrpcServer(logger *zap.Logger, tlsCaPath, tlsCertPath, tlskeyPath string) GrpcServerManager {
 	m := &grpcServer{}
 	opts := []grpc.ServerOption{}
 
@@ -70,6 +69,8 @@ func NewGrpcServer(logger *zap.Logger, tlsCaPath, tlsCertPath, tlskeyPath string
 	healthpb.RegisterHealthServer(m.server, m.healthcheckService)
 	reflection.Register(m.server)
 
+	m.registerService()
+
 	return m
 }
 
@@ -86,10 +87,6 @@ func (t *grpcServer) Run(address string) {
 		}
 	}()
 
-}
-
-func (t *grpcServer) RegisterService() {
-	pb.RegisterCmdServiceServer(s, &myGrpcServer{})
 }
 
 // type HealthCheckResponse_ServingStatus int32
