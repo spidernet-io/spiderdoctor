@@ -9,7 +9,7 @@ import (
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
-
+	"math"
 	"net"
 	"time"
 )
@@ -29,6 +29,9 @@ const (
 	DefaultServerKeepAliveTimeInterval      = 60 * time.Second
 	DefaultServerKeepAliveTimeOut           = 10 * time.Second
 	DefaultServerKeepAlivedAlowPeerInterval = 5 * time.Second
+	// 100 MByte
+	DefaultMaxRecvMsgSize = 1024 * 1024 * 100
+	DefaultMaxSendMsgSize = math.MaxInt32
 )
 
 func NewGrpcServer(logger *zap.Logger, tlsCaPath, tlsCertPath, tlskeyPath string) GrpcServerManager {
@@ -61,6 +64,9 @@ func NewGrpcServer(logger *zap.Logger, tlsCaPath, tlsCertPath, tlskeyPath string
 	// https://godoc.org/google.golang.org/grpc#KeepaliveParams
 	opts = append(opts, grpc.KeepaliveParams(kasp))
 
+	opts = append(opts, grpc.MaxRecvMsgSize(DefaultMaxRecvMsgSize))
+	opts = append(opts, grpc.MaxSendMsgSize(DefaultMaxSendMsgSize))
+
 	m.server = grpc.NewServer(opts...)
 	if m.server == nil {
 		logger.Fatal("failed to New Grpc Server ")
@@ -74,6 +80,7 @@ func NewGrpcServer(logger *zap.Logger, tlsCaPath, tlsCertPath, tlskeyPath string
 	return m
 }
 
+// address: "127.0.0.1:5000" or ":5000"
 func (t *grpcServer) Run(address string) {
 
 	d, err := net.Listen("tcp", address)

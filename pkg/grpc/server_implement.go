@@ -28,12 +28,12 @@ func (s *myGrpcServer) ExecRemoteCmd(ctx context.Context, req *agentGrpc.ExecReq
 		logger.Error("grpc server ExecRemoteCmd: got empty command \n")
 		return nil, status.Error(codes.InvalidArgument, "request command is empty")
 	}
-	if len(req.Timeoutsecond) == 0 {
+	if req.Timeoutsecond == 0 {
 		logger.Error("grpc server ExecRemoteCmd: got empty timeout \n")
 		return nil, status.Error(codes.InvalidArgument, "request command is empty")
 	}
 
-	clientctx, cancel := context.WithDeadline(context.Background(), time.Duration(req.Timeoutsecond*time.Second))
+	clientctx, cancel := context.WithTimeout(context.Background(), time.Duration(req.Timeoutsecond)*time.Second)
 	defer cancel()
 	go func() {
 		select {
