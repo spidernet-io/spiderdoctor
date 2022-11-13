@@ -3,6 +3,8 @@
 
 package v1
 
+import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 type SchedulePlan struct {
 	// +kubebuilder:default=0
 	// +kubebuilder:validation:Minimum=0
@@ -41,4 +43,16 @@ type TargetService struct {
 
 	// +kubebuilder:validation:Optional
 	TestIngress *bool `json:"testIngress,omitempty"`
+}
+
+type StatusHistoryRecord struct {
+
+	// +kubebuilder:validation:Enum=succeed;fail;unknown
+	Status string `json:"status"`
+
+	// +kubebuilder:validation:Type:=string
+	// +kubebuilder:validation:Format:=date-time
+	StartTimeStamp *metav1.Time `json:"startTimeStamp,omitempty"`
+
+	FailedAgentNodeList []string `json:"failedAgentNodeList"`
 }

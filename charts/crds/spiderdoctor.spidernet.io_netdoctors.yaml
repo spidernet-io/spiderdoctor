@@ -60,6 +60,17 @@ spec:
               eachTimeInSecond:
                 format: int64
                 type: integer
+              failureCondition:
+                properties:
+                  minAccessDelayMs:
+                    default: 5000
+                    format: int64
+                    type: integer
+                  minAccessFailure:
+                    default: 1
+                    format: int64
+                    type: integer
+                type: object
               schedule:
                 properties:
                   intervalMinute:
@@ -120,6 +131,27 @@ spec:
                 type: integer
               finish:
                 type: boolean
+              history:
+                items:
+                  properties:
+                    failedAgentNodeList:
+                      items:
+                        type: string
+                      type: array
+                    startTimeStamp:
+                      format: date-time
+                      type: string
+                    status:
+                      enum:
+                      - succeed
+                      - fail
+                      - unknown
+                      type: string
+                  required:
+                  - failedAgentNodeList
+                  - status
+                  type: object
+                type: array
               lastRoundFinishTimeStamp:
                 format: date-time
                 type: string
@@ -139,6 +171,7 @@ spec:
             - doneRound
             - expectedRound
             - finish
+            - history
             type: object
         required:
         - metadata

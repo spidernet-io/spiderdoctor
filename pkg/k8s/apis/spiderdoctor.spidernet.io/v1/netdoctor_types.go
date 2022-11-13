@@ -75,6 +75,8 @@ type NetdoctorStatus struct {
 	// +kubebuilder:validation:Type:=string
 	// +kubebuilder:validation:Format:=date-time
 	NextRoundDeadLineTimeStamp *metav1.Time `json:"nextRoundDeadLineTimeStamp,omitempty"`
+
+	History []StatusHistoryRecord `json:"history"`
 }
 
 // scope(Namespaced or Cluster)
