@@ -33,6 +33,19 @@ type NetdoctorSpec struct {
 
 	// +kubebuilder:validation:Optional
 	EachQPS *uint64 `json:"eachQPS,omitempty"`
+
+	// +kubebuilder:validation:Optional
+	FailureCondition *NetFailureCondition `json:"failureCondition,omitempty"`
+}
+
+type NetFailureCondition struct {
+	// +kubebuilder:default=1
+	// +kubebuilder:validation:Optional
+	MinAccessFailure *uint64 `json:"minAccessFailure,omitempty"`
+
+	// +kubebuilder:default=5000
+	// +kubebuilder:validation:Optional
+	MinAccessDelayMs *uint64 `json:"minAccessDelayMs,omitempty"`
 }
 
 type NetdoctorStatus struct {

@@ -146,6 +146,12 @@ spec:
               value: {{ .Values.spiderdoctorAgent.httpServer.port | quote }}
             - name: ENV_GOPS_LISTEN_PORT
               value: {{ .Values.spiderdoctorAgent.debug.gopsPort | quote }}
+            - name: ENV_GC_REPORT_FOR_DELETED_CRD
+              value: {{ .Values.spiderdoctorAgent.gcReport | quote }}
+            - name: ENV_AGENT_GRPC_LISTEN_PORT
+              value: {{ .Values.spiderdoctorAgent.grpcServer.port | quote }}
+            - name: ENV_PATH_AGENT_POD_REPORT
+              value: "/report"
             - name: ENV_POD_NAME
               valueFrom:
                 fieldRef:
@@ -165,6 +171,8 @@ spec:
             - name: config-path
               mountPath: /tmp/config-map
               readOnly: true
+            - name: report-data
+              mountPath: /report
             {{- if .Values.spiderdoctorAgent.extraVolumes }}
             {{- include "tplvalues.render" ( dict "value" .Values.spiderdoctorAgent.extraVolumeMounts "context" $ ) | nindent 12 }}
             {{- end }}
@@ -174,6 +182,10 @@ spec:
           configMap:
             defaultMode: 0400
             name: {{ .Values.global.configName }}
+        - name: report-data
+          hostPath:
+            path: {{ .Values.spiderdoctorAgent.reportHostPath }}
+            type: DirectoryOrCreate
       {{- if .Values.spiderdoctorAgent.extraVolumeMounts }}
       {{- include "tplvalues.render" ( dict "value" .Values.spiderdoctorAgent.extraVolumeMounts "context" $ ) | nindent 6 }}
       {{- end }}

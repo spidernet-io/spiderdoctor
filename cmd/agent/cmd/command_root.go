@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.uber.org/zap"
 	"os"
 	"os/signal"
@@ -46,8 +47,8 @@ var rootCmd = &cobra.Command{
 func Execute() {
 	currentP := runtime.GOMAXPROCS(-1)
 	rootLogger.Sugar().Infof("%v: default max golang procs %v \n", BinName, currentP)
-	if currentP > int(globalConfig.GolangMaxProcs) {
-		runtime.GOMAXPROCS(int(globalConfig.GolangMaxProcs))
+	if currentP > int(types.AgentConfig.GolangMaxProcs) {
+		runtime.GOMAXPROCS(int(types.AgentConfig.GolangMaxProcs))
 		currentP = runtime.GOMAXPROCS(-1)
 		rootLogger.Sugar().Infof("%v: change max golang procs %v \n", BinName, currentP)
 	}

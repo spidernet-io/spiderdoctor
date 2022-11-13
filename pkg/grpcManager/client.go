@@ -46,15 +46,6 @@ func NewGrpcClient(logger *zap.Logger, enableTls bool) GrpcClientManager {
 	s.opts = append(s.opts, grpc.WithBlock())
 
 	if enableTls {
-		// tls and check server cert
-		// tlsCaPath:="/tmp/ca.cert"
-		// if creds, err := credentials.NewClientTLSFromFile(tlsCaPath, ""); err != nil {
-		// 	s.logger.Sugar().Fatalf("failed to load credentials: %v", err)
-		// } else {
-		// 	s.opts = append(s.opts, grpc.WithTransportCredentials(creds))
-		// }
-
-		// tls but no check server cert
 		tlsConfig := &tls.Config{
 			InsecureSkipVerify: true,
 		}
@@ -72,19 +63,6 @@ func (s *grpcClientManager) clientDial(ctx context.Context, serverAddress []stri
 	opts := []grpc.DialOption{}
 	s.logger.Sugar().Infof("grpc dial for %+v", serverAddress)
 
-	// 在多个 server Address 时，实现 请求的 loadbalancer
-	// 在 tls 通信时，如果 client 设置了 CA 认证 server，如下 "whatever" 替换为 签入 server 证书中的 IP 或 域名。 或者关闭本功能
-	// t := manual.NewBuilderWithScheme("whatever")
-	// m := []resolver.Address{}
-	// for _, address := range serverAddress {
-	// 	// https://godoc.org/google.golang.org/grpc/resolver#Address
-	// 	m = append(m, resolver.Address{
-	// 		Addr: address,
-	// 	})
-	// }
-	// t.InitialState(resolver.State{Addresses: m})
-	// opts = append(opts, grpc.WithResolvers(t))
-	// addr := t.Scheme() + ":///test.server"
 	addr := serverAddress[0]
 
 	// --------

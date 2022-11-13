@@ -10,6 +10,7 @@ import (
 	"github.com/spidernet-io/spiderdoctor/api/v1/controllerServer/server"
 	"github.com/spidernet-io/spiderdoctor/api/v1/controllerServer/server/restapi"
 	"github.com/spidernet-io/spiderdoctor/api/v1/controllerServer/server/restapi/healthy"
+	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.uber.org/zap"
 )
 
@@ -47,11 +48,11 @@ func (s *startupHealthyHandler) Handle(r healthy.GetHealthyStartupParams) middle
 func SetupHttpServer() {
 	logger := rootLogger.Named("http")
 
-	if globalConfig.HttpPort == 0 {
+	if types.ControllerConfig.HttpPort == 0 {
 		logger.Sugar().Warn("http server is disabled")
 		return
 	}
-	logger.Sugar().Infof("setup http server at port %v", globalConfig.HttpPort)
+	logger.Sugar().Infof("setup http server at port %v", types.ControllerConfig.HttpPort)
 
 	spec, err := loads.Embedded(server.SwaggerJSON, server.FlatSwaggerJSON)
 	if err != nil {
@@ -76,7 +77,7 @@ func SetupHttpServer() {
 
 	// dfault to listen on "0.0.0.0" and "::1"
 	// srv.Host = "0.0.0.0"
-	srv.Port = int(globalConfig.HttpPort)
+	srv.Port = int(types.ControllerConfig.HttpPort)
 	srv.ConfigureAPI()
 
 	go func() {

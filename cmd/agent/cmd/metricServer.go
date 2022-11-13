@@ -5,6 +5,7 @@ package cmd
 
 import (
 	pkgmetric "github.com/spidernet-io/spiderdoctor/pkg/metrics"
+	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.opentelemetry.io/otel/metric/instrument/syncfloat64"
 	"go.opentelemetry.io/otel/sdk/instrumentation"
 	"go.opentelemetry.io/otel/sdk/metric/aggregation"
@@ -45,6 +46,6 @@ func RunMetricsServer(meterName string) {
 	}
 
 	// globalMeter=pkgmetric.NewMetricsServer(meterName, globalConfig.MetricPort, metricMapping, customBucketsView, logger)
-	pkgmetric.RunMetricsServer(globalConfig.EnableMetric, meterName, globalConfig.MetricPort, metricMapping, customBucketsView, logger)
+	pkgmetric.RunMetricsServer(types.AgentConfig.EnableMetric, meterName, types.AgentConfig.MetricPort, metricMapping, customBucketsView, logger)
 
 }

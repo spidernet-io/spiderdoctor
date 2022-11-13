@@ -138,6 +138,16 @@ spec:
               value: {{ .Values.spiderdoctorController.webhookPort | quote }}
             - name: ENV_HTTP_PORT
               value: {{ .Values.spiderdoctorController.httpServer.port | quote }}
+            - name: ENV_AGENT_GRPC_LISTEN_PORT
+              value: {{ .Values.spiderdoctorAgent.grpcServer.port | quote }}
+            - name: ENV_AGGREGATE_AGENT_REPORT
+              value: {{ .Values.spiderdoctorController.aggregateReport.enabled | quote }}
+            {{- if .Values.spiderdoctorController.aggregateReport.enabled }}
+            - name: ENV_PATH_AGGREGATE_AGENT_REPORT
+              value: "/report"
+            {{- end }}
+            - name: ENV_PATH_AGENT_POD_REPORT
+              value: "/report"
             - name: ENV_POD_NAME
               valueFrom:
                 fieldRef:
@@ -157,6 +167,10 @@ spec:
             - name: config-path
               mountPath: /tmp/config-map
               readOnly: true
+            {{- if .Values.spiderdoctorController.aggregateReport.enabled }}
+            - name: report-data
+              mountPath: /report
+            {{- end }}
             - name: tls
               mountPath: /etc/tls
               readOnly: true
@@ -164,6 +178,18 @@ spec:
             {{- include "tplvalues.render" ( dict "value" .Values.spiderdoctorController.extraVolumeMounts "context" $ ) | nindent 12 }}
             {{- end }}
       volumes:
+        {{- if .Values.spiderdoctorController.aggregateReport.enabled }}
+        {{- if .Values.spiderdoctorController.aggregateReport.pvc.enabled }}
+        - name: report-data
+          persistentVolumeClaim:
+            claimName: {{ .Values.spiderdoctorController.name | trunc 63 | trimSuffix "-" }}
+        {{- else }}
+        - name: report-data
+          hostPath:
+            path: {{ .Values.spiderdoctorController.aggregateReport.reportHostPath }}
+            type: DirectoryOrCreate
+        {{- end }}
+        {{- end }}
         # To read the configuration from the config map
         - name: config-path
           configMap:

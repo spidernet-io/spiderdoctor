@@ -14,52 +14,6 @@ import (
 	"strconv"
 )
 
-type Config struct {
-	// from env
-	EnableMetric bool
-	MetricPort   int32
-	HttpPort     int32
-	GopsPort     int32
-	WebhookPort  int32
-
-	PyroscopeServerAddress string
-
-	PodName      string
-	PodNamespace string
-
-	GolangMaxProcs int32
-
-	// from flags
-	ConfigMapPath string
-
-	TlsCaCertPath     string
-	TlsServerCertPath string
-	TlsServerKeyPath  string
-
-	// from configmap
-	Configmap types.ConfigmapConfig
-}
-
-var globalConfig Config
-
-type _envMapping struct {
-	envName      string
-	defaultValue string
-	p            interface{}
-}
-
-var envMapping = []_envMapping{
-	{"ENV_ENABLED_METRIC", "false", &globalConfig.EnableMetric},
-	{"ENV_METRIC_HTTP_PORT", "", &globalConfig.MetricPort},
-	{"ENV_HTTP_PORT", "80", &globalConfig.HttpPort},
-	{"ENV_GOPS_LISTEN_PORT", "", &globalConfig.GopsPort},
-	{"ENV_WEBHOOK_PORT", "", &globalConfig.WebhookPort},
-	{"ENV_PYROSCOPE_PUSH_SERVER_ADDRESS", "", &globalConfig.PyroscopeServerAddress},
-	{"ENV_POD_NAME", "", &globalConfig.PodName},
-	{"ENV_POD_NAMESPACE", "", &globalConfig.PodNamespace},
-	{"ENV_GOLANG_MAXPROCS", "8", &globalConfig.GolangMaxProcs},
-}
-
 func init() {
 
 	viper.AutomaticEnv()
@@ -81,54 +35,54 @@ func init() {
 		logger.Info("git commit timestamp " + t)
 	}
 
-	for n, v := range envMapping {
-		m := v.defaultValue
-		if t := viper.GetString(v.envName); len(t) > 0 {
+	for n, v := range types.AgentEnvMapping {
+		m := v.DefaultValue
+		if t := viper.GetString(v.EnvName); len(t) > 0 {
 			m = t
 		}
 		if len(m) > 0 {
-			switch v.p.(type) {
+			switch v.P.(type) {
 			case *int32:
 				if s, err := strconv.ParseInt(m, 10, 64); err == nil {
-					r := envMapping[n].p.(*int32)
+					r := types.AgentEnvMapping[n].P.(*int32)
 					*r = int32(s)
 				} else {
-					logger.Fatal("failed to parse env value of " + v.envName + " to int32, value=" + m)
+					logger.Fatal("failed to parse env value of " + v.EnvName + " to int32, value=" + m)
 				}
 			case *string:
-				r := envMapping[n].p.(*string)
+				r := types.AgentEnvMapping[n].P.(*string)
 				*r = m
 			case *bool:
 				if s, err := strconv.ParseBool(m); err == nil {
-					r := envMapping[n].p.(*bool)
+					r := types.AgentEnvMapping[n].P.(*bool)
 					*r = s
 				} else {
-					logger.Fatal("failed to parse env value of " + v.envName + " to bool, value=" + m)
+					logger.Fatal("failed to parse env value of " + v.EnvName + " to bool, value=" + m)
 				}
 			default:
-				logger.Sugar().Fatal("unsupported type to parse %v, config type=%v ", v.envName, reflect.TypeOf(v.p))
+				logger.Sugar().Fatal("unsupported type to parse %v, config type=%v ", v.EnvName, reflect.TypeOf(v.P))
 			}
 		}
 
-		logger.Info(v.envName + " = " + m)
+		logger.Info(v.EnvName + " = " + m)
 	}
 
 	// command flags
 	globalFlag := rootCmd.PersistentFlags()
-	globalFlag.StringVarP(&globalConfig.ConfigMapPath, "config-path", "C", "", "configmap file path")
+	globalFlag.StringVarP(&types.AgentConfig.ConfigMapPath, "config-path", "C", "", "configmap file path")
 	if e := viper.BindPFlags(globalFlag); e != nil {
 		logger.Sugar().Fatalf("failed to BindPFlags, reason=%v", e)
 	}
 	printFlag := func() {
-		logger.Info("config-path = " + globalConfig.ConfigMapPath)
+		logger.Info("config-path = " + types.AgentConfig.ConfigMapPath)
 
 		// load configmap
-		if len(globalConfig.ConfigMapPath) > 0 {
-			configmapBytes, err := os.ReadFile(globalConfig.ConfigMapPath)
+		if len(types.AgentConfig.ConfigMapPath) > 0 {
+			configmapBytes, err := os.ReadFile(types.AgentConfig.ConfigMapPath)
 			if nil != err {
-				logger.Sugar().Fatalf("failed to read configmap file %v, error: %v", globalConfig.ConfigMapPath, err)
+				logger.Sugar().Fatalf("failed to read configmap file %v, error: %v", types.AgentConfig.ConfigMapPath, err)
 			}
-			if err := yaml.Unmarshal(configmapBytes, &globalConfig.Configmap); nil != err {
+			if err := yaml.Unmarshal(configmapBytes, &types.AgentConfig.Configmap); nil != err {
 				logger.Sugar().Fatalf("failed to parse configmap data, error: %v", err)
 			}
 		}

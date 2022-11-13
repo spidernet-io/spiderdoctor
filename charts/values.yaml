@@ -126,6 +126,8 @@ spiderdoctorAgent:
   ## @param spiderdoctorAgent.priorityClassName the priority Class Name for spiderdoctorAgent
   priorityClassName: "system-node-critical"
 
+  reportHostPath: "/var/run/spiderdoctor/agent"
+
   ## @param spiderdoctorAgent.affinity the affinity of spiderdoctorAgent
   affinity: {}
 
@@ -162,6 +164,10 @@ spiderdoctorAgent:
   ## @param spiderdoctorAgent.securityContext the security Context of spiderdoctorAgent pod
   securityContext: {}
   # runAsUser: 0
+
+  grpcServer:
+    ## @param spiderdoctorAgent.grpcServer.port the Port for grpc server
+    port: 3000
 
   httpServer:
     ## @param spiderdoctorAgent.httpServer.port the http Port for spiderdoctorAgent, for health checking
@@ -236,6 +242,9 @@ spiderdoctorAgent:
     logLevel: "info"
     ## @param spiderdoctorAgent.debug.gopsPort the gops port of template agent
     gopsPort: 5712
+
+  ## @param spiderdoctorAgent.gcReport delete report file when CR is deleted
+  gcReport: true
 
 ## @section spiderdoctorController parameters
 ##
@@ -502,3 +511,26 @@ spiderdoctorController:
 
       ## @param spiderdoctorController.tls.auto.extraDnsNames extra DNS names of server cert for auto method
       extraDnsNames: []
+
+  ## aggregate report from agent for each crd
+  aggregateReport:
+    ## @param spiderdoctorController.aggregateReport.enabled aggregate report from agent for each crd
+    enabled: false
+
+    ## @param spiderdoctorController.aggregateReport.reportHostPath storage path when pvc is disabled
+    reportHostPath: "/var/run/spiderdoctor/controller"
+
+    # for store report
+    pvc:
+      ## @param spiderdoctorController.aggregateReport.pvc.enabled store report to pvc
+      enabled: true
+
+      ## @param spiderdoctorController.aggregateReport.pvc.storageClass storage class name
+      storageClass: ""
+
+      ## @param spiderdoctorController.aggregateReport.pvc.storageRequests storage request
+      storageRequests: "100Mi"
+
+      ## @param spiderdoctorController.aggregateReport.pvc.storageLimits storage limit
+      storageLimits: "1024Mi"
+

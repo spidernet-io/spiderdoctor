@@ -14,52 +14,6 @@ import (
 	"strconv"
 )
 
-type Config struct {
-	// from env
-	EnableMetric bool
-	MetricPort   int32
-	HttpPort     int32
-	GopsPort     int32
-	WebhookPort  int32
-
-	PyroscopeServerAddress string
-
-	PodName      string
-	PodNamespace string
-
-	GolangMaxProcs int32
-
-	// from flags
-	ConfigMapPath string
-
-	TlsCaCertPath     string
-	TlsServerCertPath string
-	TlsServerKeyPath  string
-
-	// from configmap
-	Configmap types.ConfigmapConfig
-}
-
-var globalConfig Config
-
-type _envMapping struct {
-	envName      string
-	defaultValue string
-	p            interface{}
-}
-
-var envMapping = []_envMapping{
-	{"ENV_ENABLED_METRIC", "false", &globalConfig.EnableMetric},
-	{"ENV_METRIC_HTTP_PORT", "", &globalConfig.MetricPort},
-	{"ENV_HTTP_PORT", "80", &globalConfig.HttpPort},
-	{"ENV_GOPS_LISTEN_PORT", "", &globalConfig.GopsPort},
-	{"ENV_WEBHOOK_PORT", "", &globalConfig.WebhookPort},
-	{"ENV_PYROSCOPE_PUSH_SERVER_ADDRESS", "", &globalConfig.PyroscopeServerAddress},
-	{"ENV_POD_NAME", "", &globalConfig.PodName},
-	{"ENV_POD_NAMESPACE", "", &globalConfig.PodNamespace},
-	{"ENV_GOLANG_MAXPROCS", "8", &globalConfig.GolangMaxProcs},
-}
-
 func init() {
 
 	viper.AutomaticEnv()
@@ -81,60 +35,60 @@ func init() {
 		logger.Info("git commit timestamp " + t)
 	}
 
-	for n, v := range envMapping {
-		m := v.defaultValue
-		if t := viper.GetString(v.envName); len(t) > 0 {
+	for n, v := range types.ControllerEnvMapping {
+		m := v.DefaultValue
+		if t := viper.GetString(v.EnvName); len(t) > 0 {
 			m = t
 		}
 		if len(m) > 0 {
-			switch v.p.(type) {
+			switch v.P.(type) {
 			case *int32:
 				if s, err := strconv.ParseInt(m, 10, 64); err == nil {
-					r := envMapping[n].p.(*int32)
+					r := types.ControllerEnvMapping[n].P.(*int32)
 					*r = int32(s)
 				} else {
-					logger.Fatal("failed to parse env value of " + v.envName + " to int32, value=" + m)
+					logger.Fatal("failed to parse env value of " + v.EnvName + " to int32, value=" + m)
 				}
 			case *string:
-				r := envMapping[n].p.(*string)
+				r := types.ControllerEnvMapping[n].P.(*string)
 				*r = m
 			case *bool:
 				if s, err := strconv.ParseBool(m); err == nil {
-					r := envMapping[n].p.(*bool)
+					r := types.ControllerEnvMapping[n].P.(*bool)
 					*r = s
 				} else {
-					logger.Fatal("failed to parse env value of " + v.envName + " to bool, value=" + m)
+					logger.Fatal("failed to parse env value of " + v.EnvName + " to bool, value=" + m)
 				}
 			default:
-				logger.Sugar().Fatal("unsupported type to parse %v, config type=%v ", v.envName, reflect.TypeOf(v.p))
+				logger.Sugar().Fatal("unsupported type to parse %v, config type=%v ", v.EnvName, reflect.TypeOf(v.P))
 			}
 		}
 
-		logger.Info(v.envName + " = " + m)
+		logger.Info(v.EnvName + " = " + m)
 	}
 
 	// command flags
 	globalFlag := rootCmd.PersistentFlags()
-	globalFlag.StringVarP(&globalConfig.ConfigMapPath, "config-path", "C", "", "configmap file path")
-	globalFlag.StringVarP(&globalConfig.TlsCaCertPath, "tls-ca-cert", "R", "", "ca file path")
-	globalFlag.StringVarP(&globalConfig.TlsServerCertPath, "tls-server-cert", "T", "", "server cert file path")
-	globalFlag.StringVarP(&globalConfig.TlsServerKeyPath, "tls-server-key", "Y", "", "server key file path")
+	globalFlag.StringVarP(&types.ControllerConfig.ConfigMapPath, "config-path", "C", "", "configmap file path")
+	globalFlag.StringVarP(&types.ControllerConfig.TlsCaCertPath, "tls-ca-cert", "R", "", "ca file path")
+	globalFlag.StringVarP(&types.ControllerConfig.TlsServerCertPath, "tls-server-cert", "T", "", "server cert file path")
+	globalFlag.StringVarP(&types.ControllerConfig.TlsServerKeyPath, "tls-server-key", "Y", "", "server key file path")
 	if e := viper.BindPFlags(globalFlag); e != nil {
 		logger.Sugar().Fatalf("failed to BindPFlags, reason=%v", e)
 	}
 	printFlag := func() {
-		logger.Info("config-path = " + globalConfig.ConfigMapPath)
-		logger.Info("tls-ca-cert = " + globalConfig.TlsCaCertPath)
-		logger.Info("tls-server-cert = " + globalConfig.TlsServerCertPath)
-		logger.Info("tls-server-key = " + globalConfig.TlsServerKeyPath)
+		logger.Info("config-path = " + types.ControllerConfig.ConfigMapPath)
+		logger.Info("tls-ca-cert = " + types.ControllerConfig.TlsCaCertPath)
+		logger.Info("tls-server-cert = " + types.ControllerConfig.TlsServerCertPath)
+		logger.Info("tls-server-key = " + types.ControllerConfig.TlsServerKeyPath)
 
 		// load configmap
-		if len(globalConfig.ConfigMapPath) > 0 {
-			configmapBytes, err := os.ReadFile(globalConfig.ConfigMapPath)
+		if len(types.ControllerConfig.ConfigMapPath) > 0 {
+			configmapBytes, err := os.ReadFile(types.ControllerConfig.ConfigMapPath)
 			if nil != err {
-				logger.Sugar().Fatalf("failed to read configmap file %v, error: %v", globalConfig.ConfigMapPath, err)
+				logger.Sugar().Fatalf("failed to read configmap file %v, error: %v", types.ControllerConfig.ConfigMapPath, err)
 			}
-			if err := yaml.Unmarshal(configmapBytes, &globalConfig.Configmap); nil != err {
+			if err := yaml.Unmarshal(configmapBytes, &types.ControllerConfig.Configmap); nil != err {
 				logger.Sugar().Fatalf("failed to parse configmap data, error: %v", err)
 			}
 		}

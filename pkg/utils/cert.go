@@ -12,6 +12,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"k8s.io/client-go/util/cert"
 	"k8s.io/client-go/util/keyutil"
 	netutils "k8s.io/utils/net"
@@ -37,8 +38,8 @@ func NewServerCertKey(host string, alternateIPs []net.IP, alternateDNS []string)
 		return nil, nil, nil, err
 	}
 
-	CommonName := "spidernet.io"
-	Organization := []string{"spidernet.io"}
+	CommonName := types.TlsCaCommonName
+	Organization := []string{types.TlsCaCommonName}
 
 	tmpl := x509.Certificate{
 		SerialNumber: new(big.Int).SetInt64(0),

@@ -7,6 +7,7 @@ import (
 	"context"
 	"github.com/spidernet-io/spiderdoctor/pkg/debug"
 	"github.com/spidernet-io/spiderdoctor/pkg/netdoctorManager"
+	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.opentelemetry.io/otel/attribute"
 	"path/filepath"
 	"time"
@@ -16,18 +17,18 @@ func SetupUtility() {
 
 	// run gops
 	d := debug.New(rootLogger)
-	if globalConfig.GopsPort != 0 {
-		d.RunGops(int(globalConfig.GopsPort))
+	if types.ControllerConfig.GopsPort != 0 {
+		d.RunGops(int(types.ControllerConfig.GopsPort))
 	}
 
-	if globalConfig.PyroscopeServerAddress != "" {
-		d.RunPyroscope(globalConfig.PyroscopeServerAddress, globalConfig.PodName)
+	if types.ControllerConfig.PyroscopeServerAddress != "" {
+		d.RunPyroscope(types.ControllerConfig.PyroscopeServerAddress, types.ControllerConfig.PodName)
 	}
 }
 
 func DaemonMain() {
 
-	rootLogger.Sugar().Infof("config: %+v", globalConfig)
+	rootLogger.Sugar().Infof("config: %+v", types.ControllerConfig)
 
 	SetupUtility()
 
@@ -35,7 +36,7 @@ func DaemonMain() {
 
 	// ------
 
-	RunMetricsServer(globalConfig.PodName)
+	RunMetricsServer(types.ControllerConfig.PodName)
 	MetricGaugeEndpoint.Add(context.Background(), 100)
 	MetricGaugeEndpoint.Add(context.Background(), -10)
 	MetricGaugeEndpoint.Add(context.Background(), 5)
@@ -54,8 +55,8 @@ func DaemonMain() {
 
 	// ----------
 	s := netdoctorManager.New(rootLogger.Named("netdocktor"))
-	s.RunInformer("testlease", globalConfig.PodNamespace, globalConfig.PodName)
-	s.RunWebhookServer(int(globalConfig.WebhookPort), filepath.Dir(globalConfig.TlsServerCertPath))
+	s.RunInformer("testlease", types.ControllerConfig.PodNamespace, types.ControllerConfig.PodName)
+	s.RunWebhookServer(int(types.ControllerConfig.WebhookPort), filepath.Dir(types.ControllerConfig.TlsServerCertPath))
 
 	// ------------
 	rootLogger.Info("hello world")
