@@ -1,8 +1,12 @@
+// Copyright 2022 Authors of spidernet-io
+// SPDX-License-Identifier: Apache-2.0
+
 package grpcManager
 
 import (
 	"context"
 	"github.com/spidernet-io/spiderdoctor/api/v1/agentGrpc"
+
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -17,10 +21,11 @@ type myGrpcServer struct {
 	logger *zap.Logger
 }
 
+// implement the grpc server method
 func (s *myGrpcServer) ExecRemoteCmd(ctx context.Context, req *agentGrpc.ExecRequestMsg) (*agentGrpc.ExecResponseMsg, error) {
 
 	logger := s.logger.With(
-		zap.String("SubnetName", req.Command),
+		zap.String("commandName", req.Command),
 	)
 	logger.Sugar().Infof("request: %+v", req)
 

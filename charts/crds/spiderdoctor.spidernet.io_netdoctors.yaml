@@ -20,6 +20,10 @@ spec:
   scope: Cluster
   versions:
   - additionalPrinterColumns:
+    - description: Finish
+      jsonPath: .status.Finish
+      name: Finish
+      type: bool
     - description: ExpectedRound
       jsonPath: .status.ExpectedRound
       name: ExpectedRound
@@ -50,17 +54,25 @@ spec:
             type: object
           spec:
             properties:
-              enabledIPv4:
-                type: boolean
-              enabledIPv6:
-                type: boolean
+              eachQPS:
+                format: int64
+                type: integer
+              eachTimeInSecond:
+                format: int64
+                type: integer
               schedule:
                 properties:
-                  interval:
+                  intervalMinute:
+                    default: 360
                     format: int64
                     type: integer
                   roundNumber:
                     default: 1
+                    format: int64
+                    minimum: 0
+                    type: integer
+                  startAfterMinute:
+                    default: 0
                     format: int64
                     minimum: 0
                     type: integer
@@ -71,10 +83,30 @@ spec:
                     type: integer
                 required:
                 - roundNumber
+                - startAfterMinute
                 type: object
-            required:
-            - enabledIPv4
-            - enabledIPv6
+              target:
+                properties:
+                  hostAddress:
+                    type: string
+                  service:
+                    properties:
+                      serviceName:
+                        type: string
+                      testEndpoint:
+                        type: boolean
+                      testIngress:
+                        type: boolean
+                      testNodePort:
+                        type: boolean
+                    type: object
+                type: object
+              testIPv4:
+                default: true
+                type: boolean
+              testIPv6:
+                default: false
+                type: boolean
             type: object
           status:
             properties:
@@ -86,21 +118,27 @@ spec:
                 format: int64
                 minimum: 0
                 type: integer
+              finish:
+                type: boolean
+              lastRoundFinishTimeStamp:
+                format: date-time
+                type: string
               lastRoundStatus:
                 enum:
                 - succeed
                 - fail
                 - unknown
                 type: string
-              lastRoundTimeStamp:
+              nextRoundDeadLineTimeStamp:
                 format: date-time
                 type: string
-              nextRoundTimeStamp:
+              nextRoundStartTimeStamp:
                 format: date-time
                 type: string
             required:
             - doneRound
             - expectedRound
+            - finish
             type: object
         required:
         - metadata

@@ -1,6 +1,10 @@
+// Copyright 2022 Authors of spidernet-io
+// SPDX-License-Identifier: Apache-2.0
+
 package grpcManager
 
 import (
+	"context"
 	"crypto/tls"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -34,16 +38,17 @@ const (
 	DefaultMaxSendMsgSize = math.MaxInt32
 )
 
-func NewGrpcServer(logger *zap.Logger, tlsCaPath, tlsCertPath, tlskeyPath string) GrpcServerManager {
+func NewGrpcServer(logger *zap.Logger, tlsCertPath, tlskeyPath string) GrpcServerManager {
 	m := &grpcServer{}
 	opts := []grpc.ServerOption{}
 
-	m.logger = logger
+	m.logger = logger.Named("grpcManager")
+	m.logger.Sugar().Infof("NewGrpcServer, tlsCertPath=%v, tlskeyPath=%v", tlsCertPath, tlskeyPath)
 
 	// ----- tls
 	cert, err := tls.LoadX509KeyPair(tlsCertPath, tlskeyPath)
 	if err != nil {
-		logger.Sugar().Fatalf("failed to load tls: %s", err)
+		m.logger.Sugar().Fatalf("failed to load tls: %s", err)
 	}
 	opts = append(opts, grpc.Creds(credentials.NewServerTLSFromCert(&cert)))
 
@@ -64,15 +69,21 @@ func NewGrpcServer(logger *zap.Logger, tlsCaPath, tlsCertPath, tlskeyPath string
 	// https://godoc.org/google.golang.org/grpc#KeepaliveParams
 	opts = append(opts, grpc.KeepaliveParams(kasp))
 
+	// https://godoc.org/google.golang.org/grpc#WithUnaryInterceptor
+	// 添加 unary call 前的回调
+	opts = append(opts, grpc.UnaryInterceptor(m.unaryInterceptor))
+
 	opts = append(opts, grpc.MaxRecvMsgSize(DefaultMaxRecvMsgSize))
 	opts = append(opts, grpc.MaxSendMsgSize(DefaultMaxSendMsgSize))
 
 	m.server = grpc.NewServer(opts...)
 	if m.server == nil {
-		logger.Fatal("failed to New Grpc Server ")
+		m.logger.Fatal("failed to New Grpc Server ")
 	}
+
 	m.healthcheckService = health.NewServer()
 	healthpb.RegisterHealthServer(m.server, m.healthcheckService)
+
 	reflection.Register(m.server)
 
 	m.registerService()
@@ -80,9 +91,10 @@ func NewGrpcServer(logger *zap.Logger, tlsCaPath, tlsCertPath, tlskeyPath string
 	return m
 }
 
-// address: "127.0.0.1:5000" or ":5000"
+// address: "127.0.0.1:5000" or ":5000" (listen on ipv4 and ipv6)
 func (t *grpcServer) Run(listenAddress string) {
 
+	t.logger.Info("run grpc server at " + listenAddress)
 	d, err := net.Listen("tcp", listenAddress)
 	if err != nil {
 		t.logger.Sugar().Fatalf("failed to listen: %v", err)
@@ -112,5 +124,17 @@ func (t *grpcServer) UpdateHealthStatus(status healthpb.HealthCheckResponse_Serv
 
 	t.healthcheckService.SetServingStatus("", status)
 	t.logger.Sugar().Infof("grpc server update health status to %v", status)
-	return
+
+}
+
+func (t *grpcServer) unaryInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (i interface{}, e error) {
+	// we can add more middleware heare
+
+	// Continue execution of handler
+	start := time.Now()
+	i, e = handler(ctx, req)
+	end := time.Now()
+	t.logger.Sugar().Debugf("grpc server: rpc=%s , start_time=%s, end_time=%s, err=%v \n", info.FullMethod, start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano), e)
+
+	return i, e
 }

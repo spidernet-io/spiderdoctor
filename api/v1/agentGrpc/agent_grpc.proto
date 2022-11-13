@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "github.com/spidernet-io/spiderdoctor/api/v1/agentGrpc";
+option go_package = ".;agentGrpc";
 
 package proto;
 

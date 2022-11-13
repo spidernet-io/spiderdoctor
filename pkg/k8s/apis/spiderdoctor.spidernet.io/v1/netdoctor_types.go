@@ -17,9 +17,22 @@ type NetdoctorSpec struct {
 	// +kubebuilder:validation:Optional
 	Schedule *SchedulePlan `json:"schedule,omitempty"`
 
-	EnabledIPv4 bool `json:"enabledIPv4"`
+	// +kubebuilder:validation:Optional
+	Target *NetTarget `json:"target,omitempty"`
 
-	EnabledIPv6 bool `json:"enabledIPv6"`
+	// +kubebuilder:default=true
+	// +kubebuilder:validation:Optional
+	TestIPv4 *bool `json:"testIPv4,omitempty"`
+
+	// +kubebuilder:default=false
+	// +kubebuilder:validation:Optional
+	TestIPv6 *bool `json:"testIPv6,omitempty"`
+
+	// +kubebuilder:validation:Optional
+	EachTimeInSecond *uint64 `json:"eachTimeInSecond,omitempty"`
+
+	// +kubebuilder:validation:Optional
+	EachQPS *uint64 `json:"eachQPS,omitempty"`
 }
 
 type NetdoctorStatus struct {
@@ -29,23 +42,31 @@ type NetdoctorStatus struct {
 	// +kubebuilder:validation:Minimum=0
 	DoneRound *int64 `json:"doneRound"`
 
-	// +kubebuilder:validation:Optional
-	// +kubebuilder:validation:Type:=string
-	// +kubebuilder:validation:Format:=date-time
-	LastRoundTimeStamp *metav1.Time `json:"lastRoundTimeStamp,omitempty"`
+	Finish bool `json:"finish"`
 
 	// +kubebuilder:validation:Optional
 	// +kubebuilder:validation:Type:=string
 	// +kubebuilder:validation:Format:=date-time
-	NextRoundTimeStamp *metav1.Time `json:"nextRoundTimeStamp,omitempty"`
+	LastRoundFinishTimeStamp *metav1.Time `json:"lastRoundFinishTimeStamp,omitempty"`
 
 	// +kubebuilder:validation:Optional
 	// +kubebuilder:validation:Enum=succeed;fail;unknown
 	LastRoundStatus *string `json:"lastRoundStatus,omitempty"`
+
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Type:=string
+	// +kubebuilder:validation:Format:=date-time
+	NextRoundStartTimeStamp *metav1.Time `json:"nextRoundStartTimeStamp,omitempty"`
+
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Type:=string
+	// +kubebuilder:validation:Format:=date-time
+	NextRoundDeadLineTimeStamp *metav1.Time `json:"nextRoundDeadLineTimeStamp,omitempty"`
 }
 
 // scope(Namespaced or Cluster)
 // +kubebuilder:resource:categories={spiderdoctor},path="netdoctors",singular="netdoctor",scope="Cluster",shortName={nd}
+// +kubebuilder:printcolumn:JSONPath=".status.Finish",description="Finish",name="Finish",type=bool
 // +kubebuilder:printcolumn:JSONPath=".status.ExpectedRound",description="ExpectedRound",name="ExpectedRound",type=integer
 // +kubebuilder:printcolumn:JSONPath=".status.DoneRound",description="DoneRound",name="DoneRound",type=integer
 // +kubebuilder:printcolumn:JSONPath=".status.LastRoundStatus",description="LastRoundStatus",name="LastRoundStatus",type=integer
