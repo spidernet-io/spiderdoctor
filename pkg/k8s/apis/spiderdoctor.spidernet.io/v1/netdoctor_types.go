@@ -81,7 +81,7 @@ type NetdoctorStatus struct {
 
 // scope(Namespaced or Cluster)
 // +kubebuilder:resource:categories={spiderdoctor},path="netdoctors",singular="netdoctor",scope="Cluster",shortName={nd}
-// +kubebuilder:printcolumn:JSONPath=".status.Finish",description="Finish",name="Finish",type=bool
+// +kubebuilder:printcolumn:JSONPath=".status.Finish",description="Finish",name="Finish",type=boolean
 // +kubebuilder:printcolumn:JSONPath=".status.ExpectedRound",description="ExpectedRound",name="ExpectedRound",type=integer
 // +kubebuilder:printcolumn:JSONPath=".status.DoneRound",description="DoneRound",name="DoneRound",type=integer
 // +kubebuilder:printcolumn:JSONPath=".status.LastRoundStatus",description="LastRoundStatus",name="LastRoundStatus",type=integer

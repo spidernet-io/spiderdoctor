@@ -23,7 +23,7 @@ spec:
     - description: Finish
       jsonPath: .status.Finish
       name: Finish
-      type: bool
+      type: boolean
     - description: ExpectedRound
       jsonPath: .status.ExpectedRound
       name: ExpectedRound
