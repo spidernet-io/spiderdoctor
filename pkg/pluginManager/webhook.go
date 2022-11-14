@@ -6,9 +6,11 @@ package pluginManager
 import (
 	"context"
 	"fmt"
+	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"time"
@@ -49,8 +51,11 @@ func (s *pluginManager) runWebhook(webhookPort int, webhookTlsDir string) {
 
 	logger := s.logger
 	scheme := runtime.NewScheme()
-	if e := plugin.AddToScheme(scheme); e != nil {
-		logger.Sugar().Fatalf("failed to add scheme for plugin, reason=%v", name, e)
+	if e:=clientgoscheme.AddToScheme(scheme);e != nil {
+		logger.Sugar().Fatalf("failed to add k8s scheme, reason=%v", e)
+	}
+	if e := crd.AddToScheme(scheme); e != nil {
+		logger.Sugar().Fatalf("failed to add scheme for plugins, reason=%v", e)
 	}
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
