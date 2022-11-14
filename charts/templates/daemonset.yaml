@@ -159,11 +159,11 @@ spec:
               value: {{ .Values.global.clusterDnsDomain | quote }}
             {{- if .Values.feature.enableIPv4 }}
             - name: ENV_AGENT_IPV4_SERVICE_NAME
-              value: {{ include "project.spiderdoctorAgent.serviceIpv4Name" }}
+              value: {{ include "project.spiderdoctorAgent.serviceIpv4Name" . }}
             {{- end }}
             {{- if .Values.feature.enableIPv6 }}
             - name: ENV_AGENT_IPV6_SERVICE_NAME
-              value: {{ include "project.spiderdoctorAgent.serviceIpv6Name" }}
+              value: {{ include "project.spiderdoctorAgent.serviceIpv6Name" . }}
             {{- end }}
             - name: ENV_PATH_AGENT_POD_REPORT
               value: "/report"
