@@ -103,10 +103,6 @@ spec:
                     type: integer
                   successRate:
                     default: 1
-                    description: found float, the usage of which is highly discouraged,
-                      as support for them varies across languages. Please consider
-                      serializing your float as string instead. If you are really
-                      sure you want to use them, re-run with crd:allowDangerousTypes=true
                     type: string
                 type: object
               target:
