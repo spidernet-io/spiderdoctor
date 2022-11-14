@@ -5,16 +5,16 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: (unknown)
   creationTimestamp: null
-  name: nethttps.spiderdoctor.spidernet.io
+  name: netdnss.spiderdoctor.spidernet.io
 spec:
   group: spiderdoctor.spidernet.io
   names:
     categories:
     - spiderdoctor
-    kind: Nethttp
-    listKind: NethttpList
-    plural: nethttps
-    singular: nethttp
+    kind: Netdns
+    listKind: NetdnsList
+    plural: netdnss
+    singular: netdns
   scope: Cluster
   versions:
   - additionalPrinterColumns:
@@ -52,17 +52,6 @@ spec:
             type: object
           spec:
             properties:
-              failureCondition:
-                properties:
-                  meanAccessDelayInMs:
-                    default: 5000
-                    format: int64
-                    type: integer
-                  successRate:
-                    default: 1
-                    format: int64
-                    type: integer
-                type: object
               request:
                 properties:
                   durationInSecond:
@@ -106,17 +95,16 @@ spec:
                 - roundNumber
                 - startAfterMinute
                 type: object
-              target:
+              successCondition:
                 properties:
-                  testEndpoint:
-                    default: true
-                    type: boolean
-                  testIngress:
-                    default: false
-                    type: boolean
-                  testNodePort:
-                    default: true
-                    type: boolean
+                  meanAccessDelayInMs:
+                    default: 5000
+                    format: int64
+                    type: integer
+                  successRate:
+                    default: 1
+                    format: int64
+                    type: integer
                 type: object
             type: object
           status:

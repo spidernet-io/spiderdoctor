@@ -9,10 +9,19 @@ metadata:
   name: test1
 spec:
   schedule:
+    startAfterMinute: 10
     roundNumber: 1
-    interval: 60
-  enabledIPv4: true
-  enabledIPv6: true
+    intervalMinute: 60
+    TimeoutMinute: 10
+  request:
+    testIPv4: true
+    testIPv6: true
+    durationInSecond: 10
+    qps: 10
+    perRequestTimeoutInSecond: 5
+  failureCondition:
+    successRate: 1
+    meanAccessDelayInMs: 1000
 EOF
 
 kubectl apply -f example.yaml

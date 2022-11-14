@@ -15,12 +15,17 @@ import (
 
 type SpiderdoctorV1Interface interface {
 	RESTClient() rest.Interface
+	NetdnsesGetter
 	NethttpsGetter
 }
 
 // SpiderdoctorV1Client is used to interact with features provided by the spiderdoctor.spidernet.io group.
 type SpiderdoctorV1Client struct {
 	restClient rest.Interface
+}
+
+func (c *SpiderdoctorV1Client) Netdnses() NetdnsInterface {
+	return newNetdnses(c)
 }
 
 func (c *SpiderdoctorV1Client) Nethttps() NethttpInterface {

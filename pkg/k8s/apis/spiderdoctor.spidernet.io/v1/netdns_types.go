@@ -7,21 +7,18 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type NethttpSpec struct {
+type NetdnsSpec struct {
 	// +kubebuilder:validation:Optional
 	Schedule *SchedulePlan `json:"schedule,omitempty"`
 
 	// +kubebuilder:validation:Optional
-	Target *NethttpTarget `json:"target,omitempty"`
+	Request *NetdnsRequest `json:"request,omitempty"`
 
 	// +kubebuilder:validation:Optional
-	Request *NethttpRequest `json:"request,omitempty"`
-
-	// +kubebuilder:validation:Optional
-	SuccessCondition *NetSuccessCondition `json:"failureCondition,omitempty"`
+	SuccessCondition *NetSuccessCondition `json:"successCondition,omitempty"`
 }
 
-type NethttpRequest struct {
+type NetdnsRequest struct {
 	// +kubebuilder:default=true
 	// +kubebuilder:validation:Optional
 	TestIPv4 *bool `json:"testIPv4,omitempty"`
@@ -40,20 +37,8 @@ type NethttpRequest struct {
 	PerRequestTimeoutInSecond *uint64 `json:"perRequestTimeoutInSecond,omitempty"`
 }
 
-type NethttpTarget struct {
-
-	// +kubebuilder:default=true
-	TestEndpoint bool `json:"testEndpoint,omitempty"`
-
-	// +kubebuilder:default=true
-	TestNodePort bool `json:"testNodePort,omitempty"`
-
-	// +kubebuilder:default=false
-	TestIngress bool `json:"testIngress,omitempty"`
-}
-
 // scope(Namespaced or Cluster)
-// +kubebuilder:resource:categories={spiderdoctor},path="nethttps",singular="nethttp",scope="Cluster"
+// +kubebuilder:resource:categories={spiderdoctor},path="netdnss",singular="netdns",scope="Cluster"
 // +kubebuilder:printcolumn:JSONPath=".status.Finish",description="Finish",name="Finish",type=boolean
 // +kubebuilder:printcolumn:JSONPath=".status.ExpectedRound",description="ExpectedRound",name="ExpectedRound",type=integer
 // +kubebuilder:printcolumn:JSONPath=".status.DoneRound",description="DoneRound",name="DoneRound",type=integer
@@ -63,23 +48,23 @@ type NethttpTarget struct {
 // +genclient
 // +genclient:nonNamespaced
 
-type Nethttp struct {
+type Netdns struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata"`
 
-	Spec   NethttpSpec `json:"spec,omitempty"`
-	Status TaskStatus  `json:"status,omitempty"`
+	Spec   NetdnsSpec `json:"spec,omitempty"`
+	Status TaskStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-type NethttpList struct {
+type NetdnsList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata"`
 
-	Items []Nethttp `json:"items"`
+	Items []Netdns `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Nethttp{}, &NethttpList{})
+	SchemeBuilder.Register(&Netdns{}, &NetdnsList{})
 }

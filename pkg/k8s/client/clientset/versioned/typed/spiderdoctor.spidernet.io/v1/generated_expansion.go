@@ -5,4 +5,6 @@
 
 package v1
 
+type NetdnsExpansion interface{}
+
 type NethttpExpansion interface{}

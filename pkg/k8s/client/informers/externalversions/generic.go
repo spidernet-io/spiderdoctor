@@ -40,6 +40,8 @@ func (f *genericInformer) Lister() cache.GenericLister {
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
 	// Group=spiderdoctor.spidernet.io, Version=v1
+	case v1.SchemeGroupVersion.WithResource("netdnses"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Spiderdoctor().V1().Netdnses().Informer()}, nil
 	case v1.SchemeGroupVersion.WithResource("nethttps"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Spiderdoctor().V1().Nethttps().Informer()}, nil
 

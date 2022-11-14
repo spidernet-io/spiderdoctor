@@ -8,6 +8,9 @@
 // +kubebuilder:rbac:groups=spiderdoctor.spidernet.io,resources=nethttps,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=spiderdoctor.spidernet.io,resources=nethttps/status,verbs=get;update;patch
 
+// +kubebuilder:rbac:groups=spiderdoctor.spidernet.io,resources=netdnss,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=spiderdoctor.spidernet.io,resources=netdnss/status,verbs=get;update;patch
+
 // +kubebuilder:rbac:groups="",resources=events,verbs=create;get;list;watch;update;delete
 // +kubebuilder:rbac:groups="coordination.k8s.io",resources=leases,verbs=create;get;update
 // +kubebuilder:rbac:groups="apps",resources=statefulsets;deployments;replicasets;daemonsets,verbs=get;list;update;watch

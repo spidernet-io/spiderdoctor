@@ -15,6 +15,10 @@ type FakeSpiderdoctorV1 struct {
 	*testing.Fake
 }
 
+func (c *FakeSpiderdoctorV1) Netdnses() v1.NetdnsInterface {
+	return &FakeNetdnses{c}
+}
+
 func (c *FakeSpiderdoctorV1) Nethttps() v1.NethttpInterface {
 	return &FakeNethttps{c}
 }
