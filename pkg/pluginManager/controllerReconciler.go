@@ -59,14 +59,16 @@ func (s *pluginManager) runControllerReconcile() {
 		if e != nil {
 			s.logger.Sugar().Fatalf("failed to builder reconcile for plugin %v, error=%v", name, e)
 		}
-		go func(name string, t plugintypes.ChainingPlugin) {
+		if e := b.Watch(&source.Kind{Type: plugin.GetApiType()}, &handler.EnqueueRequestForObject{}); e != nil {
+			s.logger.Sugar().Fatalf("failed to watch for plugin %v, error=%v", name, e)
+		}
+		go func(name string) {
 			msg := fmt.Sprintf("reconcile of plugin %v down", name)
-			if e := b.Watch(&source.Kind{Type: t.GetApiType()}, &handler.EnqueueRequestForObject{}); e != nil {
+			if e := b.Start(context.Background()); e != nil {
 				msg += fmt.Sprintf(", error=%v", e)
 			}
 			s.logger.Error(msg)
 			time.Sleep(5 * time.Second)
-		}(name, plugin)
-
+		}(name)
 	}
 }
