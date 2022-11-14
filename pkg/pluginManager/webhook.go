@@ -48,25 +48,25 @@ func (s *webhookhander) ValidateDelete(ctx context.Context, obj runtime.Object) 
 func (s *pluginManager) runWebhook(webhookPort int, webhookTlsDir string) {
 
 	logger := s.logger
+	scheme := runtime.NewScheme()
+	if e := plugin.AddToScheme(scheme); e != nil {
+		logger.Sugar().Fatalf("failed to add scheme for plugin, reason=%v", name, e)
+	}
+	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+		Scheme:                 scheme,
+		MetricsBindAddress:     "0",
+		HealthProbeBindAddress: "0",
+		// webhook port
+		Port: webhookPort,
+		// directory that contains the webhook server key and certificate, The server key and certificate must be named tls.key and tls.crt
+		CertDir: webhookTlsDir,
+	})
+	if err != nil {
+		logger.Sugar().Fatalf("failed to NewManager, reason=%v", err)
+	}
+
 	for name, plugin := range s.chainingPlugins {
 		logger.Sugar().Infof("setup webhook for plugin %v on port %v, with tls under %v", name, webhookPort, webhookTlsDir)
-
-		scheme := runtime.NewScheme()
-		if e := plugin.AddToScheme(scheme); e != nil {
-			logger.Sugar().Fatalf("failed to add scheme for plugin, reason=%v", name, e)
-		}
-		mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-			Scheme:                 scheme,
-			MetricsBindAddress:     "0",
-			HealthProbeBindAddress: "0",
-			// webhook port
-			Port: webhookPort,
-			// directory that contains the webhook server key and certificate, The server key and certificate must be named tls.key and tls.crt
-			CertDir: webhookTlsDir,
-		})
-		if err != nil {
-			logger.Sugar().Fatalf("failed to NewManager, reason=%v", err)
-		}
 
 		eqw := &webhookhander{
 			logger: logger,
@@ -76,17 +76,15 @@ func (s *pluginManager) runWebhook(webhookPort int, webhookTlsDir string) {
 		if e != nil {
 			logger.Sugar().Fatalf("failed to NewWebhookManagedBy, reason=%v", e)
 		}
-
-		go func() {
-			s := "webhook down"
-			// mgr.Start()
-			if err := mgr.GetWebhookServer().Start(context.Background()); err != nil {
-				s += fmt.Sprintf(", reason=%v", err)
-			}
-			logger.Error(s)
-			time.Sleep(time.Second)
-		}()
-
 	}
+	go func() {
+		s := "webhook down"
+		// mgr.Start()
+		if err := mgr.Start(context.Background()); err != nil {
+			s += fmt.Sprintf(", reason=%v", err)
+		}
+		logger.Error(s)
+		time.Sleep(time.Second)
+	}()
 
 }
