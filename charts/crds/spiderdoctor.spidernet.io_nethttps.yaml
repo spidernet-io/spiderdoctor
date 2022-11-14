@@ -103,7 +103,7 @@ spec:
                     type: integer
                   successRate:
                     default: 1
-                    type: string
+                    type: number
                 type: object
               target:
                 properties:

@@ -71,7 +71,7 @@ type NetSuccessCondition struct {
 
 	// +kubebuilder:default=1
 	// +kubebuilder:validation:Optional
-	SuccessRate *string `json:"successRate,omitempty"`
+	SuccessRate *float32 `json:"successRate,omitempty"`
 
 	// +kubebuilder:default=5000
 	// +kubebuilder:validation:Optional
