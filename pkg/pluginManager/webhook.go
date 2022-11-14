@@ -79,7 +79,6 @@ func (s *pluginManager) runWebhook(webhookPort int, webhookTlsDir string) {
 
 		go func() {
 			s := "webhook down"
-
 			// mgr.Start()
 			if err := mgr.GetWebhookServer().Start(context.Background()); err != nil {
 				s += fmt.Sprintf(", reason=%v", err)

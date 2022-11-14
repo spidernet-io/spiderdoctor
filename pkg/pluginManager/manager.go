@@ -30,14 +30,14 @@ func InitPluginManager(logger *zap.Logger) PluginManager {
 }
 
 func (s *pluginManager) RunAgentController() {
-	s.logger.Sugar().Infof("setup agent controller")
+	s.logger.Sugar().Infof("setup agent reconcile")
 	s.runAgentReconcile()
 }
 
 func (s *pluginManager) RunControllerController(webhookPort int, webhookTlsDir string) {
 	s.logger.Sugar().Infof("setup controller webhook")
 	s.runWebhook(webhookPort, webhookTlsDir)
-	s.logger.Sugar().Infof("setup controller controller")
+	s.logger.Sugar().Infof("setup controller reconcile")
 	s.runControllerReconcile()
 }
 

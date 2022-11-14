@@ -2,11 +2,13 @@ package pluginManager
 
 import (
 	"context"
+	"fmt"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"go.uber.org/zap"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"time"
 )
 
 type pluginAgentReconciler struct {
@@ -35,9 +37,23 @@ func (s *pluginManager) runAgentReconcile() {
 	}
 	builder := ctrl.NewControllerManagedBy(mgr)
 	for name, plugin := range s.chainingPlugins {
-		go func(name string, t plugintypes.ChainingPlugin) {
-			logger.Sugar().Infof("run controller for plugin %v", name)
-			builder.For(t.GetApiType()).Owns(t.GetApiType()).Build(&pluginAgentReconciler{logger: logger.Named(name + "Reconciler"), p: t})
-		}(name, plugin)
+		logger.Sugar().Infof("run controller for plugin %v", name)
+		k := &pluginAgentReconciler{
+			logger: logger.Named(name + "Reconciler"),
+			p:      plugin,
+		}
+		b, e := builder.For(plugin.GetApiType()).Owns(plugin.GetApiType()).Build(k)
+		if e != nil {
+			s.logger.Sugar().Fatalf("failed to builder reconcile for plugin %v, error=%v", name, e)
+		}
+		go func(name string) {
+			msg := fmt.Sprintf("reconcile of plugin %v down", name)
+			if e := b.Start(context.Background()); e != nil {
+				msg += fmt.Sprintf(", error=%v", e)
+			}
+			s.logger.Error(msg)
+			time.Sleep(5 * time.Second)
+		}(name)
+
 	}
 }

@@ -24,10 +24,26 @@ func (s *PluginNetHttp) WebhookMutating(logger *zap.Logger, ctx context.Context,
 }
 
 func (s *PluginNetHttp) WebhookValidateCreate(logger *zap.Logger, ctx context.Context, obj runtime.Object) error {
+	r, ok := obj.(*crd.Nethttp)
+	if !ok {
+		s := "failed to get nethttp obj"
+		logger.Error(s)
+		return apierrors.NewBadRequest(s)
+	}
+	logger.Sugar().Infof("obj: %+v", r)
+
 	return nil
 }
 
 func (s *PluginNetHttp) WebhookValidateUpdate(logger *zap.Logger, ctx context.Context, oldObj, newObj runtime.Object) error {
+	r, ok := newObj.(*crd.Nethttp)
+	if !ok {
+		s := "failed to get nethttp obj"
+		logger.Error(s)
+		return apierrors.NewBadRequest(s)
+	}
+	logger.Sugar().Infof("obj: %+v", r)
+
 	return nil
 }
 

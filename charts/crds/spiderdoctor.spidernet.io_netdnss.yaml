@@ -102,6 +102,7 @@ spec:
                     format: int64
                     type: integer
                   successRate:
+                    default: 1
                     type: string
                 type: object
             type: object
@@ -132,7 +133,7 @@ spec:
                       - succeed
                       - fail
                       - unknown
-                      type: string
+                      type: number
                   required:
                   - failedAgentNodeList
                   - status

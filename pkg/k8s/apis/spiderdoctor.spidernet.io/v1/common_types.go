@@ -58,7 +58,7 @@ type TaskStatus struct {
 type StatusHistoryRecord struct {
 
 	// +kubebuilder:validation:Enum=succeed;fail;unknown
-	Status string `json:"status"`
+	Status *float32 `json:"status"`
 
 	// +kubebuilder:validation:Type:=string
 	// +kubebuilder:validation:Format:=date-time
@@ -69,6 +69,7 @@ type StatusHistoryRecord struct {
 
 type NetSuccessCondition struct {
 
+	// +kubebuilder:default=1
 	// +kubebuilder:validation:Optional
 	SuccessRate *string `json:"successRate,omitempty"`
 
