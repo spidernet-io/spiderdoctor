@@ -50,7 +50,13 @@ func (s *pluginManager) runWebhook(webhookPort int, webhookTlsDir string) {
 	logger := s.logger
 	for name, plugin := range s.chainingPlugins {
 		logger.Sugar().Infof("setup webhook for plugin %v on port %v, with tls under %v", name, webhookPort, webhookTlsDir)
+
+		scheme := runtime.NewScheme()
+		if e := plugin.AddToScheme(scheme); e != nil {
+			logger.Sugar().Fatalf("failed to add scheme for plugin, reason=%v", name, e)
+		}
 		mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+			Scheme:                 scheme,
 			MetricsBindAddress:     "0",
 			HealthProbeBindAddress: "0",
 			// webhook port
@@ -62,13 +68,11 @@ func (s *pluginManager) runWebhook(webhookPort int, webhookTlsDir string) {
 			logger.Sugar().Fatalf("failed to NewManager, reason=%v", err)
 		}
 
-		builder := ctrl.NewWebhookManagedBy(mgr)
-		builder = builder.For(plugin.GetApiType())
 		eqw := &webhookhander{
 			logger: logger,
 			plugin: plugin,
 		}
-		e := builder.WithDefaulter(eqw).WithValidator(eqw).RecoverPanic().Complete()
+		e := ctrl.NewWebhookManagedBy(mgr).For(plugin.GetApiType()).WithDefaulter(eqw).WithValidator(eqw).RecoverPanic().Complete()
 		if e != nil {
 			logger.Sugar().Fatalf("failed to NewWebhookManagedBy, reason=%v", e)
 		}
