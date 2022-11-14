@@ -28,12 +28,15 @@ type NetdnsRequest struct {
 	TestIPv6 *bool `json:"testIPv6,omitempty"`
 
 	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Minimum=1
 	DurationInSecond *uint64 `json:"durationInSecond,omitempty"`
 
 	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Minimum=1
 	QPS *uint64 `json:"qps,omitempty"`
 
 	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Minimum=1
 	PerRequestTimeoutInSecond *uint64 `json:"perRequestTimeoutInSecond,omitempty"`
 }
 

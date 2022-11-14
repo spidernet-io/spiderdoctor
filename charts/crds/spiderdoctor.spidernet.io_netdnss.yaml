@@ -56,12 +56,15 @@ spec:
                 properties:
                   durationInSecond:
                     format: int64
+                    minimum: 1
                     type: integer
                   perRequestTimeoutInSecond:
                     format: int64
+                    minimum: 1
                     type: integer
                   qps:
                     format: int64
+                    minimum: 1
                     type: integer
                   testIPv4:
                     default: true
@@ -75,6 +78,7 @@ spec:
                   intervalMinute:
                     default: 360
                     format: int64
+                    minimum: 1
                     type: integer
                   roundNumber:
                     default: 1
@@ -92,17 +96,22 @@ spec:
                     minimum: 1
                     type: integer
                 required:
+                - intervalMinute
                 - roundNumber
                 - startAfterMinute
+                - timeoutMinute
                 type: object
               success:
                 properties:
                   meanAccessDelayInMs:
                     default: 5000
                     format: int64
+                    minimum: 100
                     type: integer
                   successRate:
                     default: 1
+                    maximum: 1
+                    minimum: 0
                     type: number
                 type: object
             type: object
@@ -133,7 +142,7 @@ spec:
                       - succeed
                       - fail
                       - unknown
-                      type: number
+                      type: string
                   required:
                   - failedAgentNodeList
                   - status

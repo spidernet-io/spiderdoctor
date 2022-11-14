@@ -15,13 +15,12 @@ type SchedulePlan struct {
 	RoundNumber int64 `json:"roundNumber"`
 
 	// +kubebuilder:default=360
-	// +kubebuilder:validation:Optional
-	IntervalMinute int64 `json:"intervalMinute,omitempty"`
+	// +kubebuilder:validation:Minimum=1
+	IntervalMinute int64 `json:"intervalMinute"`
 
 	// +kubebuilder:default=60
 	// +kubebuilder:validation:Minimum=1
-	// +kubebuilder:validation:Optional
-	TimeoutMinute int64 `json:"timeoutMinute,omitempty"`
+	TimeoutMinute int64 `json:"timeoutMinute"`
 }
 
 type TaskStatus struct {
@@ -58,7 +57,7 @@ type TaskStatus struct {
 type StatusHistoryRecord struct {
 
 	// +kubebuilder:validation:Enum=succeed;fail;unknown
-	Status *float32 `json:"status"`
+	Status string `json:"status"`
 
 	// +kubebuilder:validation:Type:=string
 	// +kubebuilder:validation:Format:=date-time
@@ -70,10 +69,13 @@ type StatusHistoryRecord struct {
 type NetSuccessCondition struct {
 
 	// +kubebuilder:default=1
+	// +kubebuilder:validation:Minimum=0
+	// +kubebuilder:validation:Maximum=1
 	// +kubebuilder:validation:Optional
 	SuccessRate *float32 `json:"successRate,omitempty"`
 
 	// +kubebuilder:default=5000
+	// +kubebuilder:validation:Minimum=100
 	// +kubebuilder:validation:Optional
 	MeanAccessDelayInMs *uint64 `json:"meanAccessDelayInMs,omitempty"`
 }

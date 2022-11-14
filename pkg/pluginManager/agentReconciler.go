@@ -5,6 +5,7 @@ import (
 	"fmt"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"go.uber.org/zap"
+	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -26,7 +27,14 @@ var _ reconcile.Reconciler = &pluginAgentReconciler{}
 func (s *pluginManager) runAgentReconcile() {
 	logger := s.logger
 
+	scheme := runtime.NewScheme()
+	for name, plugin := range s.chainingPlugins {
+		if e := plugin.AddToScheme(scheme); e != nil {
+			logger.Sugar().Fatalf("failed to add scheme for plugin, reason=%v", name, e)
+		}
+	}
 	n := ctrl.Options{
+		Scheme:                 scheme,
 		MetricsBindAddress:     "0",
 		HealthProbeBindAddress: "0",
 		LeaderElection:         false,
@@ -35,6 +43,7 @@ func (s *pluginManager) runAgentReconcile() {
 	if err != nil {
 		logger.Sugar().Fatalf("failed to NewManager, reason=%v", err)
 	}
+
 	builder := ctrl.NewControllerManagedBy(mgr)
 	for name, plugin := range s.chainingPlugins {
 		logger.Sugar().Infof("run controller for plugin %v", name)
