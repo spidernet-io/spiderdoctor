@@ -27,7 +27,7 @@ webhooks:
       {{- end }}
     failurePolicy: Fail
     # ====modify====
-    name: netdoctor.spiderdoctor.spidernet.io
+    name: nethttp.spiderdoctor.spidernet.io
     rules:
       - apiGroups:
           # ====modify====
@@ -40,7 +40,7 @@ webhooks:
           - DELETE
         resources:
           # ====modify==== crdName
-          - netdoctors
+          - nethttps
     sideEffects: None
 
 ---

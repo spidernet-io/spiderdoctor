@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/spidernet-io/spiderdoctor/pkg/debug"
 	"github.com/spidernet-io/spiderdoctor/pkg/loadRequest"
+	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"time"
 )
@@ -64,7 +65,10 @@ func DaemonMain() {
 
 	initGrpcServer()
 
-	testHttp()
+	// testHttp()
+
+	s := pluginManager.NewPluginManager(rootLogger.Named("agentContorller"))
+	s.RunAgentController()
 
 	rootLogger.Info("hello world")
 	time.Sleep(time.Hour)

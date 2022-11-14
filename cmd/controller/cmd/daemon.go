@@ -6,7 +6,7 @@ package cmd
 import (
 	"context"
 	"github.com/spidernet-io/spiderdoctor/pkg/debug"
-	"github.com/spidernet-io/spiderdoctor/pkg/netdoctorManager"
+	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.opentelemetry.io/otel/attribute"
 	"path/filepath"
@@ -54,9 +54,8 @@ func DaemonMain() {
 	MetricHistogramDuration.Record(context.Background(), 20)
 
 	// ----------
-	s := netdoctorManager.New(rootLogger.Named("netdocktor"))
-	s.RunInformer("testlease", types.ControllerConfig.PodNamespace, types.ControllerConfig.PodName)
-	s.RunWebhookServer(int(types.ControllerConfig.WebhookPort), filepath.Dir(types.ControllerConfig.TlsServerCertPath))
+	s := pluginManager.NewPluginManager(rootLogger.Named("pluginsManager"))
+	s.RunControllerController(int(types.ControllerConfig.WebhookPort), filepath.Dir(types.ControllerConfig.TlsServerCertPath))
 
 	// ------------
 	rootLogger.Info("hello world")
