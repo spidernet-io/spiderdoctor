@@ -30,7 +30,7 @@ type informerHandler struct {
 func (s *informerHandler) informerAddHandler(obj interface{}) {
 	s.logger.Sugar().Infof("start crd add: %+v", obj)
 
-	r, ok := obj.(*crd.Netdoctor)
+	r, ok := obj.(*crd.Nethttp)
 	if !ok {
 		s.logger.Sugar().Errorf("failed to get crd: %+v", obj)
 		return
@@ -96,7 +96,7 @@ func (s *informerHandler) executeInformer() {
 	s.logger.Info("begin to setup informer")
 	factory := externalversions.NewSharedInformerFactory(clientset, 0)
 	// 注意，一个 factory 下  对同一种 CRD 不能 创建 多个Informer，不然会 数据竞争 问题。 而 一个 factory 下， 可对不同 CRD 产生 各种的 Informer
-	inform := factory.Spiderdoctor().V1().Netdoctors().Informer()
+	inform := factory.Spiderdoctor().V1().Nethttps().Informer()
 
 	// 在一个 Handler 逻辑中，是顺序消费所有的 crd 事件的
 	// 简单说：有2个 crd add 事件，那么，先会调用 informerAddHandler 完成 事件1 后，才会 调用 informerAddHandler 处理 事件2

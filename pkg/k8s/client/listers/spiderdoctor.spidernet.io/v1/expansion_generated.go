@@ -5,6 +5,6 @@
 
 package v1
 
-// NetdoctorListerExpansion allows custom methods to be added to
-// NetdoctorLister.
-type NetdoctorListerExpansion interface{}
+// NethttpListerExpansion allows custom methods to be added to
+// NethttpLister.
+type NethttpListerExpansion interface{}

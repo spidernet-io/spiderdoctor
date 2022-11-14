@@ -15,7 +15,7 @@ import (
 
 type SpiderdoctorV1Interface interface {
 	RESTClient() rest.Interface
-	NetdoctorsGetter
+	NethttpsGetter
 }
 
 // SpiderdoctorV1Client is used to interact with features provided by the spiderdoctor.spidernet.io group.
@@ -23,8 +23,8 @@ type SpiderdoctorV1Client struct {
 	restClient rest.Interface
 }
 
-func (c *SpiderdoctorV1Client) Netdoctors() NetdoctorInterface {
-	return newNetdoctors(c)
+func (c *SpiderdoctorV1Client) Nethttps() NethttpInterface {
+	return newNethttps(c)
 }
 
 // NewForConfig creates a new SpiderdoctorV1Client for the given config.

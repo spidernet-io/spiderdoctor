@@ -15,8 +15,8 @@ type FakeSpiderdoctorV1 struct {
 	*testing.Fake
 }
 
-func (c *FakeSpiderdoctorV1) Netdoctors() v1.NetdoctorInterface {
-	return &FakeNetdoctors{c}
+func (c *FakeSpiderdoctorV1) Nethttps() v1.NethttpInterface {
+	return &FakeNethttps{c}
 }
 
 // RESTClient returns a RESTClient that is used to communicate

@@ -24,27 +24,6 @@ type SchedulePlan struct {
 	TimeoutMinute int64 `json:"timeoutMinute,omitempty"`
 }
 
-type NetTarget struct {
-	// +kubebuilder:validation:Optional
-	Service *TargetService `json:"service,omitempty"`
-
-	// +kubebuilder:validation:Optional
-	HostAddress *string `json:"hostAddress,omitempty"`
-}
-
-type TargetService struct {
-	ServiceName string `json:"serviceName,omitempty"`
-
-	// +kubebuilder:validation:Optional
-	TestEndpoint *bool `json:"testEndpoint,omitempty"`
-
-	// +kubebuilder:validation:Optional
-	TestNodePort *bool `json:"testNodePort,omitempty"`
-
-	// +kubebuilder:validation:Optional
-	TestIngress *bool `json:"testIngress,omitempty"`
-}
-
 type StatusHistoryRecord struct {
 
 	// +kubebuilder:validation:Enum=succeed;fail;unknown

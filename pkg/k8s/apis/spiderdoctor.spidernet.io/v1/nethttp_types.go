@@ -1,25 +1,27 @@
 // Copyright 2022 Authors of spidernet-io
 // SPDX-License-Identifier: Apache-2.0
 
-// !!!!!! crd marker:
-// https://github.com/kubernetes-sigs/controller-tools/blob/master/pkg/crd/markers/crd.go
-// https://book.kubebuilder.io/reference/markers/crd.html
-// https://github.com/kubernetes-sigs/controller-tools/blob/master/pkg/crd/markers/validation.go
-// https://book.kubebuilder.io/reference/markers/crd-validation.html
-
 package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type NetdoctorSpec struct {
+type NethttpSpec struct {
 	// +kubebuilder:validation:Optional
 	Schedule *SchedulePlan `json:"schedule,omitempty"`
 
 	// +kubebuilder:validation:Optional
-	Target *NetTarget `json:"target,omitempty"`
+	Target *NethttpTarget `json:"target,omitempty"`
 
+	// +kubebuilder:validation:Optional
+	Request *NethttpRequest `json:"request,omitempty"`
+
+	// +kubebuilder:validation:Optional
+	FailureCondition *NethttpFailureCondition `json:"failureCondition,omitempty"`
+}
+
+type NethttpRequest struct {
 	// +kubebuilder:default=true
 	// +kubebuilder:validation:Optional
 	TestIPv4 *bool `json:"testIPv4,omitempty"`
@@ -29,26 +31,38 @@ type NetdoctorSpec struct {
 	TestIPv6 *bool `json:"testIPv6,omitempty"`
 
 	// +kubebuilder:validation:Optional
-	EachTimeInSecond *uint64 `json:"eachTimeInSecond,omitempty"`
+	DurationInSecond *uint64 `json:"durationInSecond,omitempty"`
 
 	// +kubebuilder:validation:Optional
-	EachQPS *uint64 `json:"eachQPS,omitempty"`
+	QPS *uint64 `json:"qps,omitempty"`
 
 	// +kubebuilder:validation:Optional
-	FailureCondition *NetFailureCondition `json:"failureCondition,omitempty"`
+	PerRequestTimeoutInSecond *uint64 `json:"perRequestTimeoutInSecond,omitempty"`
 }
 
-type NetFailureCondition struct {
+type NethttpTarget struct {
+
+	// +kubebuilder:default=true
+	TestEndpoint bool `json:"testEndpoint,omitempty"`
+
+	// +kubebuilder:default=true
+	TestNodePort bool `json:"testNodePort,omitempty"`
+
+	// +kubebuilder:default=false
+	TestIngress bool `json:"testIngress,omitempty"`
+}
+
+type NethttpFailureCondition struct {
 	// +kubebuilder:default=1
 	// +kubebuilder:validation:Optional
-	MinAccessFailure *uint64 `json:"minAccessFailure,omitempty"`
+	SucceedRate *uint64 `json:"succeedRate,omitempty"`
 
 	// +kubebuilder:default=5000
 	// +kubebuilder:validation:Optional
-	MinAccessDelayMs *uint64 `json:"minAccessDelayMs,omitempty"`
+	MeanAccessDelayInMs *uint64 `json:"meanAccessDelayInMs,omitempty"`
 }
 
-type NetdoctorStatus struct {
+type NethttpStatus struct {
 	// +kubebuilder:validation:Minimum=0
 	ExpectedRound int64 `json:"expectedRound"`
 
@@ -80,7 +94,7 @@ type NetdoctorStatus struct {
 }
 
 // scope(Namespaced or Cluster)
-// +kubebuilder:resource:categories={spiderdoctor},path="netdoctors",singular="netdoctor",scope="Cluster",shortName={nd}
+// +kubebuilder:resource:categories={spiderdoctor},path="nethttps",singular="nethttp",scope="Cluster",shortName={nd}
 // +kubebuilder:printcolumn:JSONPath=".status.Finish",description="Finish",name="Finish",type=boolean
 // +kubebuilder:printcolumn:JSONPath=".status.ExpectedRound",description="ExpectedRound",name="ExpectedRound",type=integer
 // +kubebuilder:printcolumn:JSONPath=".status.DoneRound",description="DoneRound",name="DoneRound",type=integer
@@ -90,23 +104,23 @@ type NetdoctorStatus struct {
 // +genclient
 // +genclient:nonNamespaced
 
-type Netdoctor struct {
+type Nethttp struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata"`
 
-	Spec   NetdoctorSpec   `json:"spec,omitempty"`
-	Status NetdoctorStatus `json:"status,omitempty"`
+	Spec   NethttpSpec   `json:"spec,omitempty"`
+	Status NethttpStatus `json:"status,omitempty"`
 }
 
 // +kubebuilder:object:root=true
 
-type NetdoctorList struct {
+type NethttpList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata"`
 
-	Items []Netdoctor `json:"items"`
+	Items []Nethttp `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Netdoctor{}, &NetdoctorList{})
+	SchemeBuilder.Register(&Nethttp{}, &NethttpList{})
 }

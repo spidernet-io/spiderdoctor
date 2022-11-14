@@ -5,4 +5,4 @@
 
 package v1
 
-type NetdoctorExpansion interface{}
+type NethttpExpansion interface{}

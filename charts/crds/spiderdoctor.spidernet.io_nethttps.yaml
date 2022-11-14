@@ -5,18 +5,18 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: (unknown)
   creationTimestamp: null
-  name: netdoctors.spiderdoctor.spidernet.io
+  name: nethttps.spiderdoctor.spidernet.io
 spec:
   group: spiderdoctor.spidernet.io
   names:
     categories:
     - spiderdoctor
-    kind: Netdoctor
-    listKind: NetdoctorList
-    plural: netdoctors
+    kind: Nethttp
+    listKind: NethttpList
+    plural: nethttps
     shortNames:
     - nd
-    singular: netdoctor
+    singular: nethttp
   scope: Cluster
   versions:
   - additionalPrinterColumns:
@@ -54,22 +54,34 @@ spec:
             type: object
           spec:
             properties:
-              eachQPS:
-                format: int64
-                type: integer
-              eachTimeInSecond:
-                format: int64
-                type: integer
               failureCondition:
                 properties:
-                  minAccessDelayMs:
+                  meanAccessDelayInMs:
                     default: 5000
                     format: int64
                     type: integer
-                  minAccessFailure:
+                  succeedRate:
                     default: 1
                     format: int64
                     type: integer
+                type: object
+              request:
+                properties:
+                  durationInSecond:
+                    format: int64
+                    type: integer
+                  perRequestTimeoutInSecond:
+                    format: int64
+                    type: integer
+                  qps:
+                    format: int64
+                    type: integer
+                  testIPv4:
+                    default: true
+                    type: boolean
+                  testIPv6:
+                    default: false
+                    type: boolean
                 type: object
               schedule:
                 properties:
@@ -98,26 +110,16 @@ spec:
                 type: object
               target:
                 properties:
-                  hostAddress:
-                    type: string
-                  service:
-                    properties:
-                      serviceName:
-                        type: string
-                      testEndpoint:
-                        type: boolean
-                      testIngress:
-                        type: boolean
-                      testNodePort:
-                        type: boolean
-                    type: object
+                  testEndpoint:
+                    default: true
+                    type: boolean
+                  testIngress:
+                    default: false
+                    type: boolean
+                  testNodePort:
+                    default: true
+                    type: boolean
                 type: object
-              testIPv4:
-                default: true
-                type: boolean
-              testIPv6:
-                default: false
-                type: boolean
             type: object
           status:
             properties:

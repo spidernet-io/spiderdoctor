@@ -61,7 +61,7 @@ rules:
 - apiGroups:
   - spiderdoctor.spidernet.io
   resources:
-  - netdoctors
+  - nethttps
   verbs:
   - create
   - delete
@@ -73,7 +73,7 @@ rules:
 - apiGroups:
   - spiderdoctor.spidernet.io
   resources:
-  - netdoctors/status
+  - nethttps/status
   verbs:
   - get
   - patch

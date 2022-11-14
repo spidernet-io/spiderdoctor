@@ -19,58 +19,58 @@ import (
 	cache "k8s.io/client-go/tools/cache"
 )
 
-// NetdoctorInformer provides access to a shared informer and lister for
-// Netdoctors.
-type NetdoctorInformer interface {
+// NethttpInformer provides access to a shared informer and lister for
+// Nethttps.
+type NethttpInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() v1.NetdoctorLister
+	Lister() v1.NethttpLister
 }
 
-type netdoctorInformer struct {
+type nethttpInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
 	tweakListOptions internalinterfaces.TweakListOptionsFunc
 }
 
-// NewNetdoctorInformer constructs a new informer for Netdoctor type.
+// NewNethttpInformer constructs a new informer for Nethttp type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewNetdoctorInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredNetdoctorInformer(client, resyncPeriod, indexers, nil)
+func NewNethttpInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+	return NewFilteredNethttpInformer(client, resyncPeriod, indexers, nil)
 }
 
-// NewFilteredNetdoctorInformer constructs a new informer for Netdoctor type.
+// NewFilteredNethttpInformer constructs a new informer for Nethttp type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredNetdoctorInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredNethttpInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
 	return cache.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.SpiderdoctorV1().Netdoctors().List(context.TODO(), options)
+				return client.SpiderdoctorV1().Nethttps().List(context.TODO(), options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.SpiderdoctorV1().Netdoctors().Watch(context.TODO(), options)
+				return client.SpiderdoctorV1().Nethttps().Watch(context.TODO(), options)
 			},
 		},
-		&spiderdoctorspidernetiov1.Netdoctor{},
+		&spiderdoctorspidernetiov1.Nethttp{},
 		resyncPeriod,
 		indexers,
 	)
 }
 
-func (f *netdoctorInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredNetdoctorInformer(client, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+func (f *nethttpInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+	return NewFilteredNethttpInformer(client, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
 }
 
-func (f *netdoctorInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&spiderdoctorspidernetiov1.Netdoctor{}, f.defaultInformer)
+func (f *nethttpInformer) Informer() cache.SharedIndexInformer {
+	return f.factory.InformerFor(&spiderdoctorspidernetiov1.Nethttp{}, f.defaultInformer)
 }
 
-func (f *netdoctorInformer) Lister() v1.NetdoctorLister {
-	return v1.NewNetdoctorLister(f.Informer().GetIndexer())
+func (f *nethttpInformer) Lister() v1.NethttpLister {
+	return v1.NewNethttpLister(f.Informer().GetIndexer())
 }

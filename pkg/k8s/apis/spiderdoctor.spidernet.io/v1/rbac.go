@@ -5,8 +5,8 @@
 // https://github.com/kubernetes-sigs/controller-tools/blob/master/pkg/rbac/parser.go
 // https://book.kubebuilder.io/reference/markers/rbac.html
 
-// +kubebuilder:rbac:groups=spiderdoctor.spidernet.io,resources=netdoctors,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=spiderdoctor.spidernet.io,resources=netdoctors/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=spiderdoctor.spidernet.io,resources=nethttps,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=spiderdoctor.spidernet.io,resources=nethttps/status,verbs=get;update;patch
 
 // +kubebuilder:rbac:groups="",resources=events,verbs=create;get;list;watch;update;delete
 // +kubebuilder:rbac:groups="coordination.k8s.io",resources=leases,verbs=create;get;update

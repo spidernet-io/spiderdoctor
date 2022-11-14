@@ -11,8 +11,8 @@ import (
 
 // Interface provides access to all the informers in this group version.
 type Interface interface {
-	// Netdoctors returns a NetdoctorInformer.
-	Netdoctors() NetdoctorInformer
+	// Nethttps returns a NethttpInformer.
+	Nethttps() NethttpInformer
 }
 
 type version struct {
@@ -26,7 +26,7 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 	return &version{factory: f, namespace: namespace, tweakListOptions: tweakListOptions}
 }
 
-// Netdoctors returns a NetdoctorInformer.
-func (v *version) Netdoctors() NetdoctorInformer {
-	return &netdoctorInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+// Nethttps returns a NethttpInformer.
+func (v *version) Nethttps() NethttpInformer {
+	return &nethttpInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
