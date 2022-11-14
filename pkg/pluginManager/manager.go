@@ -29,8 +29,8 @@ type ChainingPlugin interface {
 	GetApiType() client.Object
 	CheckObjType(obj runtime.Object) bool
 
-	ControllerReconcile(client.Client, context.Context, reconcile.Request) (reconcile.Result, error)
-	AgentReconcile(client.Client, context.Context, reconcile.Request) (reconcile.Result, error)
+	ControllerReconcile(*zap.Logger, client.Client, context.Context, reconcile.Request) (reconcile.Result, error)
+	AgentReconcile(*zap.Logger, client.Client, context.Context, reconcile.Request) (reconcile.Result, error)
 
 	WebhookMutating(logger *zap.Logger, ctx context.Context, obj runtime.Object) error
 	WebhookValidateCreate(logger *zap.Logger, ctx context.Context, obj runtime.Object) error
@@ -71,10 +71,11 @@ func NewPluginManager(logger *zap.Logger) PluginManager {
 type pluginControllerReconciler struct {
 	client client.Client
 	p      ChainingPlugin
+	logger *zap.Logger
 }
 
 func (s *pluginControllerReconciler) Reconcile(ctx context.Context, r reconcile.Request) (reconcile.Result, error) {
-	return s.p.ControllerReconcile(s.client, ctx, r)
+	return s.p.ControllerReconcile(s.logger, s.client, ctx, r)
 }
 
 var _ reconcile.Reconciler = &pluginControllerReconciler{}
@@ -97,7 +98,7 @@ func (s *pluginManager) runControllerController() {
 	for name, plugin := range s.chainingPlugins {
 		go func(name string, t ChainingPlugin) {
 			logger.Sugar().Infof("run controller for plugin %v", name)
-			builder.For(t.GetApiType()).Owns(t.GetApiType()).Build(&pluginControllerReconciler{p: t})
+			builder.For(t.GetApiType()).Owns(t.GetApiType()).Build(&pluginControllerReconciler{logger: logger.Named(name + "Reconciler"), p: t})
 		}(name, plugin)
 	}
 }
@@ -107,10 +108,11 @@ func (s *pluginManager) runControllerController() {
 type pluginAgentReconciler struct {
 	client client.Client
 	p      ChainingPlugin
+	logger *zap.Logger
 }
 
 func (s *pluginAgentReconciler) Reconcile(ctx context.Context, r reconcile.Request) (reconcile.Result, error) {
-	return s.p.AgentReconcile(s.client, ctx, r)
+	return s.p.AgentReconcile(s.logger, s.client, ctx, r)
 }
 
 var _ reconcile.Reconciler = &pluginAgentReconciler{}
@@ -131,7 +133,7 @@ func (s *pluginManager) runAgentController() {
 	for name, plugin := range s.chainingPlugins {
 		go func(name string, t ChainingPlugin) {
 			logger.Sugar().Infof("run controller for plugin %v", name)
-			builder.For(t.GetApiType()).Owns(t.GetApiType()).Build(&pluginAgentReconciler{p: t})
+			builder.For(t.GetApiType()).Owns(t.GetApiType()).Build(&pluginAgentReconciler{logger: logger.Named(name + "Reconciler"), p: t})
 		}(name, plugin)
 	}
 }
