@@ -9,7 +9,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 	"time"
 )
 
@@ -57,13 +59,14 @@ func (s *pluginManager) runControllerReconcile() {
 		if e != nil {
 			s.logger.Sugar().Fatalf("failed to builder reconcile for plugin %v, error=%v", name, e)
 		}
-		go func(name string) {
+		go func(name string, t plugintypes.ChainingPlugin) {
 			msg := fmt.Sprintf("reconcile of plugin %v down", name)
-			if e := b.Start(context.Background()); e != nil {
+			if e := b.Watch(&source.Kind{Type: t.GetApiType()}, &handler.EnqueueRequestForObject{}); e != nil {
 				msg += fmt.Sprintf(", error=%v", e)
 			}
 			s.logger.Error(msg)
 			time.Sleep(5 * time.Second)
-		}(name)
+		}(name, plugin)
+
 	}
 }
