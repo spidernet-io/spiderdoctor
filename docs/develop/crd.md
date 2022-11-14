@@ -7,4 +7,5 @@
 
 3. add crd to MutatingWebhookConfiguration and ValidatingWebhookConfiguration in charts/templates/tls.yaml 
 
-4. implement the interface pkg/pluginManager/typs in pkg/plugins/xxxx
+4. implement the interface pkg/pluginManager/types in pkg/plugins/xxxx
+   register your interface in pkg/pluginManager/types/manager.go

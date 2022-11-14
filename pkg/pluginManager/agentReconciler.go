@@ -46,8 +46,8 @@ func (s *pluginManager) runAgentReconcile() {
 		logger.Sugar().Fatalf("failed to NewManager, reason=%v", err)
 	}
 
-	builder := ctrl.NewControllerManagedBy(mgr)
 	for name, plugin := range s.chainingPlugins {
+		builder := ctrl.NewControllerManagedBy(mgr)
 		logger.Sugar().Infof("run controller for plugin %v", name)
 		k := &pluginAgentReconciler{
 			logger: logger.Named(name + "Reconciler"),
@@ -69,4 +69,13 @@ func (s *pluginManager) runAgentReconcile() {
 			time.Sleep(5 * time.Second)
 		}(name)
 	}
+
+	go func() {
+		msg := fmt.Sprintf("reconcile of plugin down")
+		if e := mgr.Start(context.Background()); e != nil {
+			msg += fmt.Sprintf(", error=%v", e)
+		}
+		s.logger.Error(msg)
+		time.Sleep(5 * time.Second)
+	}()
 }
