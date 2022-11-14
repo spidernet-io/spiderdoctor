@@ -4,7 +4,7 @@
 
 cat <<EOF > example.yaml
 apiVersion: spiderdoctor.spidernet.io/v1
-kind: Netdoctor
+kind: Nethttp
 metadata:
   name: test1
 spec:

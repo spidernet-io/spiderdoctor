@@ -18,7 +18,7 @@ webhooks:
         name: {{ .Values.spiderdoctorController.name | trunc 63 | trimSuffix "-" }}
         namespace: {{ .Release.Namespace }}
         # ====modify==== the mutating route path : "/mutate-" + strings.ReplaceAll(gvk.Group, ".", "-") + "-" + gvk.Version + "-" + strings.ToLower(gvk.Kind)
-        path: "/mutate-spiderdoctor-spidernet-io-v1-netdoctor"
+        path: "/mutate-spiderdoctor-spidernet-io-v1-nethttp"
         port: {{ .Values.spiderdoctorController.webhookPort }}
       {{- if (eq .Values.spiderdoctorController.tls.method "provided") }}
       caBundle: {{ .Values.spiderdoctorController.tls.provided.tlsCa | required "missing tls.provided.tlsCa" }}
@@ -60,7 +60,7 @@ webhooks:
         name: {{ .Values.spiderdoctorController.name | trunc 63 | trimSuffix "-" }}
         namespace: {{ .Release.Namespace }}
         # ====modify==== the validate route path : "/validate-" + strings.ReplaceAll(gvk.Group, ".", "-") + "-" + gvk.Version + "-" + strings.ToLower(gvk.Kind)
-        path: "/validate-spiderdoctor-spidernet-io-v1-netdoctor"
+        path: "/validate-spiderdoctor-spidernet-io-v1-nethttp"
         port: {{ .Values.spiderdoctorController.webhookPort }}
       {{- if (eq .Values.spiderdoctorController.tls.method "provided") }}
       caBundle: {{ .Values.spiderdoctorController.tls.provided.tlsCa | required "missing tls.provided.tlsCa" }}
@@ -69,7 +69,7 @@ webhooks:
       {{- end }}
     failurePolicy: Fail
     # ====modify====
-    name: netdoctor.spiderdoctor.spidernet.io
+    name: nethttp.spiderdoctor.spidernet.io
     rules:
       - apiGroups:
           # ====modify====
@@ -82,7 +82,7 @@ webhooks:
           - DELETE
         resources:
           # ====modify==== crdName
-          - netdoctors
+          - nethttps
     sideEffects: None
 
 {{- if eq .Values.spiderdoctorController.tls.method "certmanager" -}}
