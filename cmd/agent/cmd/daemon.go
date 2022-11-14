@@ -24,6 +24,7 @@ func SetupUtility() {
 }
 
 func testHttp() {
+	time.Sleep(30 * time.Second)
 	agentServiceUrl := fmt.Sprintf("http://%s.%s.svc.%s:%v/", types.AgentConfig.AgentSerivceIpv4Name, types.AgentConfig.PodNamespace, types.AgentConfig.ClusterDnsDomain, types.AgentConfig.HttpPort)
 	qps := 10
 	PerRequestTimeoutSecond := 5
