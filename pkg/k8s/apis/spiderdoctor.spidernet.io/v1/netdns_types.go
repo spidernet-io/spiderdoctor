@@ -15,7 +15,7 @@ type NetdnsSpec struct {
 	Request *NetdnsRequest `json:"request,omitempty"`
 
 	// +kubebuilder:validation:Optional
-	SuccessCondition *NetSuccessCondition `json:"successCondition,omitempty"`
+	SuccessCondition *NetSuccessCondition `json:"success,omitempty"`
 }
 
 type NetdnsRequest struct {

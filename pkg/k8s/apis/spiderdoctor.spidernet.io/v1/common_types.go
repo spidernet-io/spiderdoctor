@@ -68,9 +68,13 @@ type StatusHistoryRecord struct {
 }
 
 type NetSuccessCondition struct {
+	// found float, the usage of which is highly discouraged, as support for them varies across languages.
+	// Please consider serializing your float as string instead. If you are really sure you want to use them,
+	// re-run with crd:allowDangerousTypes=true
 	// +kubebuilder:default=1
 	// +kubebuilder:validation:Optional
-	SuccessRate *uint64 `json:"successRate,omitempty"`
+	// +kubebuilder:crd:allowDangerousTypes=true
+	SuccessRate *string `json:"successRate,omitempty"`
 
 	// +kubebuilder:default=5000
 	// +kubebuilder:validation:Optional

@@ -18,7 +18,7 @@ type NethttpSpec struct {
 	Request *NethttpRequest `json:"request,omitempty"`
 
 	// +kubebuilder:validation:Optional
-	SuccessCondition *NetSuccessCondition `json:"failureCondition,omitempty"`
+	SuccessCondition *NetSuccessCondition `json:"success,omitempty"`
 }
 
 type NethttpRequest struct {

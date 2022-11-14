@@ -2,7 +2,7 @@
 
 ```shell
 
-cat <<EOF > example.yaml
+cat <<EOF > nethttp.yaml
 apiVersion: spiderdoctor.spidernet.io/v1
 kind: Nethttp
 metadata:
@@ -12,18 +12,18 @@ spec:
     startAfterMinute: 10
     roundNumber: 1
     intervalMinute: 60
-    TimeoutMinute: 10
+    timeoutMinute: 10
   request:
     testIPv4: true
     testIPv6: true
     durationInSecond: 10
     qps: 10
     perRequestTimeoutInSecond: 5
-  failureCondition:
+  success:
     successRate: 1
     meanAccessDelayInMs: 1000
 EOF
 
-kubectl apply -f example.yaml
+kubectl apply -f nethttp.yaml
 
 ```

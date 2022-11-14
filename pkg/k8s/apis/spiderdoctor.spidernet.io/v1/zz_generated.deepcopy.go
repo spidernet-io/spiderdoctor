@@ -14,7 +14,7 @@ func (in *NetSuccessCondition) DeepCopyInto(out *NetSuccessCondition) {
 	*out = *in
 	if in.SuccessRate != nil {
 		in, out := &in.SuccessRate, &out.SuccessRate
-		*out = new(uint64)
+		*out = new(string)
 		**out = **in
 	}
 	if in.MeanAccessDelayInMs != nil {
