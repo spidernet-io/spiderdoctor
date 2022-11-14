@@ -12,7 +12,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-func (s *pluginNetHttp) AgentReconcile(logger *zap.Logger, client client.Client, ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
+func (s *PluginNetHttp) AgentReconcile(logger *zap.Logger, client client.Client, ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
 	t := &crd.Nethttp{
 		ObjectMeta: metav1.ObjectMeta{Name: req.Name},
 	}

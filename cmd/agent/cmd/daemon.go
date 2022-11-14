@@ -67,7 +67,7 @@ func DaemonMain() {
 
 	// testHttp()
 
-	s := pluginManager.NewPluginManager(rootLogger.Named("agentContorller"))
+	s := pluginManager.InitPluginManager(rootLogger.Named("agentContorller"))
 	s.RunAgentController()
 
 	rootLogger.Info("hello world")

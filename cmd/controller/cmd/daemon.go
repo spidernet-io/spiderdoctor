@@ -54,7 +54,7 @@ func DaemonMain() {
 	MetricHistogramDuration.Record(context.Background(), 20)
 
 	// ----------
-	s := pluginManager.NewPluginManager(rootLogger.Named("pluginsManager"))
+	s := pluginManager.InitPluginManager(rootLogger.Named("pluginsManager"))
 	s.RunControllerController(int(types.ControllerConfig.WebhookPort), filepath.Dir(types.ControllerConfig.TlsServerCertPath))
 
 	// ------------

@@ -3,9 +3,10 @@ package pluginManager
 import (
 	"context"
 	"github.com/spidernet-io/spiderdoctor/pkg/lock"
+	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
+	"github.com/spidernet-io/spiderdoctor/pkg/plugins/nethttp"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.uber.org/zap"
-	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -13,64 +14,39 @@ import (
 
 var pluginLock = &lock.Mutex{}
 
+type pluginManager struct {
+	chainingPlugins map[string]plugintypes.ChainingPlugin
+	logger          *zap.Logger
+}
 type PluginManager interface {
 	RunAgentController()
 	RunControllerController(webhookPort int, webhookTlsDir string)
 }
 
-type pluginManager struct {
-	chainingPlugins map[string]ChainingPlugin
-	logger          *zap.Logger
-}
-
 var globalPluginManager *pluginManager
 
-type ChainingPlugin interface {
-	GetApiType() client.Object
-	CheckObjType(obj runtime.Object) bool
-
-	ControllerReconcile(*zap.Logger, client.Client, context.Context, reconcile.Request) (reconcile.Result, error)
-	AgentReconcile(*zap.Logger, client.Client, context.Context, reconcile.Request) (reconcile.Result, error)
-
-	WebhookMutating(logger *zap.Logger, ctx context.Context, obj runtime.Object) error
-	WebhookValidateCreate(logger *zap.Logger, ctx context.Context, obj runtime.Object) error
-	WebhookValidateUpdate(logger *zap.Logger, ctx context.Context, oldObj, newObj runtime.Object) error
-	WebhookValidateDelete(logger *zap.Logger, ctx context.Context, obj runtime.Object) error
-}
-
-func RegisterPlugin(pluginName string, p ChainingPlugin) {
+func InitPluginManager(logger *zap.Logger) PluginManager {
 	pluginLock.Lock()
 	defer pluginLock.Unlock()
 
-	if globalPluginManager == nil {
-		globalPluginManager = &pluginManager{
-			chainingPlugins: map[string]ChainingPlugin{},
-		}
-	}
+	globalPluginManager.logger = logger
 
-	globalPluginManager.chainingPlugins[pluginName] = p
-}
-
-func NewPluginManager(logger *zap.Logger) PluginManager {
-	pluginLock.Lock()
-	defer pluginLock.Unlock()
-
-	if globalPluginManager == nil {
-		globalPluginManager = &pluginManager{
-			logger:          logger,
-			chainingPlugins: map[string]ChainingPlugin{},
-		}
-	} else {
-		globalPluginManager.logger = logger
-	}
 	return globalPluginManager
+}
+
+func init() {
+	globalPluginManager = &pluginManager{
+		chainingPlugins: map[string]plugintypes.ChainingPlugin{},
+	}
+	globalPluginManager.chainingPlugins["nethttp"] = &nethttp.PluginNetHttp{}
+
 }
 
 // --------------------
 
 type pluginControllerReconciler struct {
 	client client.Client
-	p      ChainingPlugin
+	p      plugintypes.ChainingPlugin
 	logger *zap.Logger
 }
 
@@ -96,7 +72,7 @@ func (s *pluginManager) runControllerController() {
 	}
 	builder := ctrl.NewControllerManagedBy(mgr)
 	for name, plugin := range s.chainingPlugins {
-		go func(name string, t ChainingPlugin) {
+		go func(name string, t plugintypes.ChainingPlugin) {
 			logger.Sugar().Infof("run controller for plugin %v", name)
 			builder.For(t.GetApiType()).Owns(t.GetApiType()).Build(&pluginControllerReconciler{logger: logger.Named(name + "Reconciler"), p: t})
 		}(name, plugin)
@@ -107,7 +83,7 @@ func (s *pluginManager) runControllerController() {
 
 type pluginAgentReconciler struct {
 	client client.Client
-	p      ChainingPlugin
+	p      plugintypes.ChainingPlugin
 	logger *zap.Logger
 }
 
@@ -131,7 +107,7 @@ func (s *pluginManager) runAgentController() {
 	}
 	builder := ctrl.NewControllerManagedBy(mgr)
 	for name, plugin := range s.chainingPlugins {
-		go func(name string, t ChainingPlugin) {
+		go func(name string, t plugintypes.ChainingPlugin) {
 			logger.Sugar().Infof("run controller for plugin %v", name)
 			builder.For(t.GetApiType()).Owns(t.GetApiType()).Build(&pluginAgentReconciler{logger: logger.Named(name + "Reconciler"), p: t})
 		}(name, plugin)
