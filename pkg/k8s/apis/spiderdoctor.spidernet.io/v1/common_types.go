@@ -69,7 +69,6 @@ type StatusHistoryRecord struct {
 
 type NetSuccessCondition struct {
 
-	// +kubebuilder:default=1
 	// +kubebuilder:validation:Optional
 	SuccessRate *string `json:"successRate,omitempty"`
 
