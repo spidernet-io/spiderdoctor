@@ -11,6 +11,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
+	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 )
 
 type pluginAgentReconciler struct {
@@ -32,11 +33,10 @@ func (s *pluginManager) runAgentReconcile() {
 	if e:=clientgoscheme.AddToScheme(scheme);e != nil {
 		logger.Sugar().Fatalf("failed to add k8s scheme, reason=%v", e)
 	}
-	for name, plugin := range s.chainingPlugins {
-		if e := plugin.AddToScheme(scheme); e != nil {
-			logger.Sugar().Fatalf("failed to add scheme for plugin, reason=%v", name, e)
-		}
+	if e := crd.AddToScheme(scheme); e != nil {
+		logger.Sugar().Fatalf("failed to add scheme for plugins, reason=%v", e)
 	}
+
 	n := ctrl.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     "0",

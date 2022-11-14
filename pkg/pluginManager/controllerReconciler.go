@@ -3,6 +3,7 @@ package pluginManager
 import (
 	"context"
 	"fmt"
+	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.uber.org/zap"
@@ -35,11 +36,10 @@ func (s *pluginManager) runControllerReconcile() {
 	if e:=clientgoscheme.AddToScheme(scheme);e != nil {
 		logger.Sugar().Fatalf("failed to add k8s scheme, reason=%v", e)
 	}
-	for name, plugin := range s.chainingPlugins {
-		if e := plugin.AddToScheme(scheme); e != nil {
-			logger.Sugar().Fatalf("failed to add scheme for plugin, reason=%v", name, e)
-		}
+	if e := crd.AddToScheme(scheme); e != nil {
+		logger.Sugar().Fatalf("failed to add scheme for plugins, reason=%v", e)
 	}
+
 	n := ctrl.Options{
 		Scheme:                  scheme,
 		MetricsBindAddress:      "0",

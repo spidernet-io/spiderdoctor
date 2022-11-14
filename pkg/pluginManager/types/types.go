@@ -10,7 +10,6 @@ import (
 
 type ChainingPlugin interface {
 	GetApiType() client.Object
-	AddToScheme(s *runtime.Scheme) error
 	ControllerReconcile(*zap.Logger, client.Client, context.Context, reconcile.Request) (reconcile.Result, error)
 	AgentReconcile(*zap.Logger, client.Client, context.Context, reconcile.Request) (reconcile.Result, error)
 
