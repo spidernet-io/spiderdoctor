@@ -102,7 +102,6 @@ spec:
                     format: int64
                     type: integer
                   successRate:
-                    default: 1
                     type: string
                 type: object
             type: object
