@@ -21,7 +21,7 @@ func (s *PluginNetHttp) AgentReconcile(logger *zap.Logger, client client.Client,
 		logger.Sugar().Errorf("failed to get nethttp %+v", req)
 		return ctrl.Result{}, err
 	}
-	logger.Sugar().Errorf("get nethttp %+v", t)
+	logger.Sugar().Infof("get nethttp %+v", t)
 
 	return ctrl.Result{}, nil
 }

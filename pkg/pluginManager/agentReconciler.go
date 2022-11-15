@@ -11,16 +11,16 @@ import (
 
 type pluginAgentReconciler struct {
 	client client.Client
-	p      plugintypes.ChainingPlugin
+	plugin plugintypes.ChainingPlugin
 	logger *zap.Logger
 }
 
 var _ reconcile.Reconciler = &pluginAgentReconciler{}
 
 func (s *pluginAgentReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	return s.p.AgentReconcile(s.logger, s.client, ctx, req)
+	return s.plugin.AgentReconcile(s.logger, s.client, ctx, req)
 }
 
-func (s *pluginAgentReconciler) RunAgentReconcile(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).For(s.p.GetApiType()).Complete(s)
+func (s *pluginAgentReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	return ctrl.NewControllerManagedBy(mgr).For(s.plugin.GetApiType()).Complete(s)
 }
