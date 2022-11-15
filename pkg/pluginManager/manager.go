@@ -7,6 +7,7 @@ import (
 	"fmt"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	"github.com/spidernet-io/spiderdoctor/pkg/lock"
+	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager/netdns"
 	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager/nethttp"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
@@ -14,6 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"time"
 )
 
@@ -25,7 +27,7 @@ type pluginManager struct {
 }
 type PluginManager interface {
 	RunAgentController()
-	RunControllerController(webhookPort int, webhookTlsDir string)
+	RunControllerController(healthPort int, webhookPort int, webhookTlsDir string)
 }
 
 var globalPluginManager *pluginManager
@@ -79,7 +81,7 @@ func (s *pluginManager) RunAgentController() {
 
 // --------------------------------------
 
-func (s *pluginManager) RunControllerController(webhookPort int, webhookTlsDir string) {
+func (s *pluginManager) RunControllerController(healthPort int, webhookPort int, webhookTlsDir string) {
 
 	logger := s.logger
 	scheme := runtime.NewScheme()
@@ -91,18 +93,34 @@ func (s *pluginManager) RunControllerController(webhookPort int, webhookTlsDir s
 	}
 
 	n := ctrl.Options{
-		Scheme:                  scheme,
-		MetricsBindAddress:      "0",
-		HealthProbeBindAddress:  "0",
-		Port:                    webhookPort,
-		CertDir:                 webhookTlsDir,
+		Scheme:             scheme,
+		MetricsBindAddress: "0",
+		// health
+		HealthProbeBindAddress: "0",
+		// webhook
+		Port:    webhookPort,
+		CertDir: webhookTlsDir,
+		// lease
 		LeaderElection:          true,
 		LeaderElectionNamespace: types.ControllerConfig.PodNamespace,
 		LeaderElectionID:        types.ControllerConfig.PodName,
 	}
+	if healthPort != 0 {
+		n.HealthProbeBindAddress = fmt.Sprintf(":%d", healthPort)
+		n.ReadinessEndpointName = "/healthy/readiness"
+		n.LivenessEndpointName = "/healthy/liveness"
+	}
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), n)
 	if err != nil {
 		logger.Sugar().Fatalf("failed to NewManager, reason=%v", err)
+	}
+	if healthPort != 0 {
+		if err := mgr.AddHealthzCheck("/healthy/liveness", healthz.Ping); err != nil {
+			logger.Sugar().Fatalf("failed to AddHealthzCheck, reason=%v", err)
+		}
+		if err := mgr.AddReadyzCheck("/healthy/readiness", healthz.Ping); err != nil {
+			logger.Sugar().Fatalf("failed to AddReadyzCheck, reason=%v", err)
+		}
 	}
 
 	for name, plugin := range s.chainingPlugins {
@@ -153,6 +171,9 @@ func init() {
 	globalPluginManager = &pluginManager{
 		chainingPlugins: map[string]plugintypes.ChainingPlugin{},
 	}
+
+	// ------ add crd ------
 	globalPluginManager.chainingPlugins["nethttp"] = &nethttp.PluginNetHttp{}
+	globalPluginManager.chainingPlugins["netdns"] = &netdns.PluginNetDns{}
 
 }

@@ -94,7 +94,7 @@ spec:
           {{- if semverCompare ">=1.20-0" .Capabilities.KubeVersion.Version }}
           startupProbe:
             httpGet:
-              path: /healthy/startup
+              path: /healthy/readiness
               port: {{ .Values.spiderdoctorController.httpServer.port }}
               scheme: HTTP
             failureThreshold: {{ .Values.spiderdoctorController.httpServer.startupProbe.failureThreshold }}
