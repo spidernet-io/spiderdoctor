@@ -13,6 +13,7 @@ import (
 
 type ChainingPlugin interface {
 	GetApiType() client.Object
+	GetKindName() string
 	ControllerReconcile(*zap.Logger, client.Client, context.Context, reconcile.Request) (reconcile.Result, error)
 	AgentReconcile(*zap.Logger, client.Client, context.Context, reconcile.Request) (reconcile.Result, error)
 

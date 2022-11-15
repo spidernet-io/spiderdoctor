@@ -5,8 +5,10 @@ package pluginManager
 
 import (
 	"context"
+	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"go.uber.org/zap"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -23,8 +25,36 @@ type pluginWebhookhander struct {
 
 var _ webhook.CustomValidator = (*pluginWebhookhander)(nil)
 
+const (
+	ApiMsgGetFailure = "failed to get instance"
+	ApiMsgUnknowCRD  = "unsupport crd type"
+)
+
 // mutating webhook
 func (s *pluginWebhookhander) Default(ctx context.Context, obj runtime.Object) error {
+
+	switch {
+	case s.plugin.GetApiType().GetObjectKind().GroupVersionKind().Kind == KindNameNethttp:
+		instance, ok := obj.(*crd.Nethttp)
+		if !ok {
+			s.logger.Error(ApiMsgGetFailure)
+			return apierrors.NewBadRequest(ApiMsgGetFailure)
+		}
+		s.logger.Sugar().Debugf("nethppt instance: %+v", instance)
+		*(instance.Status.ExpectedRound) = instance.Spec.Schedule.RoundNumber
+	case s.plugin.GetApiType().GetObjectKind().GroupVersionKind().Kind == KindNameNetdns:
+		instance, ok := obj.(*crd.Nethttp)
+		if !ok {
+			s.logger.Error(ApiMsgGetFailure)
+			return apierrors.NewBadRequest(ApiMsgGetFailure)
+		}
+		s.logger.Sugar().Debugf("nethppt instance: %+v", instance)
+		*(instance.Status.ExpectedRound) = instance.Spec.Schedule.RoundNumber
+	default:
+		s.logger.Sugar().Errorf("%s, detail=%+v", ApiMsgUnknowCRD, obj)
+		return apierrors.NewBadRequest(ApiMsgUnknowCRD)
+	}
+
 	return s.plugin.WebhookMutating(s.logger.Named("mutatingWebhook"), ctx, obj)
 }
 

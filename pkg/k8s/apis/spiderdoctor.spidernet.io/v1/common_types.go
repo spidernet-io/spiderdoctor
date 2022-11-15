@@ -24,11 +24,13 @@ type SchedulePlan struct {
 }
 
 type TaskStatus struct {
+	// +kubebuilder:validation:Optional
 	// +kubebuilder:validation:Minimum=0
-	ExpectedRound int64 `json:"expectedRound"`
+	ExpectedRound *int64 `json:"expectedRound,omitempty"`
 
+	// +kubebuilder:validation:Optional
 	// +kubebuilder:validation:Minimum=0
-	DoneRound *int64 `json:"doneRound"`
+	DoneRound *int64 `json:"doneRound,omitempty"`
 
 	Finish bool `json:"finish"`
 

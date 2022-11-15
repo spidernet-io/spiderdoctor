@@ -168,8 +168,6 @@ spec:
                 format: date-time
                 type: string
             required:
-            - doneRound
-            - expectedRound
             - finish
             - history
             type: object

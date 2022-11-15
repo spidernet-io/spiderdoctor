@@ -32,6 +32,12 @@ type PluginManager interface {
 
 var globalPluginManager *pluginManager
 
+const (
+	// ------ add crd ------
+	KindNameNethttp = "Nethttp"
+	KindNameNetdns  = "Netdns"
+)
+
 // --------------------------------------
 func (s *pluginManager) RunAgentController() {
 	logger := s.logger
@@ -115,12 +121,15 @@ func (s *pluginManager) RunControllerController(healthPort int, webhookPort int,
 		logger.Sugar().Fatalf("failed to NewManager, reason=%v", err)
 	}
 	if healthPort != 0 {
+		// could implement your checker , type Checker func(req *http.Request) error
 		if err := mgr.AddHealthzCheck("/healthy/liveness", healthz.Ping); err != nil {
 			logger.Sugar().Fatalf("failed to AddHealthzCheck, reason=%v", err)
 		}
 		if err := mgr.AddReadyzCheck("/healthy/readiness", healthz.Ping); err != nil {
 			logger.Sugar().Fatalf("failed to AddReadyzCheck, reason=%v", err)
 		}
+		// add other route
+		// mgr.GetWebhookServer().Register("/route", XXXX)
 	}
 
 	for name, plugin := range s.chainingPlugins {

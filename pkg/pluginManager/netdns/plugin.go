@@ -17,3 +17,7 @@ var _ types.ChainingPlugin = &PluginNetDns{}
 func (s *PluginNetDns) GetApiType() client.Object {
 	return &crd.Netdns{}
 }
+
+func (s *PluginNetDns) GetKindName() string {
+	return "Netdns"
+}
