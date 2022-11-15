@@ -51,7 +51,7 @@ func (s *pluginManager) runWebhook(webhookPort int, webhookTlsDir string) {
 
 	logger := s.logger
 	scheme := runtime.NewScheme()
-	if e:=clientgoscheme.AddToScheme(scheme);e != nil {
+	if e := clientgoscheme.AddToScheme(scheme); e != nil {
 		logger.Sugar().Fatalf("failed to add k8s scheme, reason=%v", e)
 	}
 	if e := crd.AddToScheme(scheme); e != nil {

@@ -54,7 +54,7 @@ func (s *pluginManager) runAgentReconcile() {
 			logger: logger.Named(name + "Reconciler"),
 			p:      plugin,
 		}
-		if e := ctrl.NewControllerManagedBy(mgr).For(plugin.GetApiType()).Complete(k); e != nil {
+		if e := ctrl.NewControllerManagedBy(mgr).For(&crd.Nethttp{}).Complete(k); e != nil {
 			s.logger.Sugar().Fatalf("failed to builder reconcile for plugin %v, error=%v", name, e)
 		}
 	}

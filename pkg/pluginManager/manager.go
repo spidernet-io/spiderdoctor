@@ -2,8 +2,8 @@ package pluginManager
 
 import (
 	"github.com/spidernet-io/spiderdoctor/pkg/lock"
+	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager/nethttp"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
-	"github.com/spidernet-io/spiderdoctor/pkg/plugins/nethttp"
 	"go.uber.org/zap"
 )
 
