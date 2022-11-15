@@ -43,12 +43,12 @@ func (s *pluginWebhookhander) Default(ctx context.Context, obj runtime.Object) e
 		s.logger.Sugar().Debugf("nethppt instance: %+v", instance)
 		*(instance.Status.ExpectedRound) = instance.Spec.Schedule.RoundNumber
 	case s.plugin.GetApiType().GetObjectKind().GroupVersionKind().Kind == KindNameNetdns:
-		instance, ok := obj.(*crd.Nethttp)
+		instance, ok := obj.(*crd.Netdns)
 		if !ok {
 			s.logger.Error(ApiMsgGetFailure)
 			return apierrors.NewBadRequest(ApiMsgGetFailure)
 		}
-		s.logger.Sugar().Debugf("nethppt instance: %+v", instance)
+		s.logger.Sugar().Debugf("netdns instance: %+v", instance)
 		*(instance.Status.ExpectedRound) = instance.Spec.Schedule.RoundNumber
 	default:
 		s.logger.Sugar().Errorf("%s, detail=%+v", ApiMsgUnknowCRD, obj)
