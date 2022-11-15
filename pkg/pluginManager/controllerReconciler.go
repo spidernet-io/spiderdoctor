@@ -5,6 +5,7 @@ package pluginManager
 
 import (
 	"context"
+	"fmt"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"go.uber.org/zap"
@@ -42,7 +43,11 @@ func (s *pluginControllerReconciler) Reconcile(ctx context.Context, req reconcil
 			s.logger.Sugar().Errorf("unable to fetch obj , error=%v", err)
 			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
-		logger := s.logger.With(zap.String(instance.Kind, instance.Name))
+		roundNum := "0"
+		if instance.Status.DoneRound != nil {
+			roundNum = fmt.Sprintf("%d", *(instance.Status.DoneRound))
+		}
+		logger := s.logger.With(zap.String(instance.Kind, instance.Name), zap.String("roundNum", roundNum))
 		logger.Sugar().Debugf("reconcile handle %v", instance)
 
 		oldStatus := instance.Status.DeepCopy()
@@ -75,7 +80,11 @@ func (s *pluginControllerReconciler) Reconcile(ctx context.Context, req reconcil
 			s.logger.Sugar().Errorf("unable to fetch obj , error=%v", err)
 			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
-		logger := s.logger.With(zap.String(instance.Kind, instance.Name))
+		roundNum := "0"
+		if instance.Status.DoneRound != nil {
+			roundNum = fmt.Sprintf("%d", *(instance.Status.DoneRound))
+		}
+		logger := s.logger.With(zap.String(instance.Kind, instance.Name), zap.String("roundNum", roundNum))
 		logger.Sugar().Debugf("reconcile handle %v", instance)
 
 		oldStatus := instance.Status.DeepCopy()

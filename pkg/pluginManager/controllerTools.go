@@ -84,6 +84,7 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 					latestRecord.FailedAgentNodeList = failedNodeList
 					n := crd.StatusHistoryRecordStatusSucceed
 					latestRecord.Status = n
+					latestRecord.FailedAgentNodeList = failedNodeList
 					newStatus.LastRoundStatus = &n
 					logger.Sugar().Errorf("round %v failed , failedNode=%v", latestRecord.RoundNumber, failedNodeList)
 				} else {
@@ -102,7 +103,7 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 			// add next round record
 			n := *(newStatus.DoneRound) + 1
 			newStatus.DoneRound = &n
-			newRecod := NewStatusHistoryRecord(int(*(newStatus.DoneRound)), schedulePlan)
+			newRecod := NewStatusHistoryRecord(int(n+1), schedulePlan)
 			newStatus.History = append(newStatus.History, *newRecod)
 
 			// TODO: add to workqueue to collect all report of last round
