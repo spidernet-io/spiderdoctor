@@ -10,7 +10,6 @@ import (
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	"path"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"time"
 )
@@ -93,7 +92,7 @@ func (s *pluginManager) RunControllerController(webhookPort int, webhookTlsDir s
 		MetricsBindAddress:      "0",
 		HealthProbeBindAddress:  "0",
 		Port:                    webhookPort,
-		CertDir:                 path.Dir(webhookTlsDir),
+		CertDir:                 webhookTlsDir,
 		LeaderElection:          true,
 		LeaderElectionNamespace: types.ControllerConfig.PodNamespace,
 		LeaderElectionID:        types.ControllerConfig.PodName,
