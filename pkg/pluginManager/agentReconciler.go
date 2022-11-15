@@ -3,6 +3,7 @@ package pluginManager
 import (
 	"context"
 	"fmt"
+	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -11,7 +12,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
-	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 )
 
 type pluginAgentReconciler struct {
@@ -30,7 +30,7 @@ func (s *pluginManager) runAgentReconcile() {
 	logger := s.logger
 
 	scheme := runtime.NewScheme()
-	if e:=clientgoscheme.AddToScheme(scheme);e != nil {
+	if e := clientgoscheme.AddToScheme(scheme); e != nil {
 		logger.Sugar().Fatalf("failed to add k8s scheme, reason=%v", e)
 	}
 	if e := crd.AddToScheme(scheme); e != nil {
@@ -54,8 +54,7 @@ func (s *pluginManager) runAgentReconcile() {
 			logger: logger.Named(name + "Reconciler"),
 			p:      plugin,
 		}
-		b, e := ctrl.NewControllerManagedBy(mgr).For(plugin.GetApiType()).Complete(k)
-		if e != nil {
+		if e := ctrl.NewControllerManagedBy(mgr).For(plugin.GetApiType()).Complete(k); e != nil {
 			s.logger.Sugar().Fatalf("failed to builder reconcile for plugin %v, error=%v", name, e)
 		}
 	}

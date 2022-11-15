@@ -55,15 +55,19 @@ spec:
               request:
                 properties:
                   durationInSecond:
+                    default: 2
                     format: int64
                     minimum: 1
                     type: integer
                   perRequestTimeoutInSecond:
+                    default: 5
                     format: int64
                     minimum: 1
                     type: integer
                   qps:
+                    default: 5
                     format: int64
+                    maximum: 20
                     minimum: 1
                     type: integer
                   testIPv4:
