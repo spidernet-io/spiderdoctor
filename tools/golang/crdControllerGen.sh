@@ -26,7 +26,8 @@ controllerGenCmd rbac:roleName="exampleClusterRole" paths="${API_CODE_DIR}" outp
     | sed 's?name: exampleClusterRole?name: {{ include "project.name" . }}?' > ${CHART_DIR}/templates/role.yaml
 
 echo "generate CRD yaml to chart"
-controllerGenCmd crd paths="${API_CODE_DIR}"  output:dir="${CHART_DIR}/crds"
+rm -rf ${CHART_DIR}/crds/*
+controllerGenCmd crd:allowDangerousTypes=true paths="${API_CODE_DIR}"  output:dir="${CHART_DIR}/crds"
 
 echo "generate deepcode to api code"
 controllerGenCmd  object paths="${API_CODE_DIR}"

@@ -5,18 +5,16 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: (unknown)
   creationTimestamp: null
-  name: netdoctors.spiderdoctor.spidernet.io
+  name: netdnss.spiderdoctor.spidernet.io
 spec:
   group: spiderdoctor.spidernet.io
   names:
     categories:
     - spiderdoctor
-    kind: Netdoctor
-    listKind: NetdoctorList
-    plural: netdoctors
-    shortNames:
-    - nd
-    singular: netdoctor
+    kind: Netdns
+    listKind: NetdnsList
+    plural: netdnss
+    singular: netdns
   scope: Cluster
   versions:
   - additionalPrinterColumns:
@@ -54,28 +52,37 @@ spec:
             type: object
           spec:
             properties:
-              eachQPS:
-                format: int64
-                type: integer
-              eachTimeInSecond:
-                format: int64
-                type: integer
-              failureCondition:
+              request:
                 properties:
-                  minAccessDelayMs:
-                    default: 5000
+                  durationInSecond:
+                    default: 2
                     format: int64
+                    minimum: 1
                     type: integer
-                  minAccessFailure:
-                    default: 1
+                  perRequestTimeoutInSecond:
+                    default: 5
                     format: int64
+                    minimum: 1
                     type: integer
+                  qps:
+                    default: 5
+                    format: int64
+                    maximum: 20
+                    minimum: 1
+                    type: integer
+                  testIPv4:
+                    default: true
+                    type: boolean
+                  testIPv6:
+                    default: false
+                    type: boolean
                 type: object
               schedule:
                 properties:
                   intervalMinute:
                     default: 360
                     format: int64
+                    minimum: 1
                     type: integer
                   roundNumber:
                     default: 1
@@ -93,31 +100,24 @@ spec:
                     minimum: 1
                     type: integer
                 required:
+                - intervalMinute
                 - roundNumber
                 - startAfterMinute
+                - timeoutMinute
                 type: object
-              target:
+              success:
                 properties:
-                  hostAddress:
-                    type: string
-                  service:
-                    properties:
-                      serviceName:
-                        type: string
-                      testEndpoint:
-                        type: boolean
-                      testIngress:
-                        type: boolean
-                      testNodePort:
-                        type: boolean
-                    type: object
+                  meanAccessDelayInMs:
+                    default: 5000
+                    format: int64
+                    minimum: 100
+                    type: integer
+                  successRate:
+                    default: 1
+                    maximum: 1
+                    minimum: 0
+                    type: number
                 type: object
-              testIPv4:
-                default: true
-                type: boolean
-              testIPv6:
-                default: false
-                type: boolean
             type: object
           status:
             properties:

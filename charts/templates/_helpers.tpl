@@ -163,3 +163,11 @@ generate the CA cert
     {{- $ca := genCA "spidernet.io" (.Values.spiderdoctorController.tls.auto.caExpiration | int) -}}
     {{- $_ := set . "ca" $ca -}}
 {{- end }}
+
+{{- define "project.spiderdoctorAgent.serviceIpv4Name" -}}
+{{- printf "%s-ipv4" .Values.spiderdoctorAgent.name -}}
+{{- end -}}
+
+{{- define "project.spiderdoctorAgent.serviceIpv6Name" -}}
+{{- printf "%s-ipv6" .Values.spiderdoctorAgent.name -}}
+{{- end -}}
