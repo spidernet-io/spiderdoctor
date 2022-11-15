@@ -95,12 +95,17 @@ spec:
           {{- with .Values.spiderdoctorAgent.extraArgs }}
           {{- toYaml . | trim | nindent 8 }}
           {{- end }}
-          {{- if .Values.spiderdoctorAgent.prometheus.enabled }}
           ports:
+            {{- if .Values.spiderdoctorAgent.prometheus.enabled }}
             - name: metrics
               containerPort: {{ .Values.spiderdoctorAgent.prometheus.port }}
               protocol: TCP
-          {{- end }}
+            {{- end }}
+            {{- if or .Values.feature.enableIPv4 .Values.feature.enableIPv6 }}
+            - name: http
+              containerPort: {{ .Values.spiderdoctorAgent.httpServer.port }}
+              protocol: TCP
+            {{- end }}
           {{- if semverCompare ">=1.20-0" .Capabilities.KubeVersion.Version }}
           startupProbe:
             httpGet:
@@ -150,12 +155,30 @@ spec:
               value: {{ .Values.spiderdoctorAgent.gcReport | quote }}
             - name: ENV_AGENT_GRPC_LISTEN_PORT
               value: {{ .Values.spiderdoctorAgent.grpcServer.port | quote }}
+            - name: ENV_CLUSTER_DNS_DOMAIN
+              value: {{ .Values.global.clusterDnsDomain | quote }}
+            {{- if .Values.feature.enableIPv4 }}
+            - name: ENV_AGENT_IPV4_SERVICE_NAME
+              value: {{ include "project.spiderdoctorAgent.serviceIpv4Name" . }}
+            {{- end }}
+            {{- if .Values.feature.enableIPv6 }}
+            - name: ENV_AGENT_IPV6_SERVICE_NAME
+              value: {{ include "project.spiderdoctorAgent.serviceIpv6Name" . }}
+            {{- end }}
             - name: ENV_PATH_AGENT_POD_REPORT
               value: "/report"
             - name: ENV_POD_NAME
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
+            - name: ENV_LOCAL_NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: ENV_LOCAL_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
             - name: ENV_POD_NAMESPACE
               valueFrom:
                 fieldRef:
