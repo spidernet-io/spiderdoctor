@@ -17,7 +17,3 @@ var _ types.ChainingPlugin = &PluginNetHttp{}
 func (s *PluginNetHttp) GetApiType() client.Object {
 	return &crd.Nethttp{}
 }
-
-func (s *PluginNetHttp) GetKindName() string {
-	return "Nethttp"
-}

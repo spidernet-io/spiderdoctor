@@ -60,7 +60,8 @@ func (s *pluginWebhookhander) Default(ctx context.Context, obj runtime.Object) e
 		return apierrors.NewBadRequest(ApiMsgUnknowCRD)
 	}
 
-	return s.plugin.WebhookMutating(s.logger.Named("mutatingWebhook"), ctx, obj)
+	return nil
+	// return s.plugin.WebhookMutating(s.logger.Named("mutatingWebhook"), ctx, obj)
 }
 
 func (s *pluginWebhookhander) ValidateCreate(ctx context.Context, obj runtime.Object) error {
