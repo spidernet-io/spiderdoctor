@@ -158,6 +158,10 @@ spec:
                       items:
                         type: string
                       type: array
+                    unReportAgentNodeList:
+                      items:
+                        type: string
+                      type: array
                   required:
                   - deadLineTimeStamp
                   - failedAgentNodeList
@@ -165,6 +169,7 @@ spec:
                   - startTimeStamp
                   - status
                   - succeedAgentNodeList
+                  - unReportAgentNodeList
                   type: object
                 type: array
               lastRoundStatus:

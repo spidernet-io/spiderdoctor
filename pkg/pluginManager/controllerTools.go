@@ -77,16 +77,23 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 		if int(*newStatus.DoneRound) == (recordLength - 1) {
 
 			// update result in latestRecord
-			if failedNodeList, e := s.GetSpiderAgentNodeNotInSucceedRecord(ctx, latestRecord.SucceedAgentNodeList); e != nil {
+			reportNode := []string{}
+			reportNode = append(reportNode, latestRecord.SucceedAgentNodeList...)
+			reportNode = append(reportNode, latestRecord.FailedAgentNodeList...)
+			if unknowReportNodeList, e := s.GetSpiderAgentNodeNotInSucceedRecord(ctx, reportNode); e != nil {
 				return nil, nil, e
 			} else {
-				if len(failedNodeList) > 0 {
-					latestRecord.FailedAgentNodeList = failedNodeList
-					n := crd.StatusHistoryRecordStatusSucceed
+				if len(unknowReportNodeList) > 0 || len(latestRecord.FailedAgentNodeList) > 0 {
+					latestRecord.UnReportAgentNodeList = unknowReportNodeList
+					n := crd.StatusHistoryRecordStatusFail
 					latestRecord.Status = n
-					latestRecord.FailedAgentNodeList = failedNodeList
 					newStatus.LastRoundStatus = &n
-					logger.Sugar().Errorf("round %v failed , failedNode=%v", latestRecord.RoundNumber, failedNodeList)
+					logger.Sugar().Errorf("round %v failed , failedNode=%v, unknowReportNode=%v", latestRecord.RoundNumber, latestRecord.FailedAgentNodeList, unknowReportNodeList)
+					if len(latestRecord.FailedAgentNodeList) > 0 {
+						latestRecord.FailureReason = "some agents failed"
+					} else if len(unknowReportNodeList) > 0 {
+						latestRecord.FailureReason = "some agents did not report"
+					}
 				} else {
 					n := crd.StatusHistoryRecordStatusSucceed
 					latestRecord.Status = n
@@ -106,7 +113,7 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 			newRecod := NewStatusHistoryRecord(int(n+1), schedulePlan)
 			newStatus.History = append(newStatus.History, *newRecod)
 
-			// TODO: add to workqueue to collect all report of last round
+			// TODO: add to workqueue to collect all report of last round, for node latestRecord.FailedAgentNodeList and latestRecord.SucceedAgentNodeList
 
 		} else {
 			// it should not get here , because once it succeeded to insert New StatusHistoryRecord, it should to to case 1
