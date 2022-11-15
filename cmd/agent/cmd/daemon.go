@@ -4,9 +4,7 @@
 package cmd
 
 import (
-	"fmt"
 	"github.com/spidernet-io/spiderdoctor/pkg/debug"
-	"github.com/spidernet-io/spiderdoctor/pkg/loadRequest"
 	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"time"
@@ -24,6 +22,7 @@ func SetupUtility() {
 	}
 }
 
+/*
 func testHttp() {
 	time.Sleep(30 * time.Second)
 	agentServiceUrl := fmt.Sprintf("http://%s.%s.svc.%s:%v/", types.AgentConfig.AgentSerivceIpv4Name, types.AgentConfig.PodNamespace, types.AgentConfig.ClusterDnsDomain, types.AgentConfig.HttpPort)
@@ -53,6 +52,7 @@ func testHttp() {
 	rootLogger.Sugar().Infof("http sent requests per second : %v", r.Rate)
 
 }
+*/
 
 func DaemonMain() {
 	rootLogger.Sugar().Infof("config: %+v", types.AgentConfig)

@@ -1,3 +1,6 @@
+// Copyright 2022 Authors of spidernet-io
+// SPDX-License-Identifier: Apache-2.0
+
 package pluginManager
 
 import (
@@ -64,7 +67,7 @@ func (s *pluginManager) RunAgentController() {
 	}
 
 	go func() {
-		msg := fmt.Sprintf("reconcile of plugin down")
+		msg := "reconcile of plugin down"
 		if e := mgr.Start(ctrl.SetupSignalHandler()); e != nil {
 			msg += fmt.Sprintf(", error=%v", e)
 		}
@@ -125,7 +128,7 @@ func (s *pluginManager) RunControllerController(webhookPort int, webhookTlsDir s
 	}
 
 	go func() {
-		msg := fmt.Sprintf("reconcile of plugin down")
+		msg := "reconcile of plugin down"
 		if e := mgr.Start(ctrl.SetupSignalHandler()); e != nil {
 			msg += fmt.Sprintf(", error=%v", e)
 		}

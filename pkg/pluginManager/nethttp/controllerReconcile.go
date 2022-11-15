@@ -22,7 +22,7 @@ func (s *PluginNetHttp) ControllerReconcile(logger *zap.Logger, client client.Cl
 		logger.Sugar().Errorf("failed to get nethttp %+v", req)
 		return reconcile.Result{}, err
 	}
-	logger.Sugar().Errorf("get nethttp %+v", t)
+	logger.Sugar().Infof("get nethttp %+v", t)
 
 	return reconcile.Result{}, nil
 }
