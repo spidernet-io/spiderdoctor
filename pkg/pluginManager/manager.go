@@ -59,9 +59,10 @@ func (s *pluginManager) RunAgentController() {
 	for name, plugin := range s.chainingPlugins {
 		logger.Sugar().Infof("run controller for plugin %v", name)
 		k := &pluginAgentReconciler{
-			logger: logger.Named(name + "Reconciler"),
-			plugin: plugin,
-			client: mgr.GetClient(),
+			logger:  logger.Named(name + "Reconciler"),
+			plugin:  plugin,
+			client:  mgr.GetClient(),
+			crdKind: name,
 		}
 		if e := k.SetupWithManager(mgr); e != nil {
 			s.logger.Sugar().Fatalf("failed to builder reconcile for plugin %v, error=%v", name, e)
@@ -130,18 +131,20 @@ func (s *pluginManager) RunControllerController(healthPort int, webhookPort int,
 		// setup reconcile
 		logger.Sugar().Infof("run controller for plugin %v", name)
 		k := &pluginControllerReconciler{
-			logger: logger.Named(name + "Reconciler"),
-			plugin: plugin,
-			client: mgr.GetClient(),
+			logger:  logger.Named(name + "Reconciler"),
+			plugin:  plugin,
+			client:  mgr.GetClient(),
+			crdKind: name,
 		}
 		if e := k.SetupWithManager(mgr); e != nil {
 			s.logger.Sugar().Fatalf("failed to builder reconcile for plugin %v, error=%v", name, e)
 		}
 		// setup webhook
 		t := &pluginWebhookhander{
-			logger: logger.Named(name + "Webhook"),
-			plugin: plugin,
-			client: mgr.GetClient(),
+			logger:  logger.Named(name + "Webhook"),
+			plugin:  plugin,
+			client:  mgr.GetClient(),
+			crdKind: name,
 		}
 		if e := t.SetupWebhook(mgr); e != nil {
 			s.logger.Sugar().Fatalf("failed to builder webhook for plugin %v, error=%v", name, e)

@@ -14,9 +14,10 @@ import (
 )
 
 type pluginAgentReconciler struct {
-	client client.Client
-	plugin plugintypes.ChainingPlugin
-	logger *zap.Logger
+	client  client.Client
+	plugin  plugintypes.ChainingPlugin
+	logger  *zap.Logger
+	crdKind string
 }
 
 var _ reconcile.Reconciler = &pluginAgentReconciler{}
@@ -46,8 +47,8 @@ func (s *pluginAgentReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	// ------ add crd ------
-	switch {
-	case s.plugin.GetApiType().GetObjectKind().GroupVersionKind().Kind == KindNameNethttp:
+	switch s.crdKind {
+	case KindNameNethttp:
 		instance := crd.Nethttp{}
 		if err := s.client.Get(ctx, req.NamespacedName, &instance); err != nil {
 			s.logger.Sugar().Errorf("unable to fetch obj , error=%v", err)
@@ -59,7 +60,7 @@ func (s *pluginAgentReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 		handleTask(taskStatus, schedulePlan)
 
-	case s.plugin.GetApiType().GetObjectKind().GroupVersionKind().Kind == KindNameNetdns:
+	case KindNameNetdns:
 		instance := crd.Netdns{}
 		if err := s.client.Get(ctx, req.NamespacedName, &instance); err != nil {
 			s.logger.Sugar().Errorf("unable to fetch obj , error=%v", err)
@@ -72,7 +73,7 @@ func (s *pluginAgentReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		handleTask(taskStatus, schedulePlan)
 
 	default:
-		s.logger.Sugar().Errorf("unknown crd type , detail=%+v", req)
+		s.logger.Sugar().Errorf("unknown crd type , support kind=%v, detail=%+v", s.crdKind, req)
 		// forget this
 		return ctrl.Result{}, nil
 	}

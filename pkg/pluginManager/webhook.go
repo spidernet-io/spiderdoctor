@@ -18,9 +18,10 @@ import (
 // --------------------
 
 type pluginWebhookhander struct {
-	logger *zap.Logger
-	plugin plugintypes.ChainingPlugin
-	client client.Client
+	logger  *zap.Logger
+	plugin  plugintypes.ChainingPlugin
+	client  client.Client
+	crdKind string
 }
 
 var _ webhook.CustomValidator = (*pluginWebhookhander)(nil)
@@ -35,8 +36,8 @@ const (
 func (s *pluginWebhookhander) Default(ctx context.Context, obj runtime.Object) error {
 
 	// ------ add crd ------
-	switch {
-	case s.plugin.GetApiType().GetObjectKind().GroupVersionKind().Kind == KindNameNethttp:
+	switch s.crdKind {
+	case KindNameNethttp:
 		instance, ok := obj.(*crd.Nethttp)
 		if !ok {
 			s.logger.Error(ApiMsgGetFailure)
@@ -45,7 +46,7 @@ func (s *pluginWebhookhander) Default(ctx context.Context, obj runtime.Object) e
 		s.logger.Sugar().Debugf("nethppt instance: %+v", instance)
 		*(instance.Status.ExpectedRound) = instance.Spec.Schedule.RoundNumber
 
-	case s.plugin.GetApiType().GetObjectKind().GroupVersionKind().Kind == KindNameNetdns:
+	case KindNameNetdns:
 		instance, ok := obj.(*crd.Netdns)
 		if !ok {
 			s.logger.Error(ApiMsgGetFailure)
@@ -55,7 +56,7 @@ func (s *pluginWebhookhander) Default(ctx context.Context, obj runtime.Object) e
 		*(instance.Status.ExpectedRound) = instance.Spec.Schedule.RoundNumber
 
 	default:
-		s.logger.Sugar().Errorf("%s, support kind=%v, objkind=%v, obj=%+v", ApiMsgUnknowCRD, s.plugin.GetApiType().GetObjectKind().GroupVersionKind().Kind, obj.GetObjectKind(), obj)
+		s.logger.Sugar().Errorf("%s, support kind=%v, objkind=%v, obj=%+v", ApiMsgUnknowCRD, s.crdKind, obj.GetObjectKind(), obj)
 		return apierrors.NewBadRequest(ApiMsgUnknowCRD)
 	}
 
