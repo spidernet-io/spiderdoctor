@@ -180,9 +180,9 @@ spec:
                 fieldRef:
                   fieldPath: spec.nodeName
             - name: ENV_POD_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
+              value: {{ include "project.spiderdoctorAgent.serviceIpv6Name" . }}
+            - name: ENV_AGENT_DAEMONSET_NAME
+              value: {{ .Values.spiderdoctorAgent.name | trunc 63 | trimSuffix "-" }}
             {{- with .Values.spiderdoctorAgent.extraEnv }}
             {{- toYaml . | nindent 12 }}
             {{- end }}

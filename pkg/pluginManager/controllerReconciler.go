@@ -8,6 +8,7 @@ import (
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"go.uber.org/zap"
+	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -26,65 +27,79 @@ type pluginControllerReconciler struct {
 // (3) collect report from agent
 func (s *pluginControllerReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
 
-	var schedulePlan *crd.SchedulePlan
-	var taskStatus *crd.TaskStatus
-
 	if s.plugin.GetApiType().GetDeletionTimestamp() != nil {
 		s.logger.Sugar().Debugf("ignore deleting task %v", req)
 		return ctrl.Result{}, nil
 	}
 
-	handleTask := func(taskStatus *crd.TaskStatus, schedulePlan *crd.SchedulePlan) {
-		if taskStatus.ExpectedRound == nil {
-			*(taskStatus.ExpectedRound) = schedulePlan.RoundNumber
-		}
-		if taskStatus.DoneRound == nil {
-			*(taskStatus.DoneRound) = 0
-		}
-
-		if *taskStatus.DoneRound == *taskStatus.ExpectedRound {
-			taskStatus.Finish = true
-			s.logger.Sugar().Debugf("ignore finished task %v", req)
-			return
-		} else {
-			taskStatus.Finish = false
-		}
-
-	}
-
 	// ------ add crd ------
 	switch s.crdKind {
 	case KindNameNethttp:
+		// ------ add crd ------
 		instance := crd.Nethttp{}
+
+		logger := s.logger.With(zap.String(instance.Kind, instance.Name))
 		if err := s.client.Get(ctx, req.NamespacedName, &instance); err != nil {
-			s.logger.Sugar().Errorf("unable to fetch obj , error=%v", err)
+			logger.Sugar().Errorf("unable to fetch obj , error=%v", err)
 			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
-		s.logger.Sugar().Debugf("reconcile handle nethttp %v", instance.Name)
-		schedulePlan = instance.Spec.Schedule.DeepCopy()
-		taskStatus = instance.Status.DeepCopy()
+		logger.Sugar().Debugf("reconcile handle %v %v", instance.Kind, instance.Name)
 
-		handleTask(taskStatus, schedulePlan)
+		oldStatus := instance.Status.DeepCopy()
+
+		if newStatus, err := s.UpdateStatus(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy()); err != nil {
+			// requeue
+			logger.Sugar().Errorf("failed to UpdateStatus, will retry it, error=%v", err)
+			return ctrl.Result{}, err
+		} else {
+			if !reflect.DeepEqual(newStatus, oldStatus) {
+				instance.Status = *newStatus
+				if err := s.client.Status().Update(ctx, &instance); err != nil {
+					// requeue
+					logger.Sugar().Errorf("failed to update status, will retry it, error=%v", err)
+					return ctrl.Result{}, err
+				}
+				logger.Sugar().Debugf("succeeded update status, newStatus=%+v", newStatus)
+			}
+		}
 
 	case KindNameNetdns:
+		// ------ add crd ------
 		instance := crd.Netdns{}
+
+		logger := s.logger.With(zap.String(instance.Kind, instance.Name))
 		if err := s.client.Get(ctx, req.NamespacedName, &instance); err != nil {
-			s.logger.Sugar().Errorf("unable to fetch obj , error=%v", err)
+			logger.Sugar().Errorf("unable to fetch obj , error=%v", err)
 			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
-		s.logger.Sugar().Debugf("reconcile handle netdns %v", instance.Name)
-		schedulePlan = instance.Spec.Schedule.DeepCopy()
-		taskStatus = instance.Status.DeepCopy()
+		logger.Sugar().Debugf("reconcile handle %v %v", instance.Kind, instance.Name)
 
-		handleTask(taskStatus, schedulePlan)
+		oldStatus := instance.Status.DeepCopy()
+
+		if newStatus, err := s.UpdateStatus(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy()); err != nil {
+			// requeue
+			logger.Sugar().Errorf("failed to UpdateStatus, will retry it, error=%v", err)
+			return ctrl.Result{}, err
+		} else {
+			if !reflect.DeepEqual(newStatus, oldStatus) {
+				instance.Status = *newStatus
+				if err := s.client.Status().Update(ctx, &instance); err != nil {
+					// requeue
+					logger.Sugar().Errorf("failed to update status, will retry it, error=%v", err)
+					return ctrl.Result{}, err
+				}
+				logger.Sugar().Debugf("succeeded update status, newStatus=%+v", newStatus)
+			}
+		}
 
 	default:
 		s.logger.Sugar().Errorf("unknown crd type , support kind=%v, detail=%+v", s.crdKind, req)
-		// forget this
-		return ctrl.Result{}, nil
-	}
 
-	return s.plugin.ControllerReconcile(s.logger, s.client, ctx, req)
+	}
+	// forget this
+	return ctrl.Result{}, nil
+
+	// return s.plugin.ControllerReconcile(s.logger, s.client, ctx, req)
 }
 
 var _ reconcile.Reconciler = &pluginControllerReconciler{}

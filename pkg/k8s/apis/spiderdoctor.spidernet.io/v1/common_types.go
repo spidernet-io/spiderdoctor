@@ -35,37 +35,39 @@ type TaskStatus struct {
 	Finish bool `json:"finish"`
 
 	// +kubebuilder:validation:Optional
-	// +kubebuilder:validation:Type:=string
-	// +kubebuilder:validation:Format:=date-time
-	LastRoundFinishTimeStamp *metav1.Time `json:"lastRoundFinishTimeStamp,omitempty"`
-
-	// +kubebuilder:validation:Optional
 	// +kubebuilder:validation:Enum=succeed;fail;unknown
 	LastRoundStatus *string `json:"lastRoundStatus,omitempty"`
-
-	// +kubebuilder:validation:Optional
-	// +kubebuilder:validation:Type:=string
-	// +kubebuilder:validation:Format:=date-time
-	NextRoundStartTimeStamp *metav1.Time `json:"nextRoundStartTimeStamp,omitempty"`
-
-	// +kubebuilder:validation:Optional
-	// +kubebuilder:validation:Type:=string
-	// +kubebuilder:validation:Format:=date-time
-	NextRoundDeadLineTimeStamp *metav1.Time `json:"nextRoundDeadLineTimeStamp,omitempty"`
 
 	History []StatusHistoryRecord `json:"history"`
 }
 
+const (
+	StatusHistoryRecordStatusSucceed = "succeed"
+	StatusHistoryRecordStatusFail    = "fail"
+	StatusHistoryRecordStatusOngoing = "ongoing"
+)
+
 type StatusHistoryRecord struct {
 
-	// +kubebuilder:validation:Enum=succeed;fail;unknown
+	// +kubebuilder:validation:Enum=succeed;fail;ongoing
 	Status string `json:"status"`
+
+	// +kubebuilder:validation:Optional
+	FailureReason string `json:"failureReason,omitempty"`
+
+	RoundNumber int `json:"roundNumber"`
 
 	// +kubebuilder:validation:Type:=string
 	// +kubebuilder:validation:Format:=date-time
-	StartTimeStamp *metav1.Time `json:"startTimeStamp,omitempty"`
+	StartTimeStamp metav1.Time `json:"startTimeStamp"`
+
+	// +kubebuilder:validation:Type:=string
+	// +kubebuilder:validation:Format:=date-time
+	DeadLineTimeStamp metav1.Time `json:"deadLineTimeStamp"`
 
 	FailedAgentNodeList []string `json:"failedAgentNodeList"`
+
+	SucceedAgentNodeList []string `json:"succeedAgentNodeList"`
 }
 
 type NetSuccessCondition struct {

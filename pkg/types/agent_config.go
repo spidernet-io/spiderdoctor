@@ -21,27 +21,29 @@ var AgentEnvMapping = []EnvMapping{
 	{"ENV_AGENT_IPV6_SERVICE_NAME", "", &AgentConfig.AgentSerivceIpv6Name},
 	{"ENV_LOCAL_NODE_IP", "", &AgentConfig.LocalNodeIP},
 	{"ENV_LOCAL_NODE_NAME", "", &AgentConfig.LocalNodeName},
+	{"ENV_AGENT_DAEMONSET_NAME", "spiderdoctor-agent", &AgentConfig.SpiderDoctorAgentDaemonsetName},
 }
 
 type AgentConfigStruct struct {
 	// ------- from env
-	EnableMetric           bool
-	MetricPort             int32
-	HttpPort               int32
-	GopsPort               int32
-	WebhookPort            int32
-	PyroscopeServerAddress string
-	PodName                string
-	PodNamespace           string
-	GolangMaxProcs         int32
-	GcReportForDeletdCRD   bool
-	AgentGrpcListenPort    int32
-	ReportRootDirPath      string
-	ClusterDnsDomain       string
-	AgentSerivceIpv4Name   string
-	AgentSerivceIpv6Name   string
-	LocalNodeIP            string
-	LocalNodeName          string
+	EnableMetric                   bool
+	MetricPort                     int32
+	HttpPort                       int32
+	GopsPort                       int32
+	WebhookPort                    int32
+	PyroscopeServerAddress         string
+	PodName                        string
+	PodNamespace                   string
+	GolangMaxProcs                 int32
+	GcReportForDeletdCRD           bool
+	AgentGrpcListenPort            int32
+	ReportRootDirPath              string
+	ClusterDnsDomain               string
+	AgentSerivceIpv4Name           string
+	AgentSerivceIpv6Name           string
+	LocalNodeIP                    string
+	LocalNodeName                  string
+	SpiderDoctorAgentDaemonsetName string
 	// ------- from flags
 	ConfigMapPath     string
 	TlsCaCertPath     string

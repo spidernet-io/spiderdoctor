@@ -44,7 +44,6 @@ func (s *pluginWebhookhander) Default(ctx context.Context, obj runtime.Object) e
 			return apierrors.NewBadRequest(ApiMsgGetFailure)
 		}
 		s.logger.Sugar().Debugf("nethppt instance: %+v", instance)
-		*(instance.Status.ExpectedRound) = instance.Spec.Schedule.RoundNumber
 
 	case KindNameNetdns:
 		instance, ok := obj.(*crd.Netdns)
@@ -60,8 +59,7 @@ func (s *pluginWebhookhander) Default(ctx context.Context, obj runtime.Object) e
 		return apierrors.NewBadRequest(ApiMsgUnknowCRD)
 	}
 
-	return nil
-	// return s.plugin.WebhookMutating(s.logger.Named("mutatingWebhook"), ctx, obj)
+	return s.plugin.WebhookMutating(s.logger.Named("mutatingWebhook"), ctx, obj)
 }
 
 func (s *pluginWebhookhander) ValidateCreate(ctx context.Context, obj runtime.Object) error {

@@ -146,10 +146,17 @@ spec:
               history:
                 items:
                   properties:
+                    deadLineTimeStamp:
+                      format: date-time
+                      type: string
                     failedAgentNodeList:
                       items:
                         type: string
                       type: array
+                    failureReason:
+                      type: string
+                    roundNumber:
+                      type: integer
                     startTimeStamp:
                       format: date-time
                       type: string
@@ -157,27 +164,26 @@ spec:
                       enum:
                       - succeed
                       - fail
-                      - unknown
+                      - ongoing
                       type: string
+                    succeedAgentNodeList:
+                      items:
+                        type: string
+                      type: array
                   required:
+                  - deadLineTimeStamp
                   - failedAgentNodeList
+                  - roundNumber
+                  - startTimeStamp
                   - status
+                  - succeedAgentNodeList
                   type: object
                 type: array
-              lastRoundFinishTimeStamp:
-                format: date-time
-                type: string
               lastRoundStatus:
                 enum:
                 - succeed
                 - fail
                 - unknown
-                type: string
-              nextRoundDeadLineTimeStamp:
-                format: date-time
-                type: string
-              nextRoundStartTimeStamp:
-                format: date-time
                 type: string
             required:
             - finish
