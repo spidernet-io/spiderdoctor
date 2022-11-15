@@ -47,7 +47,7 @@ func (s *pluginControllerReconciler) Reconcile(ctx context.Context, req reconcil
 
 		oldStatus := instance.Status.DeepCopy()
 
-		if newStatus, err := s.UpdateStatus(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy()); err != nil {
+		if result, newStatus, err := s.UpdateStatus(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy()); err != nil {
 			// requeue
 			logger.Sugar().Errorf("failed to UpdateStatus, will retry it, error=%v", err)
 			return ctrl.Result{}, err
@@ -60,6 +60,10 @@ func (s *pluginControllerReconciler) Reconcile(ctx context.Context, req reconcil
 					return ctrl.Result{}, err
 				}
 				logger.Sugar().Debugf("succeeded update status, newStatus=%+v", newStatus)
+			}
+
+			if result != nil {
+				return *result, nil
 			}
 		}
 
@@ -76,7 +80,7 @@ func (s *pluginControllerReconciler) Reconcile(ctx context.Context, req reconcil
 
 		oldStatus := instance.Status.DeepCopy()
 
-		if newStatus, err := s.UpdateStatus(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy()); err != nil {
+		if result, newStatus, err := s.UpdateStatus(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy()); err != nil {
 			// requeue
 			logger.Sugar().Errorf("failed to UpdateStatus, will retry it, error=%v", err)
 			return ctrl.Result{}, err
@@ -89,6 +93,9 @@ func (s *pluginControllerReconciler) Reconcile(ctx context.Context, req reconcil
 					return ctrl.Result{}, err
 				}
 				logger.Sugar().Debugf("succeeded update status, newStatus=%+v", newStatus)
+			}
+			if result != nil {
+				return *result, nil
 			}
 		}
 

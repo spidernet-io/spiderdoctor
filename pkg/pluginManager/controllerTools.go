@@ -5,10 +5,11 @@ import (
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.uber.org/zap"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
 )
 
-func (s *pluginControllerReconciler) GetSpiderAgentNodeNotInSucceedRecod(ctx context.Context, succeedNodeList []string) (failNodelist []string, err error) {
+func (s *pluginControllerReconciler) GetSpiderAgentNodeNotInSucceedRecord(ctx context.Context, succeedNodeList []string) (failNodelist []string, err error) {
 	allNodeList, e := GetDaemonsetPodNodeNameList(ctx, s.client, types.ControllerConfig.SpiderDoctorAgentDaemonsetName, types.ControllerConfig.PodNamespace)
 	if e != nil {
 		return nil, e
@@ -27,7 +28,7 @@ OUTER:
 	return failNodelist, nil
 }
 
-func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx context.Context, oldStatus *crd.TaskStatus, schedulePlan *crd.SchedulePlan) (*crd.TaskStatus, error) {
+func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx context.Context, oldStatus *crd.TaskStatus, schedulePlan *crd.SchedulePlan) (result *reconcile.Result, taskStatus *crd.TaskStatus, e error) {
 	newStatus := oldStatus.DeepCopy()
 	recordLength := len(newStatus.History)
 
@@ -41,12 +42,12 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 		newStatus.History = append(newStatus.History, *newRecod)
 		logger.Debug("initialize the status of new instance")
 		// updating status firstly , it will trigger to handle it next round
-		return newStatus, nil
+		return nil, newStatus, nil
 	}
 
 	if *newStatus.DoneRound == *newStatus.ExpectedRound {
 		// done task
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	latestRecord := &(newStatus.History[recordLength-1])
@@ -59,15 +60,25 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 		// this round not start, do nothing
 		logger.Sugar().Debugf("wait for starting next round ")
 
+		// trigger when task end
+		result = &reconcile.Result{
+			RequeueAfter: latestRecord.DeadLineTimeStamp.Time.Sub(nowTime),
+		}
+
 	case nowTime.Before(latestRecord.DeadLineTimeStamp.Time) && nowTime.After(latestRecord.StartTimeStamp.Time):
 		// still in this round , do nothing
+
+		// trigger when task end
+		result = &reconcile.Result{
+			RequeueAfter: latestRecord.DeadLineTimeStamp.Time.Sub(nowTime),
+		}
 
 	case nowTime.After(latestRecord.DeadLineTimeStamp.Time):
 		if int(*newStatus.DoneRound) == (recordLength - 1) {
 
 			// update result in latestRecord
-			if failedNodeList, e := s.GetSpiderAgentNodeNotInSucceedRecod(ctx, latestRecord.SucceedAgentNodeList); e != nil {
-				return nil, e
+			if failedNodeList, e := s.GetSpiderAgentNodeNotInSucceedRecord(ctx, latestRecord.SucceedAgentNodeList); e != nil {
+				return nil, nil, e
 			} else {
 				if len(failedNodeList) > 0 {
 					latestRecord.FailedAgentNodeList = failedNodeList
@@ -81,6 +92,11 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 					newStatus.LastRoundStatus = &n
 					logger.Sugar().Infof("round %v succeeded ", latestRecord.RoundNumber)
 				}
+			}
+
+			// trigger when task start
+			result = &reconcile.Result{
+				RequeueAfter: latestRecord.StartTimeStamp.Time.Sub(nowTime),
 			}
 
 			// add next round record
@@ -100,10 +116,11 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 
 	if *newStatus.DoneRound == *newStatus.ExpectedRound {
 		newStatus.Finish = true
+		result = nil
 	} else {
 		newStatus.Finish = false
 	}
 
-	return newStatus, nil
+	return result, newStatus, nil
 
 }
