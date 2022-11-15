@@ -32,12 +32,6 @@ type PluginManager interface {
 
 var globalPluginManager *pluginManager
 
-const (
-	// ------ add crd ------
-	KindNameNethttp = "Nethttp"
-	KindNameNetdns  = "Netdns"
-)
-
 // --------------------------------------
 func (s *pluginManager) RunAgentController() {
 	logger := s.logger
@@ -176,13 +170,19 @@ func InitPluginManager(logger *zap.Logger) PluginManager {
 	return globalPluginManager
 }
 
+const (
+	// ------ add crd ------
+	KindNameNethttp = "Nethttp"
+	KindNameNetdns  = "Netdns"
+)
+
 func init() {
 	globalPluginManager = &pluginManager{
 		chainingPlugins: map[string]plugintypes.ChainingPlugin{},
 	}
 
 	// ------ add crd ------
-	globalPluginManager.chainingPlugins["nethttp"] = &nethttp.PluginNetHttp{}
-	globalPluginManager.chainingPlugins["netdns"] = &netdns.PluginNetDns{}
+	globalPluginManager.chainingPlugins[KindNameNethttp] = &nethttp.PluginNetHttp{}
+	globalPluginManager.chainingPlugins[KindNameNetdns] = &netdns.PluginNetDns{}
 
 }

@@ -26,13 +26,15 @@ type pluginWebhookhander struct {
 var _ webhook.CustomValidator = (*pluginWebhookhander)(nil)
 
 const (
-	ApiMsgGetFailure = "failed to get instance"
-	ApiMsgUnknowCRD  = "unsupport crd type"
+	ApiMsgGetFailure      = "failed to get instance"
+	ApiMsgUnknowCRD       = "unsupported crd type"
+	ApiMsgUnsupportModify = "unsupported modify spec"
 )
 
 // mutating webhook
 func (s *pluginWebhookhander) Default(ctx context.Context, obj runtime.Object) error {
 
+	// ------ add crd ------
 	switch {
 	case s.plugin.GetApiType().GetObjectKind().GroupVersionKind().Kind == KindNameNethttp:
 		instance, ok := obj.(*crd.Nethttp)
@@ -42,6 +44,7 @@ func (s *pluginWebhookhander) Default(ctx context.Context, obj runtime.Object) e
 		}
 		s.logger.Sugar().Debugf("nethppt instance: %+v", instance)
 		*(instance.Status.ExpectedRound) = instance.Spec.Schedule.RoundNumber
+
 	case s.plugin.GetApiType().GetObjectKind().GroupVersionKind().Kind == KindNameNetdns:
 		instance, ok := obj.(*crd.Netdns)
 		if !ok {
@@ -50,8 +53,9 @@ func (s *pluginWebhookhander) Default(ctx context.Context, obj runtime.Object) e
 		}
 		s.logger.Sugar().Debugf("netdns instance: %+v", instance)
 		*(instance.Status.ExpectedRound) = instance.Spec.Schedule.RoundNumber
+
 	default:
-		s.logger.Sugar().Errorf("%s, detail=%+v", ApiMsgUnknowCRD, obj)
+		s.logger.Sugar().Errorf("%s, support kind=%v, objkind=%v, obj=%+v", ApiMsgUnknowCRD, s.plugin.GetApiType().GetObjectKind().GroupVersionKind().Kind, obj.GetObjectKind(), obj)
 		return apierrors.NewBadRequest(ApiMsgUnknowCRD)
 	}
 
@@ -63,14 +67,13 @@ func (s *pluginWebhookhander) ValidateCreate(ctx context.Context, obj runtime.Ob
 }
 
 func (s *pluginWebhookhander) ValidateUpdate(ctx context.Context, oldObj, newObj runtime.Object) error {
-	return s.plugin.WebhookValidateUpdate(s.logger.Named("validatingCreateWebhook"), ctx, oldObj, newObj)
-
+	return apierrors.NewBadRequest(ApiMsgUnsupportModify)
+	// return s.plugin.WebhookValidateUpdate(s.logger.Named("validatingCreateWebhook"), ctx, oldObj, newObj)
 }
 
 // ValidateDelete implements webhook.CustomValidator so a webhook will be registered for the type
 func (s *pluginWebhookhander) ValidateDelete(ctx context.Context, obj runtime.Object) error {
 	return s.plugin.WebhookValidateDelete(s.logger.Named("validatingDeleteWebhook"), ctx, obj)
-
 }
 
 // --------------------
