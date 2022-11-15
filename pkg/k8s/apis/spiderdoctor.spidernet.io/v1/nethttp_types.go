@@ -31,14 +31,18 @@ type NethttpRequest struct {
 	TestIPv6 *bool `json:"testIPv6,omitempty"`
 
 	// +kubebuilder:validation:Optional
+	// +kubebuilder:default=2
 	// +kubebuilder:validation:Minimum=1
 	DurationInSecond *uint64 `json:"durationInSecond,omitempty"`
 
 	// +kubebuilder:validation:Optional
+	// +kubebuilder:default=5
 	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:validation:Maximum=20
 	QPS *uint64 `json:"qps,omitempty"`
 
 	// +kubebuilder:validation:Optional
+	// +kubebuilder:default=5
 	// +kubebuilder:validation:Minimum=1
 	PerRequestTimeoutInSecond *uint64 `json:"perRequestTimeoutInSecond,omitempty"`
 }
