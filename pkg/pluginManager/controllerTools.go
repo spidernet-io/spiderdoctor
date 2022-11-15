@@ -33,8 +33,10 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 
 	// init new instance first
 	if newStatus.ExpectedRound == nil || recordLength == 0 {
-		*(newStatus.ExpectedRound) = schedulePlan.RoundNumber
-		*(newStatus.DoneRound) = 0
+		n := schedulePlan.RoundNumber
+		newStatus.ExpectedRound = &n
+		m := int64(0)
+		newStatus.DoneRound = &m
 		newRecod := NewStatusHistoryRecord(1, schedulePlan)
 		newStatus.History = append(newStatus.History, *newRecod)
 		logger.Debug("initialize the status of new instance")
@@ -69,18 +71,21 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 			} else {
 				if len(failedNodeList) > 0 {
 					latestRecord.FailedAgentNodeList = failedNodeList
-					latestRecord.Status = crd.StatusHistoryRecordStatusFail
-					*(newStatus.LastRoundStatus) = crd.StatusHistoryRecordStatusFail
+					n := crd.StatusHistoryRecordStatusSucceed
+					latestRecord.Status = n
+					newStatus.LastRoundStatus = &n
 					logger.Sugar().Errorf("round %v failed , failedNode=%v", latestRecord.RoundNumber, failedNodeList)
 				} else {
-					latestRecord.Status = crd.StatusHistoryRecordStatusSucceed
-					*(newStatus.LastRoundStatus) = crd.StatusHistoryRecordStatusSucceed
+					n := crd.StatusHistoryRecordStatusSucceed
+					latestRecord.Status = n
+					newStatus.LastRoundStatus = &n
 					logger.Sugar().Infof("round %v succeeded ", latestRecord.RoundNumber)
 				}
 			}
 
 			// add next round record
-			*(newStatus.DoneRound)++
+			n := *(newStatus.DoneRound) + 1
+			newStatus.DoneRound = &n
 			newRecod := NewStatusHistoryRecord(int(*(newStatus.DoneRound)), schedulePlan)
 			newStatus.History = append(newStatus.History, *newRecod)
 

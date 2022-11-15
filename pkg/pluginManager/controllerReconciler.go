@@ -38,12 +38,12 @@ func (s *pluginControllerReconciler) Reconcile(ctx context.Context, req reconcil
 		// ------ add crd ------
 		instance := crd.Nethttp{}
 
-		logger := s.logger.With(zap.String(instance.Kind, instance.Name))
 		if err := s.client.Get(ctx, req.NamespacedName, &instance); err != nil {
-			logger.Sugar().Errorf("unable to fetch obj , error=%v", err)
+			s.logger.Sugar().Errorf("unable to fetch obj , error=%v", err)
 			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
-		logger.Sugar().Debugf("reconcile handle %v %v", instance.Kind, instance.Name)
+		logger := s.logger.With(zap.String(instance.Kind, instance.Name))
+		logger.Sugar().Debugf("reconcile handle %v", instance)
 
 		oldStatus := instance.Status.DeepCopy()
 
@@ -67,12 +67,12 @@ func (s *pluginControllerReconciler) Reconcile(ctx context.Context, req reconcil
 		// ------ add crd ------
 		instance := crd.Netdns{}
 
-		logger := s.logger.With(zap.String(instance.Kind, instance.Name))
 		if err := s.client.Get(ctx, req.NamespacedName, &instance); err != nil {
-			logger.Sugar().Errorf("unable to fetch obj , error=%v", err)
+			s.logger.Sugar().Errorf("unable to fetch obj , error=%v", err)
 			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
-		logger.Sugar().Debugf("reconcile handle %v %v", instance.Kind, instance.Name)
+		logger := s.logger.With(zap.String(instance.Kind, instance.Name))
+		logger.Sugar().Debugf("reconcile handle %v", instance)
 
 		oldStatus := instance.Status.DeepCopy()
 

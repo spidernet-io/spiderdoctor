@@ -9,10 +9,10 @@ metadata:
   name: test1
 spec:
   schedule:
-    startAfterMinute: 10
-    roundNumber: 1
-    intervalMinute: 60
-    timeoutMinute: 10
+    startAfterMinute: 1
+    roundNumber: 5
+    intervalMinute: 2
+    timeoutMinute: 1
   request:
     testIPv4: true
     testIPv6: true
