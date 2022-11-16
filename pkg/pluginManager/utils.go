@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func NewStatusHistoryRecord(RoundNumber int, schedulePlan *crd.SchedulePlan) *crd.StatusHistoryRecord {
+func NewStatusHistoryRecord(startTime time.Time, RoundNumber int, schedulePlan *crd.SchedulePlan) *crd.StatusHistoryRecord {
 	newRecod := crd.StatusHistoryRecord{
 		Status:                crd.StatusHistoryRecordStatusNotstarted,
 		FailureReason:         "",
@@ -21,7 +21,6 @@ func NewStatusHistoryRecord(RoundNumber int, schedulePlan *crd.SchedulePlan) *cr
 		FailedAgentNodeList:   []string{},
 		UnReportAgentNodeList: []string{},
 	}
-	startTime := time.Now().Add(time.Duration(schedulePlan.StartAfterMinute) * time.Minute)
 	newRecod.StartTimeStamp = metav1.NewTime(startTime)
 
 	adder := time.Duration(schedulePlan.TimeoutMinute) * time.Minute

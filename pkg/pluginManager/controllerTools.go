@@ -100,7 +100,9 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 		newStatus.ExpectedRound = &n
 		m := int64(0)
 		newStatus.DoneRound = &m
-		newRecod := NewStatusHistoryRecord(1, schedulePlan)
+
+		startTime := time.Now().Add(time.Duration(schedulePlan.StartAfterMinute) * time.Minute)
+		newRecod := NewStatusHistoryRecord(startTime, 1, schedulePlan)
 		newStatus.History = append(newStatus.History, *newRecod)
 		logger.Debug("initialize the status for task " + taskName)
 		// trigger
@@ -183,9 +185,11 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 
 					// add new round record
 					if *(newStatus.DoneRound) < *(newStatus.ExpectedRound) {
+						logger.Sugar().Infof("insert any record for next round %v", roundNumber+1)
 						n := *(newStatus.DoneRound) + 1
 						newStatus.DoneRound = &n
-						newRecod := NewStatusHistoryRecord(int(n+1), schedulePlan)
+						startTime := latestRecord.StartTimeStamp.Time.Add(time.Duration(schedulePlan.IntervalMinute) * time.Minute)
+						newRecod := NewStatusHistoryRecord(startTime, int(n+1), schedulePlan)
 						newStatus.History = append(newStatus.History, *newRecod)
 					}
 
