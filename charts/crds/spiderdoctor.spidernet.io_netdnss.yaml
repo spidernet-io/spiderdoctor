@@ -153,6 +153,7 @@ spec:
                       - succeed
                       - fail
                       - ongoing
+                      - notstarted
                       type: string
                     succeedAgentNodeList:
                       items:

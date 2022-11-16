@@ -42,14 +42,15 @@ type TaskStatus struct {
 }
 
 const (
-	StatusHistoryRecordStatusSucceed = "succeed"
-	StatusHistoryRecordStatusFail    = "fail"
-	StatusHistoryRecordStatusOngoing = "ongoing"
+	StatusHistoryRecordStatusSucceed    = "succeed"
+	StatusHistoryRecordStatusFail       = "fail"
+	StatusHistoryRecordStatusOngoing    = "ongoing"
+	StatusHistoryRecordStatusNotstarted = "notstarted"
 )
 
 type StatusHistoryRecord struct {
 
-	// +kubebuilder:validation:Enum=succeed;fail;ongoing
+	// +kubebuilder:validation:Enum=succeed;fail;ongoing;notstarted
 	Status string `json:"status"`
 
 	// +kubebuilder:validation:Optional

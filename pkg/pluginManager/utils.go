@@ -14,7 +14,7 @@ import (
 
 func NewStatusHistoryRecord(RoundNumber int, schedulePlan *crd.SchedulePlan) *crd.StatusHistoryRecord {
 	newRecod := crd.StatusHistoryRecord{
-		Status:                crd.StatusHistoryRecordStatusOngoing,
+		Status:                crd.StatusHistoryRecordStatusNotstarted,
 		FailureReason:         "",
 		RoundNumber:           RoundNumber,
 		SucceedAgentNodeList:  []string{},

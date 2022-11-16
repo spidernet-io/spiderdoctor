@@ -116,6 +116,13 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 		nextInterval := time.Duration(types.ControllerConfig.Configmap.TaskPollIntervalInSecond) * time.Second
 
 		if latestRecord.Status == crd.StatusHistoryRecordStatusOngoing {
+			latestRecord.Status = crd.StatusHistoryRecordStatusOngoing
+			// trigger after interval
+			result = &reconcile.Result{
+				RequeueAfter: nextInterval,
+			}
+			
+		} else if latestRecord.Status == crd.StatusHistoryRecordStatusOngoing {
 			logger.Debug("try to poll the status of task " + taskName)
 			if roundDone, e := s.UpdateRoundFinalStatus(logger, ctx, newStatus, false); e != nil {
 				return nil, nil, e
