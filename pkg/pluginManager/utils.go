@@ -54,6 +54,13 @@ func GetPod(ctx context.Context, c client.Client, name, namespace string, opts .
 }
 
 func GetPodNodeName(ctx context.Context, c client.Client, name, namespace string) (nodeName string, err error) {
+	if len(name) == 0 {
+		return "", fmt.Errorf("empty pod name")
+	}
+	if len(namespace) == 0 {
+		return "", fmt.Errorf("empty pod namespace")
+	}
+
 	if d, e := GetPod(ctx, c, name, namespace, nil); e != nil {
 		return "", e
 	} else {

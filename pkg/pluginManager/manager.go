@@ -60,7 +60,7 @@ func (s *pluginManager) RunAgentController() {
 
 	localNodeName, e := GetPodNodeName(context.Background(), mgr.GetClient(), types.AgentConfig.PodName, types.AgentConfig.PodNamespace)
 	if e != nil {
-		logger.Fatal("failed to get local node name")
+		logger.Sugar().Fatalf("failed to get local node name, error=%v", e)
 	}
 	logger.Sugar().Infof("local node information: nodeName %v", localNodeName)
 
