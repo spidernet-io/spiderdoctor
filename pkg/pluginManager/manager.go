@@ -136,7 +136,7 @@ func (s *pluginManager) RunControllerController(healthPort int, webhookPort int,
 			plugin:        plugin,
 			client:        mgr.GetClient(),
 			crdKind:       name,
-			taskRoundData: taskStatus.TaskStatus{},
+			taskRoundData: taskStatus.NewTaskStatus(),
 		}
 		if e := k.SetupWithManager(mgr); e != nil {
 			s.logger.Sugar().Fatalf("failed to builder reconcile for plugin %v, error=%v", name, e)

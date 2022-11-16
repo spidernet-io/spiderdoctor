@@ -159,9 +159,6 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 				} else {
 					logger.Sugar().Infof("round %v get reports from all agents ", roundNumber)
 
-					// will not check last round status anymore
-					s.taskRoundData.SetTask(taskName, true)
-
 					// add new round record
 					if *(newStatus.DoneRound) < *(newStatus.ExpectedRound) {
 						n := *(newStatus.DoneRound) + 1
