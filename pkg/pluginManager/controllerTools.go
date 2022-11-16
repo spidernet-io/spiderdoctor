@@ -104,7 +104,7 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 		startTime := time.Now().Add(time.Duration(schedulePlan.StartAfterMinute) * time.Minute)
 		newRecod := NewStatusHistoryRecord(startTime, 1, schedulePlan)
 		newStatus.History = append(newStatus.History, *newRecod)
-		logger.Debug("initialize the status for task " + taskName)
+		logger.Sugar().Debugf("initialize the first round of task : %v ", taskName, *newRecod)
 		// trigger
 		result = &reconcile.Result{
 			Requeue: true,
@@ -185,12 +185,12 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 
 					// add new round record
 					if *(newStatus.DoneRound) < *(newStatus.ExpectedRound) {
-						logger.Sugar().Infof("insert any record for next round %v", roundNumber+1)
 						n := *(newStatus.DoneRound) + 1
 						newStatus.DoneRound = &n
 						startTime := latestRecord.StartTimeStamp.Time.Add(time.Duration(schedulePlan.IntervalMinute) * time.Minute)
 						newRecod := NewStatusHistoryRecord(startTime, int(n+1), schedulePlan)
 						newStatus.History = append(newStatus.History, *newRecod)
+						logger.Sugar().Infof("insert new record for next round : %+v", *newRecod)
 					}
 
 					// TODO: add to workqueue to collect all report of last round, for node latestRecord.FailedAgentNodeList and latestRecord.SucceedAgentNodeList
