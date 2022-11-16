@@ -98,7 +98,7 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 		newRecod := NewStatusHistoryRecord(1, schedulePlan)
 		newStatus.History = append(newStatus.History, *newRecod)
 		logger.Debug("initialize the status for task " + taskName)
-		// trigger after interval
+		// trigger
 		result = &reconcile.Result{
 			Requeue: true,
 		}
@@ -119,7 +119,7 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 	switch {
 	case nowTime.After(latestRecord.StartTimeStamp.Time) && nowTime.Before(latestRecord.DeadLineTimeStamp.Time):
 
-		if latestRecord.Status == crd.StatusHistoryRecordStatusOngoing {
+		if latestRecord.Status == crd.StatusHistoryRecordStatusNotstarted {
 			latestRecord.Status = crd.StatusHistoryRecordStatusOngoing
 			// trigger after interval
 			result = &reconcile.Result{
