@@ -112,15 +112,6 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 	logger.Sugar().Debugf("all history record: %+v", newStatus.History)
 
 	switch {
-	case nowTime.Before(latestRecord.StartTimeStamp.Time):
-		// this round not start, do nothing
-		logger.Sugar().Debugf("wait for starting next round ")
-
-		// trigger when task end
-		result = &reconcile.Result{
-			RequeueAfter: latestRecord.StartTimeStamp.Time.Sub(time.Now()),
-		}
-
 	case nowTime.After(latestRecord.StartTimeStamp.Time) && nowTime.Before(latestRecord.DeadLineTimeStamp.Time):
 		nextInterval := time.Duration(types.ControllerConfig.Configmap.TaskPollIntervalInSecond) * time.Second
 
