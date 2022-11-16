@@ -57,11 +57,11 @@ func (nm *k8sObjManager) MatchNodeSelected(ctx context.Context, nodeName string,
 		return false, err
 	}
 
-	nodeList, err := nm.ListNodes(
-		ctx,
+	nodeList, err := nm.ListNodes(ctx,
 		client.MatchingLabelsSelector{Selector: selector},
-		client.MatchingFields{metav1.ObjectNameField: nodeName},
+		// client.MatchingFields{metav1.ObjectNameField: nodeName},
 	)
+
 	if err != nil {
 		return false, err
 	}
@@ -69,6 +69,11 @@ func (nm *k8sObjManager) MatchNodeSelected(ctx context.Context, nodeName string,
 	if len(nodeList.Items) == 0 {
 		return false, nil
 	}
+	for _, v := range nodeList.Items {
+		if v.Name == nodeName {
+			return true, nil
+		}
+	}
 
-	return true, nil
+	return false, nil
 }
