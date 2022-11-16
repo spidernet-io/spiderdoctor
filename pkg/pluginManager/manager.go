@@ -4,13 +4,14 @@
 package pluginManager
 
 import (
+	"context"
 	"fmt"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	"github.com/spidernet-io/spiderdoctor/pkg/lock"
 	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager/netdns"
 	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager/nethttp"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
-	"github.com/spidernet-io/spiderdoctor/pkg/taskStatus"
+	"github.com/spidernet-io/spiderdoctor/pkg/taskStatusManager"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -57,13 +58,21 @@ func (s *pluginManager) RunAgentController() {
 		logger.Sugar().Fatalf("failed to NewManager, reason=%v", err)
 	}
 
+	localNodeName, e := GetPodNodeName(context.Background(), mgr.GetClient(), types.AgentConfig.PodName, types.AgentConfig.PodNamespace)
+	if e != nil {
+		logger.Fatal("failed to get local node name")
+	}
+	logger.Sugar().Infof("local node information: nodeName %v", localNodeName)
+
 	for name, plugin := range s.chainingPlugins {
 		logger.Sugar().Infof("run controller for plugin %v", name)
 		k := &pluginAgentReconciler{
-			logger:  logger.Named(name + "Reconciler"),
-			plugin:  plugin,
-			client:  mgr.GetClient(),
-			crdKind: name,
+			logger:        logger.Named(name + "Reconciler"),
+			plugin:        plugin,
+			client:        mgr.GetClient(),
+			crdKind:       name,
+			localNodeName: localNodeName,
+			taskRoundData: taskStatusManager.NewTaskStatus(),
 		}
 		if e := k.SetupWithManager(mgr); e != nil {
 			s.logger.Sugar().Fatalf("failed to builder reconcile for plugin %v, error=%v", name, e)
@@ -132,11 +141,10 @@ func (s *pluginManager) RunControllerController(healthPort int, webhookPort int,
 		// setup reconcile
 		logger.Sugar().Infof("run controller for plugin %v", name)
 		k := &pluginControllerReconciler{
-			logger:        logger.Named(name + "Reconciler"),
-			plugin:        plugin,
-			client:        mgr.GetClient(),
-			crdKind:       name,
-			taskRoundData: taskStatus.NewTaskStatus(),
+			logger:  logger.Named(name + "Reconciler"),
+			plugin:  plugin,
+			client:  mgr.GetClient(),
+			crdKind: name,
 		}
 		if e := k.SetupWithManager(mgr); e != nil {
 			s.logger.Sugar().Fatalf("failed to builder reconcile for plugin %v, error=%v", name, e)

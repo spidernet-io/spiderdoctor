@@ -34,11 +34,11 @@ func (s *pluginControllerReconciler) UpdateRoundFinalStatus(logger *zap.Logger, 
 	latestRecord := &(newStatus.History[recordLength-1])
 	roundNumber := latestRecord.RoundNumber
 
-	if latestRecord.Status == crd.StatusHistoryRecordStatusFail || latestRecord.Status == crd.StatusHistoryRecordStatusSucceed {
+	if latestRecord.Status == crd.StatusHistoryRecordStatusFail || latestRecord.Status == crd.StatusHistoryRecordStatusSucceed || latestRecord.Status == crd.StatusHistoryRecordStatusNotstarted {
 		return true, nil
 	}
 
-	// when onging , ignore when nothing report
+	// when not reach deadline, ignore when nothing report
 	if !deadline && len(latestRecord.SucceedAgentNodeList) == 0 && len(latestRecord.FailedAgentNodeList) == 0 {
 		logger.Sugar().Debugf("round %v not report anthing", roundNumber)
 		return false, nil
@@ -183,12 +183,20 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 				}
 			}
 
-			// trigger when next round start
-			newRoundNumber := len(newStatus.History)
-			currentRecord := &(newStatus.History[newRoundNumber-1])
-			logger.Sugar().Infof("task %v wait for next round %v at %v", taskName, newRoundNumber, currentRecord.StartTimeStamp)
-			result = &reconcile.Result{
-				RequeueAfter: currentRecord.StartTimeStamp.Time.Sub(time.Now()),
+			if (*newStatus.DoneRound + 1) == *newStatus.ExpectedRound {
+				// all done
+				logger.Sugar().Debugf("task %s finish, ignore ", taskName)
+				newStatus.Finish = true
+				result = nil
+
+			} else {
+				// trigger when next round start
+				newRoundNumber := len(newStatus.History)
+				currentRecord := &(newStatus.History[newRoundNumber-1])
+				logger.Sugar().Infof("task %v wait for next round %v at %v", taskName, newRoundNumber, currentRecord.StartTimeStamp)
+				result = &reconcile.Result{
+					RequeueAfter: currentRecord.StartTimeStamp.Time.Sub(time.Now()),
+				}
 			}
 		}
 	}

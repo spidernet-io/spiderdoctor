@@ -5,6 +5,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-func (s *pluginWebhookhander) CheckRequest(ctx context.Context, obj runtime.Object) error {
+func (s *pluginWebhookhander) validateRequest(ctx context.Context, obj runtime.Object) error {
+	// TODO: check
 	return nil
 }

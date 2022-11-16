@@ -5,9 +5,9 @@ package pluginManager
 
 import (
 	"context"
-	"fmt"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
+	"github.com/spidernet-io/spiderdoctor/pkg/taskStatusManager"
 	"go.uber.org/zap"
 	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -16,10 +16,12 @@ import (
 )
 
 type pluginAgentReconciler struct {
-	client  client.Client
-	plugin  plugintypes.ChainingPlugin
-	logger  *zap.Logger
-	crdKind string
+	client        client.Client
+	plugin        plugintypes.ChainingPlugin
+	logger        *zap.Logger
+	crdKind       string
+	localNodeName string
+	taskRoundData taskStatusManager.TaskStatus
 }
 
 var _ reconcile.Reconciler = &pluginAgentReconciler{}
@@ -50,16 +52,12 @@ func (s *pluginAgentReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
 
-		roundNum := "0"
-		if instance.Status.DoneRound != nil {
-			roundNum = fmt.Sprintf("%d", *(instance.Status.DoneRound))
-		}
-		logger := s.logger.With(zap.String(instance.Kind, instance.Name), zap.String("roundNum", roundNum))
+		logger := s.logger.With(zap.String(instance.Kind, instance.Name))
 		logger.Sugar().Debugf("reconcile handle %v", instance)
 
 		oldStatus := instance.Status.DeepCopy()
 		taskName := instance.Kind + "." + instance.Name
-		if result, newStatus, err := s.HandleAgentTaskRound(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy(), taskName); err != nil {
+		if result, newStatus, err := s.HandleAgentTaskRound(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy(), &instance, taskName); err != nil {
 			// requeue
 			logger.Sugar().Errorf("failed to HandleAgentTaskRound, will retry it, error=%v", err)
 			return ctrl.Result{}, err
@@ -85,16 +83,12 @@ func (s *pluginAgentReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			s.logger.Sugar().Errorf("unable to fetch obj , error=%v", err)
 			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
-		roundNum := "0"
-		if instance.Status.DoneRound != nil {
-			roundNum = fmt.Sprintf("%d", *(instance.Status.DoneRound))
-		}
-		logger := s.logger.With(zap.String(instance.Kind, instance.Name), zap.String("roundNum", roundNum))
+		logger := s.logger.With(zap.String(instance.Kind, instance.Name))
 		logger.Sugar().Debugf("reconcile handle %v", instance)
 
 		oldStatus := instance.Status.DeepCopy()
 		taskName := instance.Kind + "." + instance.Name
-		if result, newStatus, err := s.HandleAgentTaskRound(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy(), taskName); err != nil {
+		if result, newStatus, err := s.HandleAgentTaskRound(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy(), &instance, taskName); err != nil {
 			// requeue
 			logger.Sugar().Errorf("failed to HandleAgentTaskRound, will retry it, error=%v", err)
 			return ctrl.Result{}, err

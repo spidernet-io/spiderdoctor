@@ -63,6 +63,9 @@ func (s *pluginWebhookhander) Default(ctx context.Context, obj runtime.Object) e
 }
 
 func (s *pluginWebhookhander) ValidateCreate(ctx context.Context, obj runtime.Object) error {
+	if e := s.validateRequest(ctx, obj); e != nil {
+		return e
+	}
 	return s.plugin.WebhookValidateCreate(s.logger.Named("validatingCreateWebhook"), ctx, obj)
 }
 
@@ -73,7 +76,8 @@ func (s *pluginWebhookhander) ValidateUpdate(ctx context.Context, oldObj, newObj
 
 // ValidateDelete implements webhook.CustomValidator so a webhook will be registered for the type
 func (s *pluginWebhookhander) ValidateDelete(ctx context.Context, obj runtime.Object) error {
-	return s.plugin.WebhookValidateDelete(s.logger.Named("validatingDeleteWebhook"), ctx, obj)
+	return nil
+	// return s.plugin.WebhookValidateDelete(s.logger.Named("validatingDeleteWebhook"), ctx, obj)
 }
 
 // --------------------

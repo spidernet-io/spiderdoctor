@@ -39,6 +39,31 @@ func GetPodList(ctx context.Context, c client.Client, opts ...client.ListOption)
 	return podlist.Items, nil
 }
 
+func GetPod(ctx context.Context, c client.Client, name, namespace string, opts ...client.ListOption) (*corev1.Pod, error) {
+	d := &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+	}
+	key := client.ObjectKeyFromObject(d)
+	if e := c.Get(ctx, key, d); e != nil {
+		return nil, e
+	}
+	return d, nil
+}
+
+func GetPodNodeName(ctx context.Context, c client.Client, name, namespace string) (nodeName string, err error) {
+	if d, e := GetPod(ctx, c, name, namespace, nil); e != nil {
+		return "", e
+	} else {
+		if d == nil {
+			return "", fmt.Errorf("failed to get node name")
+		}
+		return d.Spec.NodeName, nil
+	}
+}
+
 func GetDaemonset(ctx context.Context, c client.Client, name, namespace string) (*appsv1.DaemonSet, error) {
 	d := &appsv1.DaemonSet{
 		ObjectMeta: metav1.ObjectMeta{
@@ -76,4 +101,19 @@ func GetDaemonsetPodNodeNameList(ctx context.Context, c client.Client, daemonset
 		nodelist = append(nodelist, v.Spec.NodeName)
 	}
 	return nodelist, nil
+}
+
+func CheckItemInList(item string, checklist []string) (bool, error) {
+	if len(item) == 0 {
+		return false, fmt.Errorf("empty item")
+	}
+	if len(checklist) == 0 {
+		return false, nil
+	}
+	for _, v := range checklist {
+		if v == item {
+			return true, nil
+		}
+	}
+	return false, nil
 }

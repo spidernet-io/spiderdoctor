@@ -1,7 +1,12 @@
 package netdns
 
-import "k8s.io/apimachinery/pkg/runtime"
+import (
+	"context"
+	"go.uber.org/zap"
+	"k8s.io/apimachinery/pkg/runtime"
+)
 
-func (s *PluginNetDns) AgentEexecuteTask(obj runtime.Object) error {
-	return nil
+func (s *PluginNetDns) AgentEexecuteTask(logger *zap.Logger, ctx context.Context, obj runtime.Object) (result bool, err error) {
+	return true, nil
+
 }
