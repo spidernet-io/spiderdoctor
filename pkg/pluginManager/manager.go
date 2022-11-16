@@ -13,9 +13,12 @@ import (
 	"github.com/spidernet-io/spiderdoctor/pkg/taskStatusManager"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.uber.org/zap"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"time"
 )
@@ -51,10 +54,20 @@ func (s *pluginManager) RunAgentController() {
 		MetricsBindAddress:     "0",
 		HealthProbeBindAddress: "0",
 		LeaderElection:         false,
+		ClientDisableCacheFor: []client.Object{
+			&corev1.Node{},
+			&corev1.Pod{},
+			&appsv1.Deployment{},
+			&appsv1.StatefulSet{},
+		},
 	}
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), n)
 	if err != nil {
 		logger.Sugar().Fatalf("failed to NewManager, reason=%v", err)
+	}
+
+	if len(types.AgentConfig.LocalNodeName) == 0 {
+		logger.Sugar().Fatalf("local node name is empty")
 	}
 
 	for name, plugin := range s.chainingPlugins {
@@ -65,6 +78,7 @@ func (s *pluginManager) RunAgentController() {
 			client:        mgr.GetClient(),
 			crdKind:       name,
 			taskRoundData: taskStatusManager.NewTaskStatus(),
+			localNodeName: types.AgentConfig.LocalNodeName,
 		}
 		if e := k.SetupWithManager(mgr); e != nil {
 			s.logger.Sugar().Fatalf("failed to builder reconcile for plugin %v, error=%v", name, e)
@@ -108,6 +122,12 @@ func (s *pluginManager) RunControllerController(healthPort int, webhookPort int,
 		LeaderElection:          true,
 		LeaderElectionNamespace: types.ControllerConfig.PodNamespace,
 		LeaderElectionID:        types.ControllerConfig.PodName,
+		ClientDisableCacheFor: []client.Object{
+			&corev1.Node{},
+			&corev1.Pod{},
+			&appsv1.Deployment{},
+			&appsv1.StatefulSet{},
+		},
 	}
 	if healthPort != 0 {
 		n.HealthProbeBindAddress = fmt.Sprintf(":%d", healthPort)

@@ -10,7 +10,7 @@ metadata:
 spec:
   schedule:
     startAfterMinute: 1
-    roundNumber: 5
+    roundNumber: 2
     intervalMinute: 2
     timeoutMinute: 1
   request:
