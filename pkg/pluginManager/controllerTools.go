@@ -126,9 +126,9 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 
 		if latestRecord.Status == crd.StatusHistoryRecordStatusNotstarted {
 			latestRecord.Status = crd.StatusHistoryRecordStatusOngoing
-			// trigger after interval
+			// requeue immediately to make sure the update succeed , not conflicted
 			result = &reconcile.Result{
-				RequeueAfter: nextInterval,
+				Requeue: true,
 			}
 
 		} else if latestRecord.Status == crd.StatusHistoryRecordStatusOngoing {
@@ -138,16 +138,23 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 			} else {
 				if roundDone {
 					logger.Sugar().Infof("round %v get reports from all agents ", roundNumber)
+
 					// TODO: add to workqueue to collect all report of last round, for node latestRecord.FailedAgentNodeList and latestRecord.SucceedAgentNodeList
 
-				}
-				// trigger after interval
-				result = &reconcile.Result{
-					RequeueAfter: nextInterval,
+					// requeue immediately to make sure the update succeed , not conflicted
+					result = &reconcile.Result{
+						Requeue: true,
+					}
+
+				} else {
+					// trigger after interval
+					result = &reconcile.Result{
+						RequeueAfter: nextInterval,
+					}
 				}
 			}
 		} else {
-			logger.Debug("ignore poll the status of task " + taskName)
+			logger.Debug("ignore poll the finished round of task " + taskName)
 
 			// trigger when deadline
 			result = &reconcile.Result{

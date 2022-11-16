@@ -145,7 +145,11 @@ func (s *pluginAgentReconciler) HandleAgentTaskRound(logger *zap.Logger, ctx con
 				logger.Sugar().Infof("task %v , report to fail", taskRoundName)
 				latestRecord.FailedAgentNodeList = append(latestRecord.FailedAgentNodeList, s.localNodeName)
 			}
-			result = nil
+			// requeue immediately to make sure the update succeed , not conflicted
+			result = &reconcile.Result{
+				Requeue: true,
+			}
+
 		}
 	}
 
