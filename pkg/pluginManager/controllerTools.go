@@ -87,6 +87,7 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 	newStatus := oldStatus.DeepCopy()
 	recordLength := len(newStatus.History)
 	nextInterval := time.Duration(types.ControllerConfig.Configmap.TaskPollIntervalInSecond) * time.Second
+	nowTime := time.Now()
 
 	// init new instance first
 	if newStatus.ExpectedRound == nil || recordLength == 0 {
@@ -99,12 +100,10 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 		logger.Debug("initialize the status for task " + taskName)
 		// trigger after interval
 		result = &reconcile.Result{
-			RequeueAfter: nextInterval,
+			Requeue: true,
 		}
-
 		// updating status firstly , it will trigger to handle it next round
 		return result, newStatus, nil
-
 	}
 
 	if *newStatus.DoneRound == *newStatus.ExpectedRound {
@@ -114,7 +113,6 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 
 	latestRecord := &(newStatus.History[recordLength-1])
 	roundNumber := latestRecord.RoundNumber
-	nowTime := time.Now()
 	logger.Sugar().Debugf("current time:%v , latest history record: %+v", nowTime, latestRecord)
 	logger.Sugar().Debugf("all history record: %+v", newStatus.History)
 
