@@ -86,6 +86,7 @@ func (s *pluginControllerReconciler) UpdateRoundFinalStatus(logger *zap.Logger, 
 func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx context.Context, oldStatus *crd.TaskStatus, schedulePlan *crd.SchedulePlan, taskName string) (result *reconcile.Result, taskStatus *crd.TaskStatus, e error) {
 	newStatus := oldStatus.DeepCopy()
 	recordLength := len(newStatus.History)
+	nextInterval := time.Duration(types.ControllerConfig.Configmap.TaskPollIntervalInSecond) * time.Second
 
 	// init new instance first
 	if newStatus.ExpectedRound == nil || recordLength == 0 {
@@ -96,8 +97,14 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 		newRecod := NewStatusHistoryRecord(1, schedulePlan)
 		newStatus.History = append(newStatus.History, *newRecod)
 		logger.Debug("initialize the status for task " + taskName)
+		// trigger after interval
+		result = &reconcile.Result{
+			RequeueAfter: nextInterval,
+		}
+
 		// updating status firstly , it will trigger to handle it next round
-		return nil, newStatus, nil
+		return result, newStatus, nil
+
 	}
 
 	if *newStatus.DoneRound == *newStatus.ExpectedRound {
@@ -113,7 +120,6 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 
 	switch {
 	case nowTime.After(latestRecord.StartTimeStamp.Time) && nowTime.Before(latestRecord.DeadLineTimeStamp.Time):
-		nextInterval := time.Duration(types.ControllerConfig.Configmap.TaskPollIntervalInSecond) * time.Second
 
 		if latestRecord.Status == crd.StatusHistoryRecordStatusOngoing {
 			latestRecord.Status = crd.StatusHistoryRecordStatusOngoing
@@ -121,7 +127,7 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 			result = &reconcile.Result{
 				RequeueAfter: nextInterval,
 			}
-			
+
 		} else if latestRecord.Status == crd.StatusHistoryRecordStatusOngoing {
 			logger.Debug("try to poll the status of task " + taskName)
 			if roundDone, e := s.UpdateRoundFinalStatus(logger, ctx, newStatus, false); e != nil {
