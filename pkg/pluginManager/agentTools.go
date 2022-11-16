@@ -13,8 +13,8 @@ import (
 )
 
 func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger, obj runtime.Object, schedulePlan *crd.SchedulePlan, taskRoundName string) {
-	d := time.Duration(schedulePlan.TimeoutMinute) * time.Minute
-	ctx, cancel := context.WithTimeout(context.Background(), d)
+	roundDuration := time.Duration(schedulePlan.TimeoutMinute) * time.Minute
+	ctx, cancel := context.WithTimeout(context.Background(), roundDuration)
 	defer cancel()
 	taskResult := make(chan bool)
 	logger.Sugar().Infof("call plugin to implement with timeout %v minute", schedulePlan.TimeoutMinute)
@@ -41,7 +41,11 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 			s.taskRoundData.SetTask(taskRoundName, taskStatusManager.RoundStatusFail)
 		}
 	}
-
+	// delete data
+	go func() {
+		time.Sleep(roundDuration)
+		s.taskRoundData.DeleteTask(taskRoundName)
+	}()
 }
 
 func (s *pluginAgentReconciler) HandleAgentTaskRound(logger *zap.Logger, ctx context.Context, oldStatus *crd.TaskStatus, schedulePlan *crd.SchedulePlan, obj runtime.Object, taskName string) (result *reconcile.Result, taskStatus *crd.TaskStatus, e error) {
