@@ -18,22 +18,22 @@ spec:
   scope: Cluster
   versions:
   - additionalPrinterColumns:
-    - description: Finish
-      jsonPath: .status.Finish
-      name: Finish
+    - description: finish
+      jsonPath: .status.finish
+      name: finish
       type: boolean
-    - description: ExpectedRound
-      jsonPath: .status.ExpectedRound
-      name: ExpectedRound
+    - description: expectedRound
+      jsonPath: .status.expectedRound
+      name: expectedRound
       type: integer
-    - description: DoneRound
-      jsonPath: .status.DoneRound
-      name: DoneRound
+    - description: doneRound
+      jsonPath: .status.doneRound
+      name: doneRound
       type: integer
-    - description: LastRoundStatus
-      jsonPath: .status.LastRoundStatus
-      name: LastRoundStatus
-      type: integer
+    - description: lastRoundStatus
+      jsonPath: .status.lastRoundStatus
+      name: lastRoundStatus
+      type: string
     name: v1
     schema:
       openAPIV3Schema:
