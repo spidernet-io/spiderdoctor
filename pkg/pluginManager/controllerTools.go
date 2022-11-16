@@ -115,16 +115,6 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 	case nowTime.After(latestRecord.StartTimeStamp.Time) && nowTime.Before(latestRecord.DeadLineTimeStamp.Time):
 		nextInterval := time.Duration(types.ControllerConfig.Configmap.TaskPollIntervalInSecond) * time.Second
 
-		// if _, existed := s.taskRoundData.CheckTask(taskName); !existed {
-		// 	// this round just begin, or the controller pod just up ,record it
-		// 	s.taskRoundData.SetTask(taskName, false)
-		//
-		// 	// trigger after interval
-		// 	result = &reconcile.Result{
-		// 		RequeueAfter: nextInterval,
-		// 	}
-		// } else {
-		// try do pull
 		if latestRecord.Status == crd.StatusHistoryRecordStatusOngoing {
 			logger.Debug("try to poll the status of task " + taskName)
 			if roundDone, e := s.UpdateRoundFinalStatus(logger, ctx, newStatus, false); e != nil {
@@ -134,28 +124,20 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 					logger.Sugar().Infof("round %v get reports from all agents ", roundNumber)
 					// TODO: add to workqueue to collect all report of last round, for node latestRecord.FailedAgentNodeList and latestRecord.SucceedAgentNodeList
 
-					// trigger when deadline
-					result = &reconcile.Result{
-						RequeueAfter: latestRecord.DeadLineTimeStamp.Time.Sub(time.Now()),
-					}
-				} else {
-					// trigger after interval
-					result = &reconcile.Result{
-						RequeueAfter: nextInterval,
-					}
+				}
+				// trigger after interval
+				result = &reconcile.Result{
+					RequeueAfter: nextInterval,
 				}
 			}
 		} else {
 			logger.Debug("ignore poll the status of task " + taskName)
-			// mark round finish, will not check round status anymore
-			s.taskRoundData.SetTask(taskName, true)
+
 			// trigger when deadline
 			result = &reconcile.Result{
 				RequeueAfter: latestRecord.DeadLineTimeStamp.Time.Sub(time.Now()),
 			}
 		}
-
-		// }
 
 	case nowTime.Before(latestRecord.StartTimeStamp.Time):
 		fallthrough
