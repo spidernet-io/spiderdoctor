@@ -10,6 +10,7 @@ import (
 	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager/netdns"
 	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager/nethttp"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
+	"github.com/spidernet-io/spiderdoctor/pkg/taskStatus"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -131,10 +132,11 @@ func (s *pluginManager) RunControllerController(healthPort int, webhookPort int,
 		// setup reconcile
 		logger.Sugar().Infof("run controller for plugin %v", name)
 		k := &pluginControllerReconciler{
-			logger:  logger.Named(name + "Reconciler"),
-			plugin:  plugin,
-			client:  mgr.GetClient(),
-			crdKind: name,
+			logger:        logger.Named(name + "Reconciler"),
+			plugin:        plugin,
+			client:        mgr.GetClient(),
+			crdKind:       name,
+			taskRoundData: taskStatus.TaskStatus{},
 		}
 		if e := k.SetupWithManager(mgr); e != nil {
 			s.logger.Sugar().Fatalf("failed to builder reconcile for plugin %v, error=%v", name, e)

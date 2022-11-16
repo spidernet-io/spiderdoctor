@@ -28,7 +28,62 @@ OUTER:
 	return failNodelist, nil
 }
 
-func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx context.Context, oldStatus *crd.TaskStatus, schedulePlan *crd.SchedulePlan) (result *reconcile.Result, taskStatus *crd.TaskStatus, e error) {
+func (s *pluginControllerReconciler) UpdateRoundFinalStatus(logger *zap.Logger, ctx context.Context, newStatus *crd.TaskStatus, deadline bool) (roundDone bool, err error) {
+
+	recordLength := len(newStatus.History)
+	latestRecord := &(newStatus.History[recordLength-1])
+	roundNumber := latestRecord.RoundNumber
+
+	if latestRecord.Status == crd.StatusHistoryRecordStatusFail || latestRecord.Status == crd.StatusHistoryRecordStatusSucceed {
+		return true, nil
+	}
+
+	// round onging
+	if len(latestRecord.SucceedAgentNodeList) == 0 && len(latestRecord.FailedAgentNodeList) == 0 {
+		logger.Sugar().Debugf("round %v not report anthing", roundNumber)
+		return false, nil
+	}
+
+	// update result in latestRecord
+	reportNode := []string{}
+	reportNode = append(reportNode, latestRecord.SucceedAgentNodeList...)
+	reportNode = append(reportNode, latestRecord.FailedAgentNodeList...)
+	if unknowReportNodeList, e := s.GetSpiderAgentNodeNotInSucceedRecord(ctx, reportNode); e != nil {
+		logger.Sugar().Errorf("round %v failed to GetSpiderAgentNodeNotInSucceedRecord, error=%v", roundNumber, e)
+		return false, e
+	} else {
+		if len(unknowReportNodeList) > 0 && !deadline {
+			// when not reach the deadline, ignore
+			logger.Sugar().Debugf("round %v , partial agents did not reported, wait for daedline", roundNumber)
+			return false, nil
+		}
+
+		// it's ok to collect round status
+		if len(unknowReportNodeList) > 0 || len(latestRecord.FailedAgentNodeList) > 0 {
+			latestRecord.UnReportAgentNodeList = unknowReportNodeList
+			n := crd.StatusHistoryRecordStatusFail
+			latestRecord.Status = n
+			newStatus.LastRoundStatus = &n
+			logger.Sugar().Errorf("round %v failed , failedNode=%v, unknowReportNode=%v", roundNumber, latestRecord.FailedAgentNodeList, unknowReportNodeList)
+
+			if len(latestRecord.FailedAgentNodeList) > 0 {
+				latestRecord.FailureReason = "some agents failed"
+			} else if len(unknowReportNodeList) > 0 {
+				latestRecord.FailureReason = "some agents did not report"
+			}
+
+		} else {
+			n := crd.StatusHistoryRecordStatusSucceed
+			latestRecord.Status = n
+			newStatus.LastRoundStatus = &n
+			logger.Sugar().Infof("round %v succeeded ", latestRecord.RoundNumber)
+		}
+		return true, nil
+	}
+
+}
+
+func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx context.Context, oldStatus *crd.TaskStatus, schedulePlan *crd.SchedulePlan, taskName string) (result *reconcile.Result, taskStatus *crd.TaskStatus, e error) {
 	newStatus := oldStatus.DeepCopy()
 	recordLength := len(newStatus.History)
 
@@ -40,7 +95,7 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 		newStatus.DoneRound = &m
 		newRecod := NewStatusHistoryRecord(1, schedulePlan)
 		newStatus.History = append(newStatus.History, *newRecod)
-		logger.Debug("initialize the status of new instance")
+		logger.Debug("initialize the status for task " + taskName)
 		// updating status firstly , it will trigger to handle it next round
 		return nil, newStatus, nil
 	}
@@ -51,6 +106,7 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 	}
 
 	latestRecord := &(newStatus.History[recordLength-1])
+	roundNumber := latestRecord.RoundNumber
 	nowTime := time.Now()
 	logger.Sugar().Debugf("current time:%v , latest history record: %+v", nowTime, latestRecord)
 	logger.Sugar().Debugf("all history record: %+v", newStatus.History)
@@ -62,72 +118,92 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 
 		// trigger when task end
 		result = &reconcile.Result{
-			RequeueAfter: latestRecord.DeadLineTimeStamp.Time.Sub(nowTime),
+			RequeueAfter: latestRecord.StartTimeStamp.Time.Sub(time.Now()),
 		}
 
 	case nowTime.After(latestRecord.StartTimeStamp.Time) && nowTime.Before(latestRecord.DeadLineTimeStamp.Time):
+		nextInterval := time.Duration(types.ControllerConfig.Configmap.TaskPollIntervalInSecond) * time.Second
 
-		// TODO: rigger interval to check all succeed
+		if finished, existed := s.taskRoundData.CheckTask(taskName); !existed {
+			// ths task just begin, or the conroller pod just up ,record it
+			s.taskRoundData.SetTask(taskName, false)
+			// trigger after interval
+			result = &reconcile.Result{
+				RequeueAfter: nextInterval,
+			}
+		} else {
+			if finished {
+				// do nothing
+			} else {
+				// try do pull
+				logger.Debug("try to poll the status of task " + taskName)
 
-		// trigger when task end
-		result = &reconcile.Result{
-			RequeueAfter: latestRecord.DeadLineTimeStamp.Time.Sub(nowTime),
+				if latestRecord.Status == crd.StatusHistoryRecordStatusOngoing {
+					if roundDone, e := s.UpdateRoundFinalStatus(logger, ctx, newStatus, false); e != nil {
+						return nil, nil, e
+					} else {
+						if roundDone {
+							logger.Sugar().Infof("round %v get reports from all agents ", roundNumber)
+							// mark round finish, will not check round status anymore
+							s.taskRoundData.SetTask(taskName, true)
+
+							// TODO: add to workqueue to collect all report of last round, for node latestRecord.FailedAgentNodeList and latestRecord.SucceedAgentNodeList
+
+						}
+					}
+				}
+
+				// trigger when deadline
+				result = &reconcile.Result{
+					RequeueAfter: latestRecord.DeadLineTimeStamp.Time.Sub(time.Now()),
+				}
+			}
 		}
 
+	case nowTime.Before(latestRecord.StartTimeStamp.Time):
+		fallthrough
 	case nowTime.After(latestRecord.DeadLineTimeStamp.Time):
-		if int(*newStatus.DoneRound) == (recordLength - 1) {
+		if *newStatus.DoneRound == *newStatus.ExpectedRound {
+			logger.Sugar().Debugf("task %s finish, ignore ", taskName)
+			newStatus.Finish = true
+			result = nil
 
-			// update result in latestRecord
-			reportNode := []string{}
-			reportNode = append(reportNode, latestRecord.SucceedAgentNodeList...)
-			reportNode = append(reportNode, latestRecord.FailedAgentNodeList...)
-			if unknowReportNodeList, e := s.GetSpiderAgentNodeNotInSucceedRecord(ctx, reportNode); e != nil {
-				return nil, nil, e
-			} else {
-				if len(unknowReportNodeList) > 0 || len(latestRecord.FailedAgentNodeList) > 0 {
-					latestRecord.UnReportAgentNodeList = unknowReportNodeList
-					n := crd.StatusHistoryRecordStatusFail
-					latestRecord.Status = n
-					newStatus.LastRoundStatus = &n
-					logger.Sugar().Errorf("round %v failed , failedNode=%v, unknowReportNode=%v", latestRecord.RoundNumber, latestRecord.FailedAgentNodeList, unknowReportNodeList)
-					if len(latestRecord.FailedAgentNodeList) > 0 {
-						latestRecord.FailureReason = "some agents failed"
-					} else if len(unknowReportNodeList) > 0 {
-						latestRecord.FailureReason = "some agents did not report"
-					}
+		} else {
+			newStatus.Finish = false
+
+			// when task not finsih , once we update the status succeed , we will not get here , it should go to case nowTime.Before(latestRecord.StartTimeStamp.Time)
+			if latestRecord.Status == crd.StatusHistoryRecordStatusOngoing {
+				// here, we should update last round status
+
+				if _, e := s.UpdateRoundFinalStatus(logger, ctx, newStatus, true); e != nil {
+					return nil, nil, e
 				} else {
-					n := crd.StatusHistoryRecordStatusSucceed
-					latestRecord.Status = n
-					newStatus.LastRoundStatus = &n
-					logger.Sugar().Infof("round %v succeeded ", latestRecord.RoundNumber)
+					logger.Sugar().Infof("round %v get reports from all agents ", roundNumber)
+
+					// will not check last round status anymore
+					s.taskRoundData.SetTask(taskName, true)
+
+					// add new round record
+					if *(newStatus.DoneRound) < *(newStatus.ExpectedRound) {
+						n := *(newStatus.DoneRound) + 1
+						newStatus.DoneRound = &n
+						newRecod := NewStatusHistoryRecord(int(n+1), schedulePlan)
+						newStatus.History = append(newStatus.History, *newRecod)
+					}
+
+					// TODO: add to workqueue to collect all report of last round, for node latestRecord.FailedAgentNodeList and latestRecord.SucceedAgentNodeList
+
 				}
 			}
 
-			// trigger when task start
+			// trigger when next round start
+			newRoundNumber := len(newStatus.History)
+			currentRecord := &(newStatus.History[newRoundNumber-1])
+			logger.Sugar().Infof("task %v wait for next round %v at %v", taskName, newRoundNumber, currentRecord.StartTimeStamp)
 			result = &reconcile.Result{
-				RequeueAfter: latestRecord.StartTimeStamp.Time.Sub(nowTime),
+				RequeueAfter: currentRecord.StartTimeStamp.Time.Sub(time.Now()),
 			}
-
-			// add next round record
-			n := *(newStatus.DoneRound) + 1
-			newStatus.DoneRound = &n
-			newRecod := NewStatusHistoryRecord(int(n+1), schedulePlan)
-			newStatus.History = append(newStatus.History, *newRecod)
-
-			// TODO: add to workqueue to collect all report of last round, for node latestRecord.FailedAgentNodeList and latestRecord.SucceedAgentNodeList
-
-		} else {
-			// it should not get here , because once it succeeded to insert New StatusHistoryRecord, it should to to case 1
-			logger.Sugar().Warnf("it has collect the report last round, just wait for the start of next round")
 		}
-
-	}
-
-	if *newStatus.DoneRound == *newStatus.ExpectedRound {
-		newStatus.Finish = true
-		result = nil
-	} else {
-		newStatus.Finish = false
 	}
 
 	return result, newStatus, nil

@@ -49,6 +49,9 @@ feature:
   ## @param feature.nethttp_defaultFail_MeanDelayInMs mean delay in ms for kind nethttp
   nethttp_defaultFail_MeanDelayInMs: 2000
 
+  ## @param feature.taskPollIntervalInSecond the interval to poll the task in controller and agent pod
+  taskPollIntervalInSecond: 5
+
 ## @section spiderdoctorAgent parameters
 ##
 spiderdoctorAgent:

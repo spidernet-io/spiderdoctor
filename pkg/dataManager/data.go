@@ -1,5 +1,0 @@
-package dataManager
-
-func init() {
-
-}
