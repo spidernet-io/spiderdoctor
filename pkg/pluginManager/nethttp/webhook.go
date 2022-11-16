@@ -20,6 +20,8 @@ func (s *PluginNetHttp) WebhookMutating(logger *zap.Logger, ctx context.Context,
 	}
 	logger.Sugar().Infof("obj: %+v", r)
 
+	// TODO: mutating defaul value
+
 	return nil
 }
 
@@ -31,6 +33,8 @@ func (s *PluginNetHttp) WebhookValidateCreate(logger *zap.Logger, ctx context.Co
 		return apierrors.NewBadRequest(s)
 	}
 	logger.Sugar().Infof("obj: %+v", r)
+
+	// TODO: validate request
 
 	return nil
 }
