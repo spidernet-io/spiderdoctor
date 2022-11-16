@@ -61,6 +61,7 @@ func (s *pluginAgentReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			// requeue
 			logger.Sugar().Errorf("failed to HandleAgentTaskRound, will retry it, error=%v", err)
 			return ctrl.Result{}, err
+
 		} else {
 			if newStatus != nil && !reflect.DeepEqual(newStatus, oldStatus) {
 				instance.Status = *newStatus
@@ -92,6 +93,7 @@ func (s *pluginAgentReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			// requeue
 			logger.Sugar().Errorf("failed to HandleAgentTaskRound, will retry it, error=%v", err)
 			return ctrl.Result{}, err
+
 		} else {
 			if newStatus != nil && !reflect.DeepEqual(newStatus, oldStatus) {
 				instance.Status = *newStatus

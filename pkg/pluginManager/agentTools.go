@@ -92,10 +92,11 @@ func (s *pluginAgentReconciler) HandleAgentTaskRound(logger *zap.Logger, ctx con
 	}
 
 	// check whether we have reported the round result
-	if len(latestRecord.SucceedAgentNodeList) != 0 && len(latestRecord.FailedAgentNodeList) != 0 {
+	if len(latestRecord.SucceedAgentNodeList) != 0 || len(latestRecord.FailedAgentNodeList) != 0 {
 		v := []string{}
 		v = append(v, latestRecord.SucceedAgentNodeList...)
 		v = append(v, latestRecord.FailedAgentNodeList...)
+		logger.Sugar().Debugf("check whether localNode %v has report ", s.localNodeName)
 
 		if ok, e := CheckItemInList(s.localNodeName, v); e != nil {
 			logger.Sugar().Errorf("failed to check local node in task record")

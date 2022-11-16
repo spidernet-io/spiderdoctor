@@ -185,17 +185,21 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 
 					// TODO: add to workqueue to collect all report of last round, for node latestRecord.FailedAgentNodeList and latestRecord.SucceedAgentNodeList
 
+					// requeue immediately to make sure the update succeed , not conflicted
+					result = &reconcile.Result{
+						Requeue: true,
+					}
+				}
+			} else {
+				// round finish
+				// trigger when next round start
+				newRoundNumber := len(newStatus.History)
+				currentRecord := &(newStatus.History[newRoundNumber-1])
+				logger.Sugar().Infof("task %v wait for next round %v at %v", taskName, newRoundNumber, currentRecord.StartTimeStamp)
+				result = &reconcile.Result{
+					RequeueAfter: currentRecord.StartTimeStamp.Time.Sub(time.Now()),
 				}
 			}
-
-			// trigger when next round start
-			newRoundNumber := len(newStatus.History)
-			currentRecord := &(newStatus.History[newRoundNumber-1])
-			logger.Sugar().Infof("task %v wait for next round %v at %v", taskName, newRoundNumber, currentRecord.StartTimeStamp)
-			result = &reconcile.Result{
-				RequeueAfter: currentRecord.StartTimeStamp.Time.Sub(time.Now()),
-			}
-
 		}
 	}
 
