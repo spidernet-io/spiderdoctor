@@ -52,7 +52,7 @@ func (s *pluginControllerReconciler) Reconcile(ctx context.Context, req reconcil
 			logger.Sugar().Errorf("failed to UpdateStatus, will retry it, error=%v", err)
 			return ctrl.Result{}, err
 		} else {
-			if !reflect.DeepEqual(newStatus, oldStatus) {
+			if newStatus != nil && !reflect.DeepEqual(newStatus, oldStatus) {
 				instance.Status = *newStatus
 				if err := s.client.Status().Update(ctx, &instance); err != nil {
 					// requeue
@@ -85,7 +85,7 @@ func (s *pluginControllerReconciler) Reconcile(ctx context.Context, req reconcil
 			logger.Sugar().Errorf("failed to UpdateStatus, will retry it, error=%v", err)
 			return ctrl.Result{}, err
 		} else {
-			if !reflect.DeepEqual(newStatus, oldStatus) {
+			if newStatus != nil && !reflect.DeepEqual(newStatus, oldStatus) {
 				instance.Status = *newStatus
 				if err := s.client.Status().Update(ctx, &instance); err != nil {
 					// requeue
