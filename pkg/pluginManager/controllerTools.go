@@ -164,7 +164,6 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 			result = nil
 
 		} else {
-			newStatus.Finish = false
 
 			// when task not finsih , once we update the status succeed , we will not get here , it should go to case nowTime.Before(latestRecord.StartTimeStamp.Time)
 			if latestRecord.Status == crd.StatusHistoryRecordStatusOngoing {
