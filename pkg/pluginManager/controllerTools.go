@@ -145,10 +145,12 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 					if *(newStatus.DoneRound) < *(newStatus.ExpectedRound) {
 						n := *(newStatus.DoneRound) + 1
 						newStatus.DoneRound = &n
-						startTime := latestRecord.StartTimeStamp.Time.Add(time.Duration(schedulePlan.IntervalMinute) * time.Minute)
-						newRecod := NewStatusHistoryRecord(startTime, int(n+1), schedulePlan)
-						newStatus.History = append(newStatus.History, *newRecod)
-						logger.Sugar().Infof("insert new record for next round : %+v", *newRecod)
+						if n < *(newStatus.ExpectedRound) {
+							startTime := latestRecord.StartTimeStamp.Time.Add(time.Duration(schedulePlan.IntervalMinute) * time.Minute)
+							newRecod := NewStatusHistoryRecord(startTime, int(n+1), schedulePlan)
+							newStatus.History = append(newStatus.History, *newRecod)
+							logger.Sugar().Infof("insert new record for next round : %+v", *newRecod)
+						}
 					}
 
 					// TODO: add to workqueue to collect all report of last round, for node latestRecord.FailedAgentNodeList and latestRecord.SucceedAgentNodeList
@@ -197,10 +199,13 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 					if *(newStatus.DoneRound) < *(newStatus.ExpectedRound) {
 						n := *(newStatus.DoneRound) + 1
 						newStatus.DoneRound = &n
-						startTime := latestRecord.StartTimeStamp.Time.Add(time.Duration(schedulePlan.IntervalMinute) * time.Minute)
-						newRecod := NewStatusHistoryRecord(startTime, int(n+1), schedulePlan)
-						newStatus.History = append(newStatus.History, *newRecod)
-						logger.Sugar().Infof("insert new record for next round : %+v", *newRecod)
+
+						if n < *(newStatus.ExpectedRound) {
+							startTime := latestRecord.StartTimeStamp.Time.Add(time.Duration(schedulePlan.IntervalMinute) * time.Minute)
+							newRecod := NewStatusHistoryRecord(startTime, int(n+1), schedulePlan)
+							newStatus.History = append(newStatus.History, *newRecod)
+							logger.Sugar().Infof("insert new record for next round : %+v", *newRecod)
+						}
 					}
 
 					// TODO: add to workqueue to collect all report of last round, for node latestRecord.FailedAgentNodeList and latestRecord.SucceedAgentNodeList
