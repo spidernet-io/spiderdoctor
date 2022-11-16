@@ -14,7 +14,7 @@ import (
 type ChainingPlugin interface {
 	GetApiType() client.Object
 
-	AgentEexecuteTask(logger *zap.Logger, ctx context.Context, obj runtime.Object) (result bool, err error)
+	AgentEexecuteTask(logger *zap.Logger, ctx context.Context, obj runtime.Object) (failureReason string, report PluginRoundDetail, err error)
 
 	ControllerReconcile(*zap.Logger, client.Client, context.Context, reconcile.Request) (reconcile.Result, error)
 	AgentReconcile(*zap.Logger, client.Client, context.Context, reconcile.Request) (reconcile.Result, error)
@@ -24,3 +24,20 @@ type ChainingPlugin interface {
 	WebhookValidateUpdate(logger *zap.Logger, ctx context.Context, oldObj, newObj runtime.Object) error
 	WebhookValidateDelete(logger *zap.Logger, ctx context.Context, obj runtime.Object) error
 }
+
+type RoundResultStatus string
+
+const (
+	RoundResultSucceed = RoundResultStatus("succeed")
+	RoundResultFail    = RoundResultStatus("fail")
+)
+
+type PluginReport struct {
+	TaskName     string
+	RoundNumber  int
+	RoundResult  RoundResultStatus
+	FailedReason string
+	Detail       PluginRoundDetail
+}
+
+type PluginRoundDetail map[string]interface{}

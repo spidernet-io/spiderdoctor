@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
+	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"github.com/spidernet-io/spiderdoctor/pkg/taskStatusManager"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.uber.org/zap"
@@ -12,28 +13,50 @@ import (
 	"time"
 )
 
-func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger, obj runtime.Object, schedulePlan *crd.SchedulePlan, taskRoundName string) {
+func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger, obj runtime.Object, schedulePlan *crd.SchedulePlan, taskName string, roundNumber int) {
+	taskRoundName := fmt.Sprintf("%s.%d", taskName, roundNumber)
+
 	roundDuration := time.Duration(schedulePlan.TimeoutMinute) * time.Minute
 	ctx, cancel := context.WithTimeout(context.Background(), roundDuration)
 	defer cancel()
-	taskResult := make(chan bool)
+	taskSucceed := make(chan bool)
 	logger.Sugar().Infof("call plugin to implement with timeout %v minute", schedulePlan.TimeoutMinute)
 
 	go func() {
-		ok, e := s.plugin.AgentEexecuteTask(logger, ctx, obj)
+		msg := plugintypes.PluginReport{
+			TaskName:    taskName,
+			RoundNumber: roundNumber,
+		}
+		failureReason, report, e := s.plugin.AgentEexecuteTask(logger, ctx, obj)
 		if e != nil {
 			logger.Sugar().Errorf("plugin failed to implement the round task, error=%v", e)
-			taskResult <- false
+			taskSucceed <- false
 		} else {
-			taskResult <- ok
+			if len(failureReason) == 0 {
+				taskSucceed <- true
+				msg.RoundResult = plugintypes.RoundResultSucceed
+				msg.FailedReason = failureReason
+			} else {
+				taskSucceed <- false
+				msg.RoundResult = plugintypes.RoundResultFail
+				msg.FailedReason = ""
+			}
 		}
+		if report != nil {
+			msg.Detail = report
+		}
+
+		// output to staout
+		fmt.Printf("%+v", msg)
+
+		// TODO: write report to disk for controler to collect
 	}()
 
 	select {
 	case <-ctx.Done():
 		logger.Sugar().Errorf("timeout for getting result from plugin, the round task failed")
 		s.taskRoundData.SetTask(taskRoundName, taskStatusManager.RoundStatusFail)
-	case r := <-taskResult:
+	case r := <-taskSucceed:
 		logger.Sugar().Infof("succed to call plugin to implement round task, result=%v", r)
 		if r {
 			s.taskRoundData.SetTask(taskRoundName, taskStatusManager.RoundStatusSucceeded)
@@ -41,6 +64,7 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 			s.taskRoundData.SetTask(taskRoundName, taskStatusManager.RoundStatusFail)
 		}
 	}
+
 	// delete data
 	go func() {
 		time.Sleep(roundDuration)
@@ -93,7 +117,7 @@ func (s *pluginAgentReconciler) HandleAgentTaskRound(logger *zap.Logger, ctx con
 
 		// we still have not reported the result for an ongoing round. do it
 		logger.Sugar().Infof("task %v , trigger to implement task round", taskRoundName)
-		go s.CallPluginImplementRoundTask(logger.Named(taskRoundName), obj, schedulePlan, taskRoundName)
+		go s.CallPluginImplementRoundTask(logger.Named(taskRoundName), obj, schedulePlan, taskName, latestRecord.RoundNumber)
 		// trigger to poll result after interval
 		result = &reconcile.Result{
 			RequeueAfter: nextInterval,

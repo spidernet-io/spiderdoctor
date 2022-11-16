@@ -10,9 +10,9 @@ type taskStatus struct {
 type RoundStatus string
 
 const (
-	RoundStatusOngoing   = "started"
-	RoundStatusSucceeded = "succeed"
-	RoundStatusFail      = "fail"
+	RoundStatusOngoing   = RoundStatus("started")
+	RoundStatusSucceeded = RoundStatus("succeed")
+	RoundStatusFail      = RoundStatus("fail")
 )
 
 type TaskStatus interface {
