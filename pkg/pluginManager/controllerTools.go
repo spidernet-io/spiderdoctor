@@ -14,6 +14,7 @@ func (s *pluginControllerReconciler) GetSpiderAgentNodeNotInSucceedRecord(ctx co
 	if e != nil {
 		return nil, e
 	}
+	s.logger.Sugar().Debugf("all agent node: %+v", allNodeList)
 
 	failNodelist = []string{}
 OUTER:
