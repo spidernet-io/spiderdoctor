@@ -36,6 +36,14 @@ type PluginManager interface {
 
 var globalPluginManager *pluginManager
 
+// func (s *pluginManager) SetupCommonManager(mgr ctrl.Manager) {
+// 	t := podManager.NewManager()
+// 	if e := t.SetupWithManager(mgr); e != nil {
+// 		s.logger.Sugar().Fatalf("failed to builder reconcile for pod, error=%v", e)
+// 	}
+//
+// }
+
 // --------------------------------------
 func (s *pluginManager) RunAgentController() {
 	logger := s.logger

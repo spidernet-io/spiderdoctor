@@ -2,6 +2,7 @@ package pluginManager
 
 import (
 	"context"
+	"fmt"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.uber.org/zap"
@@ -13,6 +14,9 @@ func (s *pluginControllerReconciler) GetSpiderAgentNodeNotInSucceedRecord(ctx co
 	allNodeList, e := GetDaemonsetPodNodeNameList(ctx, s.client, types.ControllerConfig.SpiderDoctorAgentDaemonsetName, types.ControllerConfig.PodNamespace)
 	if e != nil {
 		return nil, e
+	}
+	if len(allNodeList) == 0 {
+		return nil, fmt.Errorf("failed to find agent node ")
 	}
 	s.logger.Sugar().Debugf("all agent node: %+v", allNodeList)
 
@@ -184,21 +188,14 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 				}
 			}
 
-			if (*newStatus.DoneRound + 1) == *newStatus.ExpectedRound {
-				// all done
-				logger.Sugar().Debugf("task %s finish, ignore ", taskName)
-				newStatus.Finish = true
-				result = nil
-
-			} else {
-				// trigger when next round start
-				newRoundNumber := len(newStatus.History)
-				currentRecord := &(newStatus.History[newRoundNumber-1])
-				logger.Sugar().Infof("task %v wait for next round %v at %v", taskName, newRoundNumber, currentRecord.StartTimeStamp)
-				result = &reconcile.Result{
-					RequeueAfter: currentRecord.StartTimeStamp.Time.Sub(time.Now()),
-				}
+			// trigger when next round start
+			newRoundNumber := len(newStatus.History)
+			currentRecord := &(newStatus.History[newRoundNumber-1])
+			logger.Sugar().Infof("task %v wait for next round %v at %v", taskName, newRoundNumber, currentRecord.StartTimeStamp)
+			result = &reconcile.Result{
+				RequeueAfter: currentRecord.StartTimeStamp.Time.Sub(time.Now()),
 			}
+
 		}
 	}
 

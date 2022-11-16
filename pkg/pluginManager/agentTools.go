@@ -47,7 +47,7 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 		}
 
 		// output to staout
-		fmt.Printf("%+v", msg)
+		fmt.Printf("%+v\n", msg)
 
 		// TODO: write report to disk for controler to collect
 	}()
@@ -57,7 +57,7 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 		logger.Sugar().Errorf("timeout for getting result from plugin, the round task failed")
 		s.taskRoundData.SetTask(taskRoundName, taskStatusManager.RoundStatusFail)
 	case r := <-taskSucceed:
-		logger.Sugar().Infof("succed to call plugin to implement round task, result=%v", r)
+		logger.Sugar().Infof("succed to call plugin to implement round task, succeed=%v", r)
 		if r {
 			s.taskRoundData.SetTask(taskRoundName, taskStatusManager.RoundStatusSucceeded)
 		} else {
@@ -84,7 +84,7 @@ func (s *pluginAgentReconciler) HandleAgentTaskRound(logger *zap.Logger, ctx con
 
 	latestRecord := &(newStatus.History[recordLength-1])
 	logger.Sugar().Debugf("current time:%v , latest history record: %+v", nowTime, latestRecord)
-	logger.Sugar().Debugf("all history record: %+v", newStatus.History)
+	// logger.Sugar().Debugf("all history record: %+v", newStatus.History)
 
 	if latestRecord.Status != crd.StatusHistoryRecordStatusOngoing {
 		logger.Sugar().Debugf("ignore task %v , no opportunity to implement ", taskName)
@@ -110,14 +110,16 @@ func (s *pluginAgentReconciler) HandleAgentTaskRound(logger *zap.Logger, ctx con
 	}
 
 	taskRoundName := fmt.Sprintf("%s.%d", taskName, latestRecord.RoundNumber)
-	nextInterval := time.Duration(types.ControllerConfig.Configmap.TaskPollIntervalInSecond) * time.Second
+	nextInterval := time.Duration(types.AgentConfig.Configmap.TaskPollIntervalInSecond) * time.Second
+
 	if status, existed := s.taskRoundData.CheckTask(taskRoundName); !existed {
 		// mark to started it
 		s.taskRoundData.SetTask(taskRoundName, taskStatusManager.RoundStatusOngoing)
 
 		// we still have not reported the result for an ongoing round. do it
-		logger.Sugar().Infof("task %v , trigger to implement task round", taskRoundName)
 		go s.CallPluginImplementRoundTask(logger.Named(taskRoundName), obj, schedulePlan, taskName, latestRecord.RoundNumber)
+		logger.Sugar().Infof("task %v , trigger to implement task round, and try to poll report after %v second", taskRoundName, types.AgentConfig.Configmap.TaskPollIntervalInSecond)
+
 		// trigger to poll result after interval
 		result = &reconcile.Result{
 			RequeueAfter: nextInterval,
@@ -126,7 +128,7 @@ func (s *pluginAgentReconciler) HandleAgentTaskRound(logger *zap.Logger, ctx con
 	} else {
 		if status == taskStatusManager.RoundStatusOngoing {
 			// the task is on going
-			logger.Sugar().Debugf("task %v is going, poll result later", taskRoundName)
+			logger.Sugar().Infof("task %v is going, try to poll report after %v second", taskRoundName, types.AgentConfig.Configmap.TaskPollIntervalInSecond)
 
 			// trigger to poll result after interval
 			result = &reconcile.Result{
