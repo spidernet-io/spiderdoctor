@@ -65,8 +65,9 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 			RequeueAfter: latestRecord.DeadLineTimeStamp.Time.Sub(nowTime),
 		}
 
-	case nowTime.Before(latestRecord.DeadLineTimeStamp.Time) && nowTime.After(latestRecord.StartTimeStamp.Time):
-		// still in this round , do nothing
+	case nowTime.After(latestRecord.StartTimeStamp.Time) && nowTime.Before(latestRecord.DeadLineTimeStamp.Time):
+
+		// TODO: rigger interval to check all succeed
 
 		// trigger when task end
 		result = &reconcile.Result{
