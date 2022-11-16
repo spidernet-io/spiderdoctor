@@ -9,6 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"time"
 )
 
 type ChainingPlugin interface {
@@ -33,11 +34,14 @@ const (
 )
 
 type PluginReport struct {
-	TaskName     string
-	RoundNumber  int
-	RoundResult  RoundResultStatus
-	FailedReason string
-	Detail       PluginRoundDetail
+	TaskName      string
+	RoundNumber   int
+	RoundResult   RoundResultStatus
+	AgentNodeName string
+	FailedReason  string
+	StartTimeStam time.Time
+	EndTimeStamp  time.Time
+	Detail        PluginRoundDetail
 }
 
 type PluginRoundDetail map[string]interface{}

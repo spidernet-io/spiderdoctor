@@ -164,6 +164,8 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 							newRecod := NewStatusHistoryRecord(startTime, int(n+1), schedulePlan)
 							newStatus.History = append(newStatus.History, *newRecod)
 							logger.Sugar().Infof("insert new record for next round : %+v", *newRecod)
+						} else {
+							newStatus.Finish = true
 						}
 					}
 
@@ -219,6 +221,8 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 							newRecod := NewStatusHistoryRecord(startTime, int(n+1), schedulePlan)
 							newStatus.History = append(newStatus.History, *newRecod)
 							logger.Sugar().Infof("insert new record for next round : %+v", *newRecod)
+						} else {
+							newStatus.Finish = true
 						}
 					}
 

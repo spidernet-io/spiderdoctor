@@ -24,8 +24,10 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 
 	go func() {
 		msg := plugintypes.PluginReport{
-			TaskName:    taskName,
-			RoundNumber: roundNumber,
+			TaskName:      taskName,
+			RoundNumber:   roundNumber,
+			AgentNodeName: s.localNodeName,
+			StartTimeStam: time.Now(),
 		}
 		failureReason, report, e := s.plugin.AgentEexecuteTask(logger, ctx, obj)
 		if e != nil {
@@ -42,6 +44,7 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 				msg.FailedReason = ""
 			}
 		}
+		msg.EndTimeStamp = time.Now()
 		if report != nil {
 			msg.Detail = report
 		}

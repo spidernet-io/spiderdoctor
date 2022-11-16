@@ -56,7 +56,6 @@ func (s *pluginManager) RunAgentController() {
 		HealthProbeBindAddress: "0",
 		LeaderElection:         false,
 		ClientDisableCacheFor: []client.Object{
-			&corev1.Node{},
 			&corev1.Pod{},
 			&appsv1.Deployment{},
 			&appsv1.StatefulSet{},
@@ -129,7 +128,6 @@ func (s *pluginManager) RunControllerController(healthPort int, webhookPort int,
 		LeaderElectionNamespace: types.ControllerConfig.PodNamespace,
 		LeaderElectionID:        types.ControllerConfig.PodName,
 		ClientDisableCacheFor: []client.Object{
-			&corev1.Node{},
 			&corev1.Pod{},
 			&appsv1.Deployment{},
 			&appsv1.StatefulSet{},
