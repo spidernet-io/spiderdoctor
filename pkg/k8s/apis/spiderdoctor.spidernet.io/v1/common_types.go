@@ -21,6 +21,9 @@ type SchedulePlan struct {
 	// +kubebuilder:default=60
 	// +kubebuilder:validation:Minimum=1
 	TimeoutMinute int64 `json:"timeoutMinute"`
+
+	// +kubebuilder:validation:Optional
+	SourceAgentNodeSelector *metav1.LabelSelector `json:"sourceAgentNodeSelector,omitempty"`
 }
 
 type TaskStatus struct {

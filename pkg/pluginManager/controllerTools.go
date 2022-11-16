@@ -6,19 +6,33 @@ import (
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.uber.org/zap"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
 )
 
-func (s *pluginControllerReconciler) GetSpiderAgentNodeNotInSucceedRecord(ctx context.Context, succeedNodeList []string) (failNodelist []string, err error) {
-	allNodeList, e := GetDaemonsetPodNodeNameList(ctx, s.client, types.ControllerConfig.SpiderDoctorAgentDaemonsetName, types.ControllerConfig.PodNamespace)
-	if e != nil {
-		return nil, e
+func (s *pluginControllerReconciler) GetSpiderAgentNodeNotInRecord(ctx context.Context, succeedNodeList []string, agentNodeSelector *metav1.LabelSelector) (failNodelist []string, err error) {
+	var allNodeList []string
+	var e error
+	if agentNodeSelector == nil {
+		allNodeList, e = s.nodeManager.ListDaemonsetPodNodes(ctx, types.ControllerConfig.SpiderDoctorAgentDaemonsetName, types.ControllerConfig.PodNamespace)
+		if e != nil {
+			return nil, e
+		}
+		s.logger.Sugar().Debugf("all agent nodes: %+v", allNodeList)
+		if len(allNodeList) == 0 {
+			return nil, fmt.Errorf("failed to find agent node ")
+		}
+	} else {
+		allNodeList, e = s.nodeManager.ListSelectedNodes(ctx, agentNodeSelector)
+		if e != nil {
+			return nil, e
+		}
+		s.logger.Sugar().Debugf("selected agent nodes: %+v", allNodeList)
+		if len(allNodeList) == 0 {
+			return nil, fmt.Errorf("failed to find agent node ")
+		}
 	}
-	if len(allNodeList) == 0 {
-		return nil, fmt.Errorf("failed to find agent node ")
-	}
-	s.logger.Sugar().Debugf("all agent node: %+v", allNodeList)
 
 	failNodelist = []string{}
 OUTER:
@@ -33,7 +47,7 @@ OUTER:
 	return failNodelist, nil
 }
 
-func (s *pluginControllerReconciler) UpdateRoundFinalStatus(logger *zap.Logger, ctx context.Context, newStatus *crd.TaskStatus, deadline bool) (roundDone bool, err error) {
+func (s *pluginControllerReconciler) UpdateRoundFinalStatus(logger *zap.Logger, ctx context.Context, newStatus *crd.TaskStatus, agentNodeSelector *metav1.LabelSelector, deadline bool) (roundDone bool, err error) {
 
 	recordLength := len(newStatus.History)
 	latestRecord := &(newStatus.History[recordLength-1])
@@ -53,7 +67,7 @@ func (s *pluginControllerReconciler) UpdateRoundFinalStatus(logger *zap.Logger, 
 	reportNode := []string{}
 	reportNode = append(reportNode, latestRecord.SucceedAgentNodeList...)
 	reportNode = append(reportNode, latestRecord.FailedAgentNodeList...)
-	if unknowReportNodeList, e := s.GetSpiderAgentNodeNotInSucceedRecord(ctx, reportNode); e != nil {
+	if unknowReportNodeList, e := s.GetSpiderAgentNodeNotInRecord(ctx, reportNode, agentNodeSelector); e != nil {
 		logger.Sugar().Errorf("round %v failed to GetSpiderAgentNodeNotInSucceedRecord, error=%v", roundNumber, e)
 		return false, e
 	} else {
@@ -135,7 +149,7 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 
 		} else if latestRecord.Status == crd.StatusHistoryRecordStatusOngoing {
 			logger.Debug("try to poll the status of task " + taskName)
-			if roundDone, e := s.UpdateRoundFinalStatus(logger, ctx, newStatus, false); e != nil {
+			if roundDone, e := s.UpdateRoundFinalStatus(logger, ctx, newStatus, schedulePlan.SourceAgentNodeSelector, false); e != nil {
 				return nil, nil, e
 			} else {
 				if roundDone {
@@ -190,7 +204,7 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 			if latestRecord.Status == crd.StatusHistoryRecordStatusOngoing {
 				// here, we should update last round status
 
-				if _, e := s.UpdateRoundFinalStatus(logger, ctx, newStatus, true); e != nil {
+				if _, e := s.UpdateRoundFinalStatus(logger, ctx, newStatus, schedulePlan.SourceAgentNodeSelector, true); e != nil {
 					return nil, nil, e
 				} else {
 					logger.Sugar().Infof("round %v get reports from all agents ", roundNumber)

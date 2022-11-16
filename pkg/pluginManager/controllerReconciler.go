@@ -5,6 +5,7 @@ package pluginManager
 
 import (
 	"context"
+	"github.com/spidernet-io/spiderdoctor/pkg/k8ObjManager/nodeManager"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"go.uber.org/zap"
@@ -15,10 +16,11 @@ import (
 )
 
 type pluginControllerReconciler struct {
-	client  client.Client
-	plugin  plugintypes.ChainingPlugin
-	logger  *zap.Logger
-	crdKind string
+	client      client.Client
+	plugin      plugintypes.ChainingPlugin
+	logger      *zap.Logger
+	crdKind     string
+	nodeManager nodeManager.NodeManager
 }
 
 // contorller reconcile

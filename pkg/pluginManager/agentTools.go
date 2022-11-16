@@ -14,7 +14,7 @@ import (
 )
 
 func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger, obj runtime.Object, schedulePlan *crd.SchedulePlan, taskName string, roundNumber int) {
-	taskRoundName := fmt.Sprintf("%s.%d", taskName, roundNumber)
+	taskRoundName := fmt.Sprintf("%s.round%d", taskName, roundNumber)
 
 	roundDuration := time.Duration(schedulePlan.TimeoutMinute) * time.Minute
 	ctx, cancel := context.WithTimeout(context.Background(), roundDuration)
@@ -77,6 +77,20 @@ func (s *pluginAgentReconciler) HandleAgentTaskRound(logger *zap.Logger, ctx con
 	recordLength := len(newStatus.History)
 	nowTime := time.Now()
 
+	// check node selector whether need to implement it
+	if schedulePlan.SourceAgentNodeSelector != nil {
+		if ok, e := s.nodeManager.MatchNodeSelected(ctx, types.AgentConfig.LocalNodeName, schedulePlan.SourceAgentNodeSelector); e != nil {
+			msg := fmt.Sprintf("failed to MatchNodeSelected, error=%v", e)
+			logger.Error(msg)
+			return nil, nil, fmt.Errorf(msg)
+		} else {
+			if !ok {
+				logger.Sugar().Infof("local node is not selected by the task, node selector=%v , ignore", schedulePlan.SourceAgentNodeSelector)
+				return nil, nil, nil
+			}
+		}
+	}
+
 	if newStatus.ExpectedRound == nil || recordLength == 0 || *newStatus.DoneRound == *newStatus.ExpectedRound {
 		// not start or all finish
 		return nil, nil, nil
@@ -110,7 +124,7 @@ func (s *pluginAgentReconciler) HandleAgentTaskRound(logger *zap.Logger, ctx con
 		}
 	}
 
-	taskRoundName := fmt.Sprintf("%s.%d", taskName, latestRecord.RoundNumber)
+	taskRoundName := fmt.Sprintf("%s.round%d", taskName, latestRecord.RoundNumber)
 	nextInterval := time.Duration(types.AgentConfig.Configmap.TaskPollIntervalInSecond) * time.Second
 
 	if status, existed := s.taskRoundData.CheckTask(taskRoundName); !existed {
