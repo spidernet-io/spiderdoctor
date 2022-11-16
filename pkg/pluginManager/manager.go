@@ -5,7 +5,7 @@ package pluginManager
 
 import (
 	"fmt"
-	"github.com/spidernet-io/spiderdoctor/pkg/k8ObjManager/nodeManager"
+	k8sObjManager "github.com/spidernet-io/spiderdoctor/pkg/k8ObjManager"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	"github.com/spidernet-io/spiderdoctor/pkg/lock"
 	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager/netdns"
@@ -70,10 +70,11 @@ func (s *pluginManager) RunAgentController() {
 		logger.Sugar().Fatalf("local node name is empty")
 	}
 
-	nodeMa, e := nodeManager.InitNodeManager(mgr.GetClient())
-	if e != nil {
-		logger.Sugar().Fatalf("failed to InitNodeManager, reason=%v", e)
+	if e := k8sObjManager.Initk8sObjManager(mgr.GetClient()); e != nil {
+		logger.Sugar().Fatalf("failed to Initk8sObjManager, error=%v", e)
+
 	}
+
 	for name, plugin := range s.chainingPlugins {
 		logger.Sugar().Infof("run controller for plugin %v", name)
 		k := &pluginAgentReconciler{
@@ -83,7 +84,6 @@ func (s *pluginManager) RunAgentController() {
 			crdKind:       name,
 			taskRoundData: taskStatusManager.NewTaskStatus(),
 			localNodeName: types.AgentConfig.LocalNodeName,
-			nodeManager:   nodeMa,
 		}
 		if e := k.SetupWithManager(mgr); e != nil {
 			s.logger.Sugar().Fatalf("failed to builder reconcile for plugin %v, error=%v", name, e)
@@ -154,19 +154,19 @@ func (s *pluginManager) RunControllerController(healthPort int, webhookPort int,
 		// mgr.GetWebhookServer().Register("/route", XXXX)
 	}
 
-	nodeMa, e := nodeManager.InitNodeManager(mgr.GetClient())
-	if e != nil {
-		logger.Sugar().Fatalf("failed to InitNodeManager, reason=%v", e)
+	if e := k8sObjManager.Initk8sObjManager(mgr.GetClient()); e != nil {
+		logger.Sugar().Fatalf("failed to Initk8sObjManager, error=%v", e)
+
 	}
+
 	for name, plugin := range s.chainingPlugins {
 		// setup reconcile
 		logger.Sugar().Infof("run controller for plugin %v", name)
 		k := &pluginControllerReconciler{
-			logger:      logger.Named(name + "Reconciler"),
-			plugin:      plugin,
-			client:      mgr.GetClient(),
-			crdKind:     name,
-			nodeManager: nodeMa,
+			logger:  logger.Named(name + "Reconciler"),
+			plugin:  plugin,
+			client:  mgr.GetClient(),
+			crdKind: name,
 		}
 		if e := k.SetupWithManager(mgr); e != nil {
 			s.logger.Sugar().Fatalf("failed to builder reconcile for plugin %v, error=%v", name, e)

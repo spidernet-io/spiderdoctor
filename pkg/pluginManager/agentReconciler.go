@@ -5,7 +5,6 @@ package pluginManager
 
 import (
 	"context"
-	"github.com/spidernet-io/spiderdoctor/pkg/k8ObjManager/nodeManager"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"github.com/spidernet-io/spiderdoctor/pkg/taskStatusManager"
@@ -23,7 +22,6 @@ type pluginAgentReconciler struct {
 	crdKind       string
 	localNodeName string
 	taskRoundData taskStatusManager.TaskStatus
-	nodeManager   nodeManager.NodeManager
 }
 
 var _ reconcile.Reconciler = &pluginAgentReconciler{}

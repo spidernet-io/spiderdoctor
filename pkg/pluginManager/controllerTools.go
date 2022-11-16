@@ -3,6 +3,7 @@ package pluginManager
 import (
 	"context"
 	"fmt"
+	k8sObjManager "github.com/spidernet-io/spiderdoctor/pkg/k8ObjManager"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.uber.org/zap"
@@ -15,7 +16,7 @@ func (s *pluginControllerReconciler) GetSpiderAgentNodeNotInRecord(ctx context.C
 	var allNodeList []string
 	var e error
 	if agentNodeSelector == nil {
-		allNodeList, e = s.nodeManager.ListDaemonsetPodNodes(ctx, types.ControllerConfig.SpiderDoctorAgentDaemonsetName, types.ControllerConfig.PodNamespace)
+		allNodeList, e = k8sObjManager.GetK8sObjManager().ListDaemonsetPodNodes(ctx, types.ControllerConfig.SpiderDoctorAgentDaemonsetName, types.ControllerConfig.PodNamespace)
 		if e != nil {
 			return nil, e
 		}
@@ -24,7 +25,7 @@ func (s *pluginControllerReconciler) GetSpiderAgentNodeNotInRecord(ctx context.C
 			return nil, fmt.Errorf("failed to find agent node ")
 		}
 	} else {
-		allNodeList, e = s.nodeManager.ListSelectedNodes(ctx, agentNodeSelector)
+		allNodeList, e = k8sObjManager.GetK8sObjManager().ListSelectedNodes(ctx, agentNodeSelector)
 		if e != nil {
 			return nil, e
 		}

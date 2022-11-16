@@ -3,6 +3,7 @@ package pluginManager
 import (
 	"context"
 	"fmt"
+	k8sObjManager "github.com/spidernet-io/spiderdoctor/pkg/k8ObjManager"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"github.com/spidernet-io/spiderdoctor/pkg/taskStatusManager"
@@ -82,7 +83,7 @@ func (s *pluginAgentReconciler) HandleAgentTaskRound(logger *zap.Logger, ctx con
 
 	// check node selector whether need to implement it
 	if schedulePlan.SourceAgentNodeSelector != nil {
-		if ok, e := s.nodeManager.MatchNodeSelected(ctx, types.AgentConfig.LocalNodeName, schedulePlan.SourceAgentNodeSelector); e != nil {
+		if ok, e := k8sObjManager.GetK8sObjManager().MatchNodeSelected(ctx, types.AgentConfig.LocalNodeName, schedulePlan.SourceAgentNodeSelector); e != nil {
 			msg := fmt.Sprintf("failed to MatchNodeSelected, error=%v", e)
 			logger.Error(msg)
 			return nil, nil, fmt.Errorf(msg)
