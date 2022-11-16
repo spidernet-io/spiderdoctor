@@ -4,7 +4,6 @@
 package pluginManager
 
 import (
-	"context"
 	"fmt"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	"github.com/spidernet-io/spiderdoctor/pkg/lock"
@@ -58,12 +57,6 @@ func (s *pluginManager) RunAgentController() {
 		logger.Sugar().Fatalf("failed to NewManager, reason=%v", err)
 	}
 
-	localNodeName, e := GetPodNodeName(context.Background(), mgr.GetClient(), types.AgentConfig.PodName, types.AgentConfig.PodNamespace)
-	if e != nil {
-		logger.Sugar().Fatalf("failed to get local node name, error=%v", e)
-	}
-	logger.Sugar().Infof("local node information: nodeName %v", localNodeName)
-
 	for name, plugin := range s.chainingPlugins {
 		logger.Sugar().Infof("run controller for plugin %v", name)
 		k := &pluginAgentReconciler{
@@ -71,7 +64,6 @@ func (s *pluginManager) RunAgentController() {
 			plugin:        plugin,
 			client:        mgr.GetClient(),
 			crdKind:       name,
-			localNodeName: localNodeName,
 			taskRoundData: taskStatusManager.NewTaskStatus(),
 		}
 		if e := k.SetupWithManager(mgr); e != nil {
@@ -79,6 +71,7 @@ func (s *pluginManager) RunAgentController() {
 		}
 	}
 
+	// before mgr.Start, it should not use mgr.GetClient() to get api obj, because "the controller cache is not started, can not read objects"
 	go func() {
 		msg := "reconcile of plugin down"
 		if e := mgr.Start(ctrl.SetupSignalHandler()); e != nil {

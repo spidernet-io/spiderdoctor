@@ -8,6 +8,7 @@ import (
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"github.com/spidernet-io/spiderdoctor/pkg/taskStatusManager"
+	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.uber.org/zap"
 	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -37,6 +38,17 @@ func (s *pluginAgentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 // when err==nil && result.RequeueAfter > 0 , c.Queue.Forget(obj) and c.Queue.AddAfter(req, result.RequeueAfter)
 // or else, c.Queue.Forget(obj)
 func (s *pluginAgentReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+
+	// before mgr.Start, it should not use mgr.GetClient() to get api obj, because "the controller cache is not started, can not read objects"
+	// so do it here
+	if len(s.localNodeName) == 0 {
+		localNodeName, e := GetPodNodeName(context.Background(), s.client, types.AgentConfig.PodName, types.AgentConfig.PodNamespace)
+		if e != nil {
+			s.logger.Sugar().Fatalf("failed to get local node name, error=%v", e)
+		}
+		s.logger.Sugar().Infof("local node information: nodeName %v", localNodeName)
+		s.localNodeName = localNodeName
+	}
 
 	if s.plugin.GetApiType().GetDeletionTimestamp() != nil {
 		s.logger.Sugar().Debugf("ignore deleting task %v", req)
