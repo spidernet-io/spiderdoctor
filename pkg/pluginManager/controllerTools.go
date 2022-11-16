@@ -38,8 +38,8 @@ func (s *pluginControllerReconciler) UpdateRoundFinalStatus(logger *zap.Logger, 
 		return true, nil
 	}
 
-	// round onging
-	if len(latestRecord.SucceedAgentNodeList) == 0 && len(latestRecord.FailedAgentNodeList) == 0 {
+	// when onging , ignore when nothing report
+	if !deadline && len(latestRecord.SucceedAgentNodeList) == 0 && len(latestRecord.FailedAgentNodeList) == 0 {
 		logger.Sugar().Debugf("round %v not report anthing", roundNumber)
 		return false, nil
 	}

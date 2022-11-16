@@ -5,9 +5,11 @@ package pluginManager
 
 import (
 	"context"
+	"fmt"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"go.uber.org/zap"
+	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -34,16 +36,9 @@ func (s *pluginAgentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 // or else, c.Queue.Forget(obj)
 func (s *pluginAgentReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 
-	var schedulePlan *crd.SchedulePlan
-	var taskStatus *crd.TaskStatus
-
 	if s.plugin.GetApiType().GetDeletionTimestamp() != nil {
 		s.logger.Sugar().Debugf("ignore deleting task %v", req)
 		return ctrl.Result{}, nil
-	}
-
-	handleTask := func(taskStatus *crd.TaskStatus, schedulePlan *crd.SchedulePlan) {
-
 	}
 
 	// ------ add crd ------
@@ -54,11 +49,35 @@ func (s *pluginAgentReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			s.logger.Sugar().Errorf("unable to fetch obj , error=%v", err)
 			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
-		s.logger.Sugar().Debugf("reconcile handle nethttp %v", instance.Name)
-		schedulePlan = instance.Spec.Schedule.DeepCopy()
-		taskStatus = instance.Status.DeepCopy()
 
-		handleTask(taskStatus, schedulePlan)
+		roundNum := "0"
+		if instance.Status.DoneRound != nil {
+			roundNum = fmt.Sprintf("%d", *(instance.Status.DoneRound))
+		}
+		logger := s.logger.With(zap.String(instance.Kind, instance.Name), zap.String("roundNum", roundNum))
+		logger.Sugar().Debugf("reconcile handle %v", instance)
+
+		oldStatus := instance.Status.DeepCopy()
+		taskName := instance.Kind + "." + instance.Name
+		if result, newStatus, err := s.HandleAgentTaskRound(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy(), taskName); err != nil {
+			// requeue
+			logger.Sugar().Errorf("failed to HandleAgentTaskRound, will retry it, error=%v", err)
+			return ctrl.Result{}, err
+		} else {
+			if !reflect.DeepEqual(newStatus, oldStatus) {
+				instance.Status = *newStatus
+				if err := s.client.Status().Update(ctx, &instance); err != nil {
+					// requeue
+					logger.Sugar().Errorf("failed to update status, will retry it, error=%v", err)
+					return ctrl.Result{}, err
+				}
+				logger.Sugar().Debugf("succeeded update status, newStatus=%+v", newStatus)
+			}
+
+			if result != nil {
+				return *result, nil
+			}
+		}
 
 	case KindNameNetdns:
 		instance := crd.Netdns{}
@@ -66,11 +85,34 @@ func (s *pluginAgentReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			s.logger.Sugar().Errorf("unable to fetch obj , error=%v", err)
 			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
-		s.logger.Sugar().Debugf("reconcile handle netdns %v", instance.Name)
-		schedulePlan = instance.Spec.Schedule.DeepCopy()
-		taskStatus = instance.Status.DeepCopy()
+		roundNum := "0"
+		if instance.Status.DoneRound != nil {
+			roundNum = fmt.Sprintf("%d", *(instance.Status.DoneRound))
+		}
+		logger := s.logger.With(zap.String(instance.Kind, instance.Name), zap.String("roundNum", roundNum))
+		logger.Sugar().Debugf("reconcile handle %v", instance)
 
-		handleTask(taskStatus, schedulePlan)
+		oldStatus := instance.Status.DeepCopy()
+		taskName := instance.Kind + "." + instance.Name
+		if result, newStatus, err := s.HandleAgentTaskRound(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy(), taskName); err != nil {
+			// requeue
+			logger.Sugar().Errorf("failed to HandleAgentTaskRound, will retry it, error=%v", err)
+			return ctrl.Result{}, err
+		} else {
+			if !reflect.DeepEqual(newStatus, oldStatus) {
+				instance.Status = *newStatus
+				if err := s.client.Status().Update(ctx, &instance); err != nil {
+					// requeue
+					logger.Sugar().Errorf("failed to update status, will retry it, error=%v", err)
+					return ctrl.Result{}, err
+				}
+				logger.Sugar().Debugf("succeeded update status, newStatus=%+v", newStatus)
+			}
+
+			if result != nil {
+				return *result, nil
+			}
+		}
 
 	default:
 		s.logger.Sugar().Errorf("unknown crd type , support kind=%v, detail=%+v", s.crdKind, req)
