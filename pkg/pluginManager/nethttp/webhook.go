@@ -88,7 +88,7 @@ func (s *PluginNetHttp) WebhookValidateCreate(logger *zap.Logger, ctx context.Co
 
 	// TODO: validate request
 	if r.Spec.Request.QPS >= types.ControllerConfig.Configmap.NethttpDefaultRequestMaxQps {
-		s := fmt.Sprintf("nethttp %v require qps %v bigger than maximum %v", r.Name, r.Spec.Request.QPS, types.ControllerConfig.Configmap.NethttpDefaultRequestMaxQps)
+		s := fmt.Sprintf("nethttp %v requires qps %v bigger than maximum %v", r.Name, r.Spec.Request.QPS, types.ControllerConfig.Configmap.NethttpDefaultRequestMaxQps)
 		logger.Error(s)
 		return apierrors.NewBadRequest(s)
 	}
