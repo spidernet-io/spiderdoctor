@@ -36,15 +36,25 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 		if e != nil {
 			logger.Sugar().Errorf("plugin failed to implement the round task, error=%v", e)
 			taskSucceed <- false
+			msg.RoundResult = plugintypes.RoundResultFail
+			msg.FailedReason = fmt.Sprintf("%v", e)
 		} else {
-			if len(failureReason) == 0 {
-				taskSucceed <- true
-				msg.RoundResult = plugintypes.RoundResultSucceed
-				msg.FailedReason = failureReason
-			} else {
+			select {
+			case <-ctx.Done():
+				logger.Sugar().Errorf("plugin failed to implement the round task, timeout ")
 				taskSucceed <- false
 				msg.RoundResult = plugintypes.RoundResultFail
-				msg.FailedReason = ""
+				msg.FailedReason = "time out"
+			default:
+				if len(failureReason) == 0 {
+					taskSucceed <- true
+					msg.RoundResult = plugintypes.RoundResultSucceed
+					msg.FailedReason = ""
+				} else {
+					taskSucceed <- false
+					msg.RoundResult = plugintypes.RoundResultFail
+					msg.FailedReason = failureReason
+				}
 			}
 		}
 		msg.EndTimeStamp = time.Now()

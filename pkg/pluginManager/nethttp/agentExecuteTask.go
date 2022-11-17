@@ -276,7 +276,7 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 			finalReport["Detail"] = reportList
 			finalReport["Type"] = "spiderdoctor agent"
 			if len(finalfailureReason) > 0 {
-				logger.Sugar().Errorf("plugin finally failed by %v", finalfailureReason)
+				logger.Sugar().Errorf("plugin finally failed, %v", finalfailureReason)
 				finalReport["FailureReason"] = finalfailureReason
 				finalReport["Succeed"] = "false"
 			} else {
