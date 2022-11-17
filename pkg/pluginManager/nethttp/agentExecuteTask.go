@@ -253,6 +253,7 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 			} else {
 				logger.Sugar().Errorf("plugin implement %v tests, it takes about %vs, logger than required %vs ", testNum, testNum*request.DurationInSecond, plan.TimeoutMinute*60)
 			}
+
 			start := time.Now()
 			for _, targetItem := range testTargetList {
 				itemReport := map[string]interface{}{}
@@ -263,11 +264,12 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 				}
 				reportList = append(reportList, itemReport)
 			}
+
 			end := time.Now()
 			if end.Sub(start).Microseconds() > int64(int(plan.TimeoutMinute)*60*1000) {
-				logger.Sugar().Errorf("plugin finished %v tests, it taked time with %v , started at %v, logger than requied %v seconds", testNum, testNum*request.DurationInSecond, time.Now().Sub(start).String(), int(plan.TimeoutMinute)*60)
+				logger.Sugar().Errorf("plugin finished %v tests, it taked time with %v , started at %v, logger than requied %v seconds", testNum, end.Sub(start).String(), start.String(), int(plan.TimeoutMinute)*60)
 			} else {
-				logger.Sugar().Infof("plugin finished %v tests, it taked time with %v , started at %v, shorter than requied %v seconds", testNum, testNum*request.DurationInSecond, time.Now().Sub(start).String(), int(plan.TimeoutMinute)*60)
+				logger.Sugar().Infof("plugin finished %v tests, it taked time with %v , started at %v, shorter than requied %v seconds", testNum, end.Sub(start).String(), start.String(), int(plan.TimeoutMinute)*60)
 			}
 
 			// ----------------------- aggregate report
