@@ -135,6 +135,13 @@ deploy_project:
 			HELM_OPTION+=" --set spiderdoctorAgent.extraEnv[0].name=ENV_PYROSCOPE_PUSH_SERVER_ADDRESS  --set spiderdoctorAgent.extraEnv[0].value=http://$${ServerAddress}:$(PYROSCOPE_LOCAL_PORT) " ; \
 			HELM_OPTION+=" --set spiderdoctorController.extraEnv[0].name=ENV_PYROSCOPE_PUSH_SERVER_ADDRESS  --set spiderdoctorController.extraEnv[0].value=http://$${ServerAddress}:$(PYROSCOPE_LOCAL_PORT) " ; \
 		fi ; \
+		if [ "$(E2E_IP_FAMILY)" == "ipv4" ] ; then ; \
+			HELM_OPTION+=" --set feature.enableIPv4=true --set feature.enableIPv6=false " ; \
+		if [ "$(E2E_IP_FAMILY)" == "ipv6" ] ; then ; \
+			HELM_OPTION+=" --set feature.enableIPv4=false --set feature.enableIPv6=true " ; \
+		else  \
+			HELM_OPTION+=" --set feature.enableIPv4=true --set feature.enableIPv6=true " ; \
+		fi ;\
 		HELM_OPTION+=" --set spiderdoctorAgent.debug.logLevel=debug --set spiderdoctorController.debug.logLevel=debug " ; \
 		HELM_OPTION+=" --set spiderdoctorAgent.prometheus.enabled=true --set spiderdoctorController.prometheus.enabled=true  " ; \
 		helm --kubeconfig=$(KIND_KUBECONFIG) install project $(ROOT_DIR)/charts \

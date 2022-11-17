@@ -98,14 +98,14 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 		// ----------------------- test pod ip
 		if target.TargetAgent.TestEndpoint {
 			var PodIps k8sObjManager.PodIps
-			report := map[string]interface{}{}
+			reportRoot := map[string]interface{}{}
 
 			if target.TargetAgent.TestMultusInterface {
 				PodIps, e = k8sObjManager.GetK8sObjManager().ListDaemonsetPodMultusIPs(ctx, config.AgentConfig.SpiderDoctorAgentDaemonsetName, config.AgentConfig.PodNamespace)
 				logger.Sugar().Debugf("test agent multus pod ip: %v", PodIps)
 				if e != nil {
 					logger.Sugar().Errorf("failed to ListDaemonsetPodMultusIPs, error=%v", e)
-					report["FailureReason"] = fmt.Sprintf("%v", e)
+					reportRoot["FailureReason"] = fmt.Sprintf("%v", e)
 					finalfailureReason = fmt.Sprintf("%v", e)
 				}
 
@@ -114,7 +114,7 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 				logger.Sugar().Debugf("test agent single pod ip: %v", PodIps)
 				if e != nil {
 					logger.Sugar().Errorf("failed to ListDaemonsetPodIPs, error=%v", e)
-					report["FailureReason"] = fmt.Sprintf("%v", e)
+					reportRoot["FailureReason"] = fmt.Sprintf("%v", e)
 					finalfailureReason = fmt.Sprintf("%v", e)
 				}
 			}
@@ -145,9 +145,9 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 							rlist = append(rlist, itemReport)
 						}
 					}
-					report[strings.ToUpper(podname)] = rlist
+					reportRoot[strings.ToUpper(podname)] = rlist
 				}
-				finalReport["TestAgentPodIP"] = report
+				finalReport["TestAgentPodIP"] = reportRoot
 			} else {
 				logger.Sugar().Debugf("ignore test agent pod ip")
 				finalReport["TestAgentPodIP"] = "not required"
@@ -167,36 +167,39 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 				}
 			}
 
-			if target.TargetAgent.TestClusterIp && target.TargetAgent.TestIPv4 != nil && *(target.TargetAgent.TestIPv4) {
-				reportRoot := map[string]interface{}{}
-				if agentV4Service == nil {
+			// ----------------------- test cluster ipv4 ip
+			if true {
+				if target.TargetAgent.TestClusterIp && target.TargetAgent.TestIPv4 != nil && *(target.TargetAgent.TestIPv4) {
+					reportRoot := map[string]interface{}{}
+					if agentV4Service == nil {
 
+					} else {
+						finalfailureReason = "failed to get cluster IPv4 IP"
+						reportRoot["Succeed"] = "false"
+						reportRoot["FailureReason"] = finalfailureReason
+					}
+					finalReport["TestAgentClusterIPv4IP"] = reportRoot
 				} else {
-					finalfailureReason = "failed to get cluster IPv4 IP"
-					reportRoot["Succeed"] = "false"
-					reportRoot["FailureReason"] = finalfailureReason
+					logger.Sugar().Debugf("ignore test agent cluster ipv4 ip")
+					finalReport["TestAgentClusterIPv4IP"] = "not required"
 				}
-				finalReport["TestAgentClusterIPv4IP"] = reportRoot
-			} else {
-				logger.Sugar().Debugf("ignore test agent cluster ipv4 ip")
-				finalReport["TestAgentClusterIPv4IP"] = "not required"
-			}
 
-			if target.TargetAgent.TestClusterIp && target.TargetAgent.TestIPv6 != nil && *(target.TargetAgent.TestIPv6) {
-				reportRoot := map[string]interface{}{}
-				if agentV6Service == nil {
+				// ----------------------- test cluster ipv6 ip
+				if target.TargetAgent.TestClusterIp && target.TargetAgent.TestIPv6 != nil && *(target.TargetAgent.TestIPv6) {
+					reportRoot := map[string]interface{}{}
+					if agentV6Service == nil {
 
+					} else {
+						finalfailureReason = "failed to get cluster IPv6 IP"
+						reportRoot["Succeed"] = "false"
+						reportRoot["FailureReason"] = finalfailureReason
+					}
+					finalReport["TestAgentClusterIPv6IP"] = reportRoot
 				} else {
-					finalfailureReason = "failed to get cluster IPv6 IP"
-					reportRoot["Succeed"] = "false"
-					reportRoot["FailureReason"] = finalfailureReason
+					logger.Sugar().Debugf("ignore test agent cluster ipv6 ip")
+					finalReport["TestAgentClusterIPv6IP"] = "not required"
 				}
-				finalReport["TestAgentClusterIPv6IP"] = reportRoot
-			} else {
-				logger.Sugar().Debugf("ignore test agent cluster ipv6 ip")
-				finalReport["TestAgentClusterIPv6IP"] = "not required"
 			}
-
 			// ----------------------- test node port
 
 			// ----------------------- test loadbalancer IP
