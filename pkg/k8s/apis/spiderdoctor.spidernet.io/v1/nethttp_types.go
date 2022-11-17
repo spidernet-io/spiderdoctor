@@ -53,6 +53,9 @@ type TargetAgentSepc struct {
 	TestEndpoint bool `json:"testEndpoint,omitempty"`
 
 	// +kubebuilder:default=true
+	TestMultusInterface bool `json:"testMultusInterface,omitempty"`
+
+	// +kubebuilder:default=true
 	TestClusterIp bool `json:"testClusterIp,omitempty"`
 
 	// +kubebuilder:default=true

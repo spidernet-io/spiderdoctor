@@ -176,6 +176,9 @@ spec:
                       testIngress:
                         default: false
                         type: boolean
+                      testMultusInterface:
+                        default: true
+                        type: boolean
                       testNodePort:
                         default: true
                         type: boolean

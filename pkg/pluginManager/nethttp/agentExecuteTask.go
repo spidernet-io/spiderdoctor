@@ -52,10 +52,19 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 		if err != nil {
 			logger.Sugar().Errorf("internal error, error=%v", err)
 		}
-		logger.Sugar().Infof("finish, failureReason=%v", finalfailureReason)
 
+		// generate report
 		finalReport["Target"] = *(target.TargetUrl)
+		finalReport["Type"] = "custom url"
 		finalReport["Detail"] = *result
+		finalReport["FailureReason"] = finalfailureReason
+		if len(finalfailureReason) > 0 {
+			finalReport["Succeed"] = "true"
+			logger.Sugar().Warnf("finish, failureReason=%v", finalfailureReason)
+		} else {
+			finalReport["Succeed"] = "false"
+			logger.Sugar().Errorf("finish, succeed ")
+		}
 
 		return
 
