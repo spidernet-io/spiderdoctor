@@ -14,8 +14,6 @@ spec:
     intervalMinute: 2
     timeoutMinute: 1
   request:
-    testIPv4: true
-    testIPv6: true
     durationInSecond: 10
     qps: 10
     perRequestTimeoutInSecond: 5
@@ -23,9 +21,12 @@ spec:
     successRate: 1
     meanAccessDelayInMs: 1000
 EOF
-
 kubectl apply -f nethttp1.yaml
 
+```
+
+
+```shell
 
 cat <<EOF > nethttp2.yaml
 apiVersion: spiderdoctor.spidernet.io/v1
@@ -42,8 +43,6 @@ spec:
         matchExpressions:
           - { key: "kubernetes.io/hostname", operator: In, values: ["spiderdoctor-worker"] }
   request:
-    testIPv4: true
-    testIPv6: true
     durationInSecond: 10
     qps: 10
     perRequestTimeoutInSecond: 5
@@ -51,32 +50,34 @@ spec:
     successRate: 1
     meanAccessDelayInMs: 1000
 EOF
-
 kubectl apply -f nethttp2.yaml
 
+```
 
-cat <<EOF > netdns1.yaml
+
+```shell
+
+cat <<EOF > nethttp3.yaml
 apiVersion: spiderdoctor.spidernet.io/v1
-kind: Netdns
+kind: Nethttp
 metadata:
-  name: testdns1
+  name: testhttp3
 spec:
   schedule:
-    startAfterMinute: 10
-    roundNumber: 1
-    intervalMinute: 60
-    timeoutMinute: 10
+    startAfterMinute: 0
+    roundNumber: 2
+    intervalMinute: 2
+    timeoutMinute: 1
+  target:
+    targetUrl: "http://172.19.0.9"
   request:
-    testIPv4: true
-    testIPv6: true
     durationInSecond: 10
     qps: 10
     perRequestTimeoutInSecond: 5
   success:
     successRate: 1
-    meanAccessDelayInMs: 1000
+    meanAccessDelayInMs: 2000
 EOF
-
-kubectl apply -f netdns1.yaml
+kubectl apply -f nethttp3.yaml
 
 ```

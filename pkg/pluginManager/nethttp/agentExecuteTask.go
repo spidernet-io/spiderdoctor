@@ -17,6 +17,9 @@ func ParseSucccessCondition(successCondition *crd.NetSuccessCondition, metricRes
 		failureReason = fmt.Sprintf("Success Rate %v is lower thant request %v", metricResult.Success, successCondition.SuccessRate)
 	case metricResult.Latencies.Mean.Microseconds() > successCondition.MeanAccessDelayInMs:
 		failureReason = fmt.Sprintf("mean delay %vs is lower thant request %vs", metricResult.Latencies.Mean.Microseconds(), successCondition.MeanAccessDelayInMs)
+	default:
+		failureReason = ""
+		err = nil
 	}
 	return
 }
@@ -49,10 +52,10 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 		if err != nil {
 			logger.Sugar().Errorf("internal error, error=%v", err)
 		}
-		logger.Sugar().Info("finish, failureReason=%v", finalfailureReason)
+		logger.Sugar().Infof("finish, failureReason=%v", finalfailureReason)
 
-		finalReport["target"] = *(target.TargetUrl)
-		finalReport["detail"] = *result
+		finalReport["Target"] = *(target.TargetUrl)
+		finalReport["Detail"] = *result
 
 		return
 

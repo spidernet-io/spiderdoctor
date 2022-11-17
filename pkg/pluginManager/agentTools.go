@@ -2,6 +2,7 @@ package pluginManager
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	k8sObjManager "github.com/spidernet-io/spiderdoctor/pkg/k8ObjManager"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
@@ -50,8 +51,11 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 			msg.Detail = report
 		}
 
-		// output to staout
-		fmt.Printf("%+v\n", msg)
+		if jsongByte, err := json.Marshal(msg); err != nil {
+			logger.Sugar().Errorf("failed to generate round report , marsha json error=%v", err)
+		} else {
+			fmt.Printf("%+v\n ", string(jsongByte))
+		}
 
 		// TODO: write report to disk for controler to collect
 	}()
