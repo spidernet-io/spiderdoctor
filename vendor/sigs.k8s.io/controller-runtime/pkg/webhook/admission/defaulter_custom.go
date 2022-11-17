@@ -24,6 +24,10 @@ import (
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	admissionv1 "k8s.io/api/admission/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+
 )
 
 // CustomDefaulter defines functions for setting defaults on resources.
@@ -60,6 +64,17 @@ func (h *defaulterForType) Handle(ctx context.Context, req Request) Response {
 		panic("object should never be nil")
 	}
 
+	// always skip when a DELETE operation received in mutation handler
+	// describe in https://github.com/kubernetes-sigs/controller-runtime/issues/1762
+	if req.Operation == admissionv1.Delete {
+		return Response{AdmissionResponse: admissionv1.AdmissionResponse{
+			Allowed: true,
+			Result: &metav1.Status{
+				Code: http.StatusOK,
+			},
+		}}
+	}
+	
 	ctx = NewContextWithRequest(ctx, req)
 
 	// Get the object in the request

@@ -167,24 +167,34 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 				}
 			}
 
-			if target.TargetAgent.TestClusterIp {
-				if target.TargetAgent.TestIPv4 != nil && *(target.TargetAgent.TestIPv4) {
-					if agentV4Service == nil {
+			if target.TargetAgent.TestClusterIp && target.TargetAgent.TestIPv4 != nil && *(target.TargetAgent.TestIPv4) {
+				reportRoot := map[string]interface{}{}
+				if agentV4Service == nil {
 
-					} else {
-
-					}
+				} else {
+					finalfailureReason = "failed to get cluster IPv4 IP"
+					reportRoot["Succeed"] = "false"
+					reportRoot["FailureReason"] = finalfailureReason
 				}
-				if target.TargetAgent.TestIPv6 != nil && *(target.TargetAgent.TestIPv6) {
-					if agentV6Service == nil {
-
-					} else {
-
-					}
-				}
+				finalReport["TestAgentClusterIPv4IP"] = reportRoot
 			} else {
-				logger.Sugar().Debugf("ignore test agent cluster ip")
-				finalReport["TestAgentClusterIP"] = "not required"
+				logger.Sugar().Debugf("ignore test agent cluster ipv4 ip")
+				finalReport["TestAgentClusterIPv4IP"] = "not required"
+			}
+
+			if target.TargetAgent.TestClusterIp && target.TargetAgent.TestIPv6 != nil && *(target.TargetAgent.TestIPv6) {
+				reportRoot := map[string]interface{}{}
+				if agentV6Service == nil {
+
+				} else {
+					finalfailureReason = "failed to get cluster IPv6 IP"
+					reportRoot["Succeed"] = "false"
+					reportRoot["FailureReason"] = finalfailureReason
+				}
+				finalReport["TestAgentClusterIPv6IP"] = reportRoot
+			} else {
+				logger.Sugar().Debugf("ignore test agent cluster ipv6 ip")
+				finalReport["TestAgentClusterIPv6IP"] = "not required"
 			}
 
 			// ----------------------- test node port
