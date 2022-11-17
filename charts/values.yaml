@@ -37,6 +37,9 @@ feature:
   ## @param feature.nethttp_defaultRequest_Qps qps for kind nethttp
   nethttp_defaultRequest_Qps: 10
 
+  ## @param feature.nethttp_defaultRequest_MaxQps qps for kind nethttp
+  nethttp_defaultRequest_MaxQps: 100
+
   ## @param feature.nethttp_defaultRequest_DurationInSecond Duration In Second for kind nethttp
   nethttp_defaultRequest_DurationInSecond: 2
 

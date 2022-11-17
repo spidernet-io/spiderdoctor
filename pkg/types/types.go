@@ -8,6 +8,7 @@ type ConfigmapConfig struct {
 	EnableIPv6                                     bool   `yaml:"enableIPv6"`
 	TaskPollIntervalInSecond                       int    `yaml:"taskPollIntervalInSecond"`
 	NethttpDefaultRequestQps                       int    `yaml:"nethttp_defaultRequest_Qps"`
+	NethttpDefaultRequestMaxQps                    int    `yaml:"nethttp_defaultRequest_MaxQps"`
 	NethttpDefaultRequestDurationInSecond          int    `yaml:"nethttp_defaultRequest_DurationInSecond"`
 	NethttpDefaultRequestPerRequestTimeoutInSecond int    `yaml:"nethttp_defaultRequest_PerRequestTimeoutInSecond"`
 	MultusPodAnnotationKey                         string `yaml:"multusPodAnnotationKey"`

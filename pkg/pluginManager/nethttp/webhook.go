@@ -5,6 +5,7 @@ package nethttp
 
 import (
 	"context"
+	"fmt"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
@@ -86,6 +87,11 @@ func (s *PluginNetHttp) WebhookValidateCreate(logger *zap.Logger, ctx context.Co
 	logger.Sugar().Infof("obj: %+v", r)
 
 	// TODO: validate request
+	if r.Spec.Request.QPS >= types.ControllerConfig.Configmap.NethttpDefaultRequestMaxQps {
+		s := fmt.Sprintf("nethttp %v require qps %v bigger than maximum %v", r.Name, r.Spec.Request.QPS, types.ControllerConfig.Configmap.NethttpDefaultRequestMaxQps)
+		logger.Error(s)
+		return apierrors.NewBadRequest(s)
+	}
 
 	return nil
 }
