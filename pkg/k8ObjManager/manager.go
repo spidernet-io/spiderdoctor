@@ -27,6 +27,9 @@ type K8sObjManager interface {
 
 	// pod
 	GetPodList(ctx context.Context, opts ...client.ListOption) ([]corev1.Pod, error)
+
+	// service
+	GetService(ctx context.Context, name, namespace string) (*corev1.Service, error)
 }
 
 type k8sObjManager struct {
