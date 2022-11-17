@@ -2,6 +2,7 @@ package k8sObjManager
 
 import (
 	"context"
+	"github.com/spidernet-io/spiderdoctor/pkg/utils"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apitypes "k8s.io/apimachinery/pkg/types"
@@ -15,6 +16,23 @@ func (nm *k8sObjManager) GetNode(ctx context.Context, nodeName string) (*corev1.
 	}
 
 	return &node, nil
+}
+
+func (nm *k8sObjManager) GetNodeIP(ctx context.Context, nodeName string) (ipv4, ipv6 string, err error) {
+
+	v, e := nm.GetNode(ctx, nodeName)
+	if e != nil {
+		err = e
+		return
+	}
+	for _, t := range v.Status.Addresses {
+		if utils.CheckIPv4Format(t.Address) {
+			ipv4 = t.Address
+		} else {
+			ipv6 = t.Address
+		}
+	}
+	return
 }
 
 func (nm *k8sObjManager) ListNodes(ctx context.Context, opts ...client.ListOption) (*corev1.NodeList, error) {

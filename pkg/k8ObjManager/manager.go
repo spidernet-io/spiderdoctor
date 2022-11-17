@@ -19,6 +19,8 @@ type K8sObjManager interface {
 	ListNodes(ctx context.Context, opts ...client.ListOption) (*corev1.NodeList, error)
 	MatchNodeSelected(ctx context.Context, nodeName string, labelSelector *metav1.LabelSelector) (bool, error)
 	ListSelectedNodes(ctx context.Context, labelSelector *metav1.LabelSelector) ([]string, error)
+	GetNodeIP(ctx context.Context, nodeName string) (ipv4, ipv6 string, err error)
+
 	// daemonset
 	ListDaemonsetPodNodes(ctx context.Context, daemonsetName, daemonsetNameSpace string) ([]string, error)
 	GetDaemonset(ctx context.Context, name, namespace string) (*appsv1.DaemonSet, error)

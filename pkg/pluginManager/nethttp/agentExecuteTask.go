@@ -93,10 +93,7 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 	} else {
 		// test spiderdoctor agent
 		logger.Sugar().Infof("load test spiderdoctor Agent pod: qps=%v, PerRequestTimeout=%vs, Duration=%vs", request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond)
-
 		finalfailureReason = ""
-		var agentV4Service *corev1.Service
-		var agentV6Service *corev1.Service
 		testTargetList := []*TestTarget{}
 
 		// ----------------------- test pod ip
@@ -142,16 +139,49 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 			}
 
 			// ----------------------- get service
+			var serviceNodePortV4, serviceNodePortV6 int32
+			var agentV4Service *corev1.Service
+			var agentV6Service *corev1.Service
+			var localNodeIpv4, localNodeIpv6 string
+
 			if config.AgentConfig.Configmap.EnableIPv4 {
 				agentV4Service, e = k8sObjManager.GetK8sObjManager().GetService(ctx, config.AgentConfig.AgentSerivceIpv4Name, config.AgentConfig.PodNamespace)
 				if e != nil {
 					logger.Sugar().Errorf("failed to get agent ipv4 service, error=%v", e)
+				} else {
+					logger.Sugar().Debugf("agent ipv4 service: %v", agentV4Service.Spec)
+					// find nodePort
+					for _, v := range agentV4Service.Spec.Ports {
+						if v.Name == "http" && v.NodePort != 0 {
+							serviceNodePortV4 = v.NodePort
+							logger.Sugar().Debugf("agent ipv4 service nodePort: %v", serviceNodePortV4)
+							break
+						}
+					}
 				}
 			}
 			if config.AgentConfig.Configmap.EnableIPv6 {
 				agentV6Service, e = k8sObjManager.GetK8sObjManager().GetService(ctx, config.AgentConfig.AgentSerivceIpv6Name, config.AgentConfig.PodNamespace)
 				if e != nil {
 					logger.Sugar().Errorf("failed to get agent ipv6 service, error=%v", e)
+				} else {
+					logger.Sugar().Debugf("agent ipv6 service: %v", agentV6Service.Spec)
+					// find nodePort
+					for _, v := range agentV6Service.Spec.Ports {
+						if v.Name == "http" && v.NodePort != 0 {
+							serviceNodePortV6 = v.NodePort
+							logger.Sugar().Debugf("agent ipv6 service nodePort: %v", serviceNodePortV6)
+							break
+						}
+					}
+				}
+			}
+			if true {
+				localNodeIpv4, localNodeIpv6, e = k8sObjManager.GetK8sObjManager().GetNodeIP(ctx, config.AgentConfig.LocalNodeName)
+				if e != nil {
+					logger.Sugar().Errorf("failed to get local node %v ip, error=%v", config.AgentConfig.LocalNodeName, e)
+				} else {
+					logger.Sugar().Debugf("local node %v ip: ipv4=%v, ipv6=%v", config.AgentConfig.LocalNodeName, localNodeIpv4, localNodeIpv6)
 				}
 			}
 
@@ -186,6 +216,30 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 			}
 
 			// ----------------------- test node port
+			if target.TargetAgent.TestNodePort && target.TargetAgent.TestIPv4 != nil && *(target.TargetAgent.TestIPv4) {
+				if agentV4Service != nil && len(localNodeIpv4) != 0 && serviceNodePortV4 != 0 {
+					testTargetList = append(testTargetList, &TestTarget{
+						Name: "AgentNodePortV4IP_" + localNodeIpv4 + "_" + fmt.Sprintf("%v", serviceNodePortV4),
+						Url:  fmt.Sprintf("http://%s:%d", localNodeIpv4, serviceNodePortV4),
+					})
+				} else {
+					finalfailureReason = "failed to get nodePort IPv4 address"
+				}
+			} else {
+				logger.Sugar().Debugf("ignore test agent nodePort ipv4")
+			}
+			if target.TargetAgent.TestNodePort && target.TargetAgent.TestIPv6 != nil && *(target.TargetAgent.TestIPv6) {
+				if agentV6Service != nil && len(localNodeIpv6) != 0 && serviceNodePortV6 != 0 {
+					testTargetList = append(testTargetList, &TestTarget{
+						Name: "AgentNodePortV6IP_" + localNodeIpv6 + "_" + fmt.Sprintf("%v", serviceNodePortV6),
+						Url:  fmt.Sprintf("http://%s:%d", localNodeIpv6, serviceNodePortV6),
+					})
+				} else {
+					finalfailureReason = "failed to get nodePort IPv6 address"
+				}
+			} else {
+				logger.Sugar().Debugf("ignore test agent nodePort ipv6")
+			}
 
 			// ----------------------- test loadbalancer IP
 

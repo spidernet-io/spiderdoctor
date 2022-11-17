@@ -59,46 +59,6 @@ func (nm *k8sObjManager) ListDaemonsetPodNodes(ctx context.Context, daemonsetNam
 
 // --------------
 
-type PodIp struct {
-	InterfaceName string
-	IPv4          string
-	IPv6          string
-}
-type PodIps map[string][]PodIp
-
-func (nm *k8sObjManager) ListDaemonsetPodIPs(ctx context.Context, daemonsetName, daemonsetNameSpace string) (PodIps, error) {
-
-	podlist, e := nm.ListDaemonsetPod(ctx, daemonsetName, daemonsetNameSpace)
-	if e != nil {
-		return nil, e
-	}
-	if len(podlist) == 0 {
-		return nil, fmt.Errorf("failed to get any pods")
-	}
-
-	result := PodIps{}
-
-	for _, v := range podlist {
-		t := PodIp{}
-		t.InterfaceName = "eth0"
-		for _, m := range v.Status.PodIPs {
-
-			if utils.CheckIPv4Format(m.IP) {
-				t.IPv4 = m.IP
-			} else {
-				t.IPv6 = m.IP
-			}
-		}
-		result[v.Name] = []PodIp{t}
-	}
-	return result, nil
-}
-
-type MultusAnnotationValueItem struct {
-	Interface string   `json:"interface"`
-	Ips       []string `json:"ips"`
-}
-
 func (nm *k8sObjManager) ListDaemonsetPodMultusIPs(ctx context.Context, daemonsetName, daemonsetNameSpace string) (PodIps, error) {
 	podlist, e := nm.ListDaemonsetPod(ctx, daemonsetName, daemonsetNameSpace)
 	if e != nil {
@@ -117,7 +77,7 @@ func (nm *k8sObjManager) ListDaemonsetPodMultusIPs(ctx context.Context, daemonse
 
 	// for eth0
 	for _, v := range podlist {
-		t := PodIp{}
+		t := IPs{}
 		t.InterfaceName = "eth0"
 		for _, m := range v.Status.PodIPs {
 			if utils.CheckIPv4Format(m.IP) {
@@ -126,7 +86,7 @@ func (nm *k8sObjManager) ListDaemonsetPodMultusIPs(ctx context.Context, daemonse
 				t.IPv6 = m.IP
 			}
 		}
-		result[v.Name] = []PodIp{t}
+		result[v.Name] = []IPs{t}
 	}
 
 	// for other interface
@@ -143,7 +103,7 @@ func (nm *k8sObjManager) ListDaemonsetPodMultusIPs(ctx context.Context, daemonse
 			if r.Interface == "eth0" || len(r.Ips) == 0 {
 				continue
 			}
-			t := PodIp{}
+			t := IPs{}
 			t.InterfaceName = r.Interface
 			for _, w := range r.Ips {
 				if utils.CheckIPv4Format(w) {
@@ -155,6 +115,34 @@ func (nm *k8sObjManager) ListDaemonsetPodMultusIPs(ctx context.Context, daemonse
 			result[v.Name] = append(result[v.Name], t)
 		}
 
+	}
+	return result, nil
+}
+
+func (nm *k8sObjManager) ListDaemonsetPodIPs(ctx context.Context, daemonsetName, daemonsetNameSpace string) (PodIps, error) {
+
+	podlist, e := nm.ListDaemonsetPod(ctx, daemonsetName, daemonsetNameSpace)
+	if e != nil {
+		return nil, e
+	}
+	if len(podlist) == 0 {
+		return nil, fmt.Errorf("failed to get any pods")
+	}
+
+	result := PodIps{}
+
+	for _, v := range podlist {
+		t := IPs{}
+		t.InterfaceName = "eth0"
+		for _, m := range v.Status.PodIPs {
+
+			if utils.CheckIPv4Format(m.IP) {
+				t.IPv4 = m.IP
+			} else {
+				t.IPv6 = m.IP
+			}
+		}
+		result[v.Name] = []IPs{t}
 	}
 	return result, nil
 }
