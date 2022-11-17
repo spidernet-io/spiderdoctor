@@ -79,13 +79,13 @@ type StatusHistoryRecord struct {
 type NetSuccessCondition struct {
 
 	// +kubebuilder:default=1
-	// +kubebuilder:validation:Minimum=0
 	// +kubebuilder:validation:Maximum=1
+	// +kubebuilder:validation:Minimum=0
 	// +kubebuilder:validation:Optional
-	SuccessRate *float32 `json:"successRate,omitempty"`
+	SuccessRate float64 `json:"successRate,omitempty"`
 
 	// +kubebuilder:default=5000
-	// +kubebuilder:validation:Minimum=100
+	// +kubebuilder:validation:Minimum=1
 	// +kubebuilder:validation:Optional
-	MeanAccessDelayInMs *uint64 `json:"meanAccessDelayInMs,omitempty"`
+	MeanAccessDelayInMs int64 `json:"meanAccessDelayInMs,omitempty"`
 }

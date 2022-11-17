@@ -27,7 +27,6 @@ type pluginAgentReconciler struct {
 var _ reconcile.Reconciler = &pluginAgentReconciler{}
 
 func (s *pluginAgentReconciler) SetupWithManager(mgr ctrl.Manager) error {
-
 	return ctrl.NewControllerManagedBy(mgr).For(s.plugin.GetApiType()).Complete(s)
 }
 

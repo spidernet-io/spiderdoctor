@@ -158,7 +158,7 @@ spec:
                   meanAccessDelayInMs:
                     default: 5000
                     format: int64
-                    minimum: 100
+                    minimum: 1
                     type: integer
                   successRate:
                     default: 1

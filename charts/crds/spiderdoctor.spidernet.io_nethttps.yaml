@@ -56,26 +56,17 @@ spec:
                 properties:
                   durationInSecond:
                     default: 2
-                    format: int64
                     minimum: 1
                     type: integer
                   perRequestTimeoutInSecond:
                     default: 5
-                    format: int64
                     minimum: 1
                     type: integer
                   qps:
                     default: 5
-                    format: int64
-                    maximum: 20
+                    maximum: 100
                     minimum: 1
                     type: integer
-                  testIPv4:
-                    default: true
-                    type: boolean
-                  testIPv6:
-                    default: false
-                    type: boolean
                 type: object
               schedule:
                 properties:
@@ -158,7 +149,7 @@ spec:
                   meanAccessDelayInMs:
                     default: 5000
                     format: int64
-                    minimum: 100
+                    minimum: 1
                     type: integer
                   successRate:
                     default: 1
@@ -168,15 +159,29 @@ spec:
                 type: object
               target:
                 properties:
-                  testEndpoint:
-                    default: true
-                    type: boolean
-                  testIngress:
-                    default: false
-                    type: boolean
-                  testNodePort:
-                    default: true
-                    type: boolean
+                  rargetAgent:
+                    properties:
+                      testClusterIp:
+                        default: true
+                        type: boolean
+                      testEndpoint:
+                        default: true
+                        type: boolean
+                      testIPv4:
+                        default: true
+                        type: boolean
+                      testIPv6:
+                        default: false
+                        type: boolean
+                      testIngress:
+                        default: false
+                        type: boolean
+                      testNodePort:
+                        default: true
+                        type: boolean
+                    type: object
+                  targetUrl:
+                    type: string
                 type: object
             type: object
           status:
