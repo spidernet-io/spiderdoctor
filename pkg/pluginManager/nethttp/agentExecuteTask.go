@@ -141,7 +141,7 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 				logger.Sugar().Debugf("ignore test agent pod ip")
 			}
 
-			// ----------------------- test cluster ip
+			// ----------------------- get service
 			if config.AgentConfig.Configmap.EnableIPv4 {
 				agentV4Service, e = k8sObjManager.GetK8sObjManager().GetService(ctx, config.AgentConfig.AgentSerivceIpv4Name, config.AgentConfig.PodNamespace)
 				if e != nil {
@@ -156,36 +156,35 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 			}
 
 			// ----------------------- test cluster ipv4 ip
-			if true {
-				if target.TargetAgent.TestClusterIp && target.TargetAgent.TestIPv4 != nil && *(target.TargetAgent.TestIPv4) {
-					if agentV4Service != nil && len(agentV4Service.Spec.ClusterIP) != 0 {
-						testTargetList = append(testTargetList, &TestTarget{
-							Name: "AgentClusterV4IP_" + agentV4Service.Spec.ClusterIP,
-							Url:  fmt.Sprintf("http://%s:%d", agentV4Service.Spec.ClusterIP, config.AgentConfig.HttpPort),
-						})
-					} else {
-						finalfailureReason = "failed to get cluster IPv4 IP"
-					}
+			if target.TargetAgent.TestClusterIp && target.TargetAgent.TestIPv4 != nil && *(target.TargetAgent.TestIPv4) {
+				if agentV4Service != nil && len(agentV4Service.Spec.ClusterIP) != 0 {
+					testTargetList = append(testTargetList, &TestTarget{
+						Name: "AgentClusterV4IP_" + agentV4Service.Spec.ClusterIP,
+						Url:  fmt.Sprintf("http://%s:%d", agentV4Service.Spec.ClusterIP, config.AgentConfig.HttpPort),
+					})
 				} else {
-					logger.Sugar().Debugf("ignore test agent cluster ipv4 ip")
+					finalfailureReason = "failed to get cluster IPv4 IP"
 				}
-
-				// ----------------------- test cluster ipv6 ip
-				if target.TargetAgent.TestClusterIp && target.TargetAgent.TestIPv6 != nil && *(target.TargetAgent.TestIPv6) {
-					reportRoot := map[string]interface{}{}
-					if agentV6Service == nil {
-						testTargetList = append(testTargetList, &TestTarget{
-							Name: "AgentClusterV6IP_" + agentV6Service.Spec.ClusterIP,
-							Url:  fmt.Sprintf("http://%s:%d", agentV6Service.Spec.ClusterIP, config.AgentConfig.HttpPort),
-						})
-					} else {
-						finalfailureReason = "failed to get cluster IPv6 IP"
-					}
-					finalReport["TestAgentClusterIPv6IP"] = reportRoot
-				} else {
-					logger.Sugar().Debugf("ignore test agent cluster ipv6 ip")
-				}
+			} else {
+				logger.Sugar().Debugf("ignore test agent cluster ipv4 ip")
 			}
+
+			// ----------------------- test cluster ipv6 ip
+			if target.TargetAgent.TestClusterIp && target.TargetAgent.TestIPv6 != nil && *(target.TargetAgent.TestIPv6) {
+				reportRoot := map[string]interface{}{}
+				if agentV6Service == nil {
+					testTargetList = append(testTargetList, &TestTarget{
+						Name: "AgentClusterV6IP_" + agentV6Service.Spec.ClusterIP,
+						Url:  fmt.Sprintf("http://%s:%d", agentV6Service.Spec.ClusterIP, config.AgentConfig.HttpPort),
+					})
+				} else {
+					finalfailureReason = "failed to get cluster IPv6 IP"
+				}
+				finalReport["TestAgentClusterIPv6IP"] = reportRoot
+			} else {
+				logger.Sugar().Debugf("ignore test agent cluster ipv6 ip")
+			}
+
 			// ----------------------- test node port
 
 			// ----------------------- test loadbalancer IP
@@ -195,10 +194,10 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 			reportList := []interface{}{}
 			for _, targetItem := range testTargetList {
 				itemReport := map[string]interface{}{}
-				logger.Sugar().Debugf("test agent %v, target=%v", targetItem.Name, targetItem.Url)
+				logger.Sugar().Debugf("implement test %v, target=%v", targetItem.Name, targetItem.Url)
 				failureReason := SendRequestAndReport(logger, targetItem.Name, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond, successCondition, itemReport)
 				if len(failureReason) > 0 {
-					finalfailureReason = failureReason
+					finalfailureReason = fmt.Sprintf("test %v: %v", targetItem.Name, failureReason)
 				}
 				reportList = append(reportList, itemReport)
 			}
