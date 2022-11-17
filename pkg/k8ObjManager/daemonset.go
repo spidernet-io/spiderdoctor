@@ -14,7 +14,6 @@ import (
 )
 
 func (nm *k8sObjManager) GetDaemonset(ctx context.Context, name, namespace string) (*appsv1.DaemonSet, error) {
-	fmt.Printf("===== welan , %v/%v", namespace, name)
 	d := &appsv1.DaemonSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -23,7 +22,7 @@ func (nm *k8sObjManager) GetDaemonset(ctx context.Context, name, namespace strin
 	}
 	key := client.ObjectKeyFromObject(d)
 	if e := nm.client.Get(ctx, key, d); e != nil {
-		return nil, e
+		return nil, fmt.Errorf("failed to get daemonset %v/%v, reason=%v", namespace, name, e)
 	}
 	return d, nil
 }
