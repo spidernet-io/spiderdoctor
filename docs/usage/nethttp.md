@@ -14,8 +14,8 @@ spec:
     intervalMinute: 2
     timeoutMinute: 1
   request:
-    durationInSecond: 10
-    qps: 2
+    durationInSecond: 5
+    qps: 10
     perRequestTimeoutInSecond: 5
   success:
     successRate: 1
