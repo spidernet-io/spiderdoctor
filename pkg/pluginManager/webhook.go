@@ -7,7 +7,6 @@ import (
 	"context"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"go.uber.org/zap"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -24,12 +23,6 @@ type pluginWebhookhander struct {
 }
 
 var _ webhook.CustomValidator = (*pluginWebhookhander)(nil)
-
-const (
-	ApiMsgGetFailure      = "failed to get instance"
-	ApiMsgUnknowCRD       = "unsupported crd type"
-	ApiMsgUnsupportModify = "unsupported modify spec"
-)
 
 // mutating webhook
 func (s *pluginWebhookhander) Default(ctx context.Context, obj runtime.Object) error {
@@ -69,8 +62,8 @@ func (s *pluginWebhookhander) ValidateCreate(ctx context.Context, obj runtime.Ob
 }
 
 func (s *pluginWebhookhander) ValidateUpdate(ctx context.Context, oldObj, newObj runtime.Object) error {
-	return apierrors.NewBadRequest(ApiMsgUnsupportModify)
-	// return s.plugin.WebhookValidateUpdate(s.logger.Named("validatingCreateWebhook"), ctx, oldObj, newObj)
+
+	return s.plugin.WebhookValidateUpdate(s.logger.Named("validatingCreateWebhook"), ctx, oldObj, newObj)
 }
 
 // ValidateDelete implements webhook.CustomValidator so a webhook will be registered for the type

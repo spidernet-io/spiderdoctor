@@ -6,6 +6,7 @@ package nethttp
 import (
 	"context"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
+	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.uber.org/zap"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -92,7 +93,11 @@ func (s *PluginNetHttp) WebhookValidateUpdate(logger *zap.Logger, ctx context.Co
 		logger.Error(s)
 		return apierrors.NewBadRequest(s)
 	}
-	logger.Sugar().Infof("obj: %+v", r)
+	logger.Sugar().Infof("obj: %+v", r.Name)
+
+	if r.DeletionTimestamp == nil {
+		return apierrors.NewBadRequest(plugintypes.ApiMsgUnsupportModify)
+	}
 
 	return nil
 }

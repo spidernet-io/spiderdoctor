@@ -10,6 +10,7 @@ import (
 	config "github.com/spidernet-io/spiderdoctor/pkg/types"
 	vegeta "github.com/tsenart/vegeta/v12/lib"
 	"go.uber.org/zap"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"strings"
 )
@@ -91,6 +92,8 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 
 		finalReport["Type"] = "spiderdoctor agent"
 		finalfailureReason = ""
+		var agentV4Service *corev1.Service
+		var agentV6Service *corev1.Service
 
 		// ----------------------- test pod ip
 		if target.TargetAgent.TestEndpoint {
@@ -146,13 +149,42 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 				}
 				finalReport["TestAgentPodIP"] = report
 			} else {
-				logger.Sugar().Debugf("ignore test agent pod ip: %v")
+				logger.Sugar().Debugf("ignore test agent pod ip")
 				finalReport["TestAgentPodIP"] = "not required"
 			}
 
 			// ----------------------- test cluster ip
+			if config.AgentConfig.Configmap.EnableIPv4 {
+				agentV4Service, e = k8sObjManager.GetK8sObjManager().GetService(ctx, config.AgentConfig.AgentSerivceIpv4Name, config.AgentConfig.PodNamespace)
+				if e != nil {
+					logger.Sugar().Errorf("failed to get agent ipv4 service, error=%v", e)
+				}
+			}
+			if config.AgentConfig.Configmap.EnableIPv6 {
+				agentV6Service, e = k8sObjManager.GetK8sObjManager().GetService(ctx, config.AgentConfig.AgentSerivceIpv6Name, config.AgentConfig.PodNamespace)
+				if e != nil {
+					logger.Sugar().Errorf("failed to get agent ipv6 service, error=%v", e)
+				}
+			}
 
 			if target.TargetAgent.TestClusterIp {
+				if target.TargetAgent.TestIPv4 != nil && *(target.TargetAgent.TestIPv4) {
+					if agentV4Service == nil {
+
+					} else {
+
+					}
+				}
+				if target.TargetAgent.TestIPv6 != nil && *(target.TargetAgent.TestIPv6) {
+					if agentV6Service == nil {
+
+					} else {
+
+					}
+				}
+			} else {
+				logger.Sugar().Debugf("ignore test agent cluster ip")
+				finalReport["TestAgentClusterIP"] = "not required"
 			}
 
 			// ----------------------- test node port

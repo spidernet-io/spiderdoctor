@@ -27,11 +27,6 @@ type pluginControllerReconciler struct {
 // (3) collect report from agent
 func (s *pluginControllerReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
 
-	if s.plugin.GetApiType().GetDeletionTimestamp() != nil {
-		s.logger.Sugar().Debugf("ignore deleting task %v", req)
-		return ctrl.Result{}, nil
-	}
-
 	// ------ add crd ------
 	switch s.crdKind {
 	case KindNameNethttp:
@@ -44,6 +39,11 @@ func (s *pluginControllerReconciler) Reconcile(ctx context.Context, req reconcil
 		}
 		logger := s.logger.With(zap.String(instance.Kind, instance.Name))
 		logger.Sugar().Debugf("reconcile handle %v", instance)
+
+		if instance.DeletionTimestamp != nil {
+			s.logger.Sugar().Debugf("ignore deleting task %v", req)
+			return ctrl.Result{}, nil
+		}
 
 		oldStatus := instance.Status.DeepCopy()
 		taskName := instance.Kind + "." + instance.Name
@@ -77,6 +77,10 @@ func (s *pluginControllerReconciler) Reconcile(ctx context.Context, req reconcil
 		}
 		logger := s.logger.With(zap.String(instance.Kind, instance.Name))
 		logger.Sugar().Debugf("reconcile handle %v", instance)
+		if instance.DeletionTimestamp != nil {
+			s.logger.Sugar().Debugf("ignore deleting task %v", req)
+			return ctrl.Result{}, nil
+		}
 
 		oldStatus := instance.Status.DeepCopy()
 		taskName := instance.Kind + "." + instance.Name

@@ -37,11 +37,6 @@ func (s *pluginAgentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 // or else, c.Queue.Forget(obj)
 func (s *pluginAgentReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 
-	if s.plugin.GetApiType().GetDeletionTimestamp() != nil {
-		s.logger.Sugar().Debugf("ignore deleting task %v", req)
-		return ctrl.Result{}, nil
-	}
-
 	// ------ add crd ------
 	switch s.crdKind {
 	case KindNameNethttp:
@@ -53,6 +48,10 @@ func (s *pluginAgentReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 		logger := s.logger.With(zap.String(instance.Kind, instance.Name))
 		logger.Sugar().Debugf("reconcile handle %v", instance)
+		if instance.DeletionTimestamp != nil {
+			s.logger.Sugar().Debugf("ignore deleting task %v", req)
+			return ctrl.Result{}, nil
+		}
 
 		oldStatus := instance.Status.DeepCopy()
 		taskName := instance.Kind + "." + instance.Name
@@ -85,7 +84,11 @@ func (s *pluginAgentReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		}
 		logger := s.logger.With(zap.String(instance.Kind, instance.Name))
 		logger.Sugar().Debugf("reconcile handle %v", instance)
-
+		if instance.DeletionTimestamp != nil {
+			s.logger.Sugar().Debugf("ignore deleting task %v", req)
+			return ctrl.Result{}, nil
+		}
+		
 		oldStatus := instance.Status.DeepCopy()
 		taskName := instance.Kind + "." + instance.Name
 		if result, newStatus, err := s.HandleAgentTaskRound(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy(), &instance, taskName); err != nil {

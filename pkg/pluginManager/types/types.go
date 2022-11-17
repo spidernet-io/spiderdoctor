@@ -45,3 +45,9 @@ type PluginReport struct {
 }
 
 type PluginRoundDetail map[string]interface{}
+
+const (
+	ApiMsgGetFailure      = "failed to get instance"
+	ApiMsgUnknowCRD       = "unsupported crd type"
+	ApiMsgUnsupportModify = "unsupported modify spec"
+)
