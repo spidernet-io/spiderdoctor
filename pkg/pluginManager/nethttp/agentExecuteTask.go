@@ -89,7 +89,6 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 		// test spiderdoctor agent
 		logger.Sugar().Infof("load test spiderdoctor Agent pod: qps=%v, PerRequestTimeout=%vs, Duration=%vs", request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond)
 
-		var finalReport types.PluginRoundDetail
 		finalReport["Type"] = "spiderdoctor agent"
 		finalfailureReason = ""
 
