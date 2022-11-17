@@ -21,6 +21,10 @@ func (s *PluginNetHttp) WebhookMutating(logger *zap.Logger, ctx context.Context,
 		return apierrors.NewBadRequest(s)
 	}
 
+	if req.DeletionTimestamp != nil {
+		return nil
+	}
+
 	if req.Spec.Target == nil {
 		enableIpv4 := types.ControllerConfig.Configmap.EnableIPv4
 		enableIpv6 := types.ControllerConfig.Configmap.EnableIPv6

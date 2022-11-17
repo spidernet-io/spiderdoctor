@@ -12,7 +12,7 @@ rules:
   - namespaces
   - nodes
   - pods
-  - service
+  - services
   verbs:
   - get
   - list
