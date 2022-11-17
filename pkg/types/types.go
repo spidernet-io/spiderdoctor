@@ -10,7 +10,6 @@ type ConfigmapConfig struct {
 	NethttpDefaultRequestQps                       int    `yaml:"nethttp_defaultRequest_Qps"`
 	NethttpDefaultRequestDurationInSecond          int    `yaml:"nethttp_defaultRequest_DurationInSecond"`
 	NethttpDefaultRequestPerRequestTimeoutInSecond int    `yaml:"nethttp_defaultRequest_PerRequestTimeoutInSecond"`
-	NethttpDefaultFailSuccessRate                  int    `yaml:"nethttp_defaultFail_SuccessRate"`
 	MultusPodAnnotationKey                         string `yaml:"multusPodAnnotationKey"`
 }
 

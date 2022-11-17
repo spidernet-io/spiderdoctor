@@ -19,5 +19,4 @@ data:
     nethttp_defaultRequest_Qps: {{ .Values.feature.nethttp_defaultRequest_Qps }}
     nethttp_defaultRequest_DurationInSecond: {{ .Values.feature.nethttp_defaultRequest_DurationInSecond }}
     nethttp_defaultRequest_PerRequestTimeoutInSecond: {{ .Values.feature.nethttp_defaultRequest_PerRequestTimeoutInSecond }}
-    nethttp_defaultFail_SuccessRate: {{ .Values.feature.nethttp_defaultFail_SuccessRate }}
     multusPodAnnotationKey: {{ .Values.feature.multusPodAnnotationKey }}

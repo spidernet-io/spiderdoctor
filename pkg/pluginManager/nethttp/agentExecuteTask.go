@@ -63,6 +63,7 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 	finalfailureReason = ""
 	finalReport = types.PluginRoundDetail{}
 	err = nil
+	var e error
 
 	instance, ok := obj.(*crd.Nethttp)
 	if !ok {
@@ -78,9 +79,6 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 	request := instance.Spec.Request
 	successCondition := instance.Spec.SuccessCondition
 
-	var e error
-
-	// TODO: implement the task
 	if target.TargetUrl != nil && len(*target.TargetUrl) != 0 {
 		logger.Sugar().Infof("load test custom target: TargetUrl=%v , qps=%v, PerRequestTimeout=%vs, Duration=%vs", *target.TargetUrl, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond)
 		finalReport["Type"] = "custom url"
@@ -95,7 +93,7 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 		finalReport["Type"] = "spiderdoctor agent"
 		finalfailureReason = ""
 
-		// -- test pod ip
+		// ----------------------- test pod ip
 		if target.TargetAgent.TestEndpoint {
 			var PodIps k8sObjManager.PodIps
 			var report map[string]interface{}
@@ -153,12 +151,13 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 				finalReport["TestAgentPodIP"] = ""
 			}
 
-			// -- test cluster ip
+			// ----------------------- test cluster ip
 
-			// -- test node port
+			// ----------------------- test node port
 
-			// -- test ingress
+			// ----------------------- test ingress
 
+			// ----------------------- aggregate report
 			if len(finalfailureReason) > 0 {
 				finalReport["FailureReason"] = finalfailureReason
 				finalReport["Succeed"] = "false"

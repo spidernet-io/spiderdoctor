@@ -9,7 +9,7 @@ metadata:
   name: testhttp1
 spec:
   schedule:
-    startAfterMinute: 1
+    startAfterMinute: 0
     roundNumber: 2
     intervalMinute: 2
     timeoutMinute: 1
@@ -19,7 +19,7 @@ spec:
     perRequestTimeoutInSecond: 5
   success:
     successRate: 1
-    meanAccessDelayInMs: 1000
+    meanAccessDelayInMs: 5000
 EOF
 kubectl apply -f nethttp1.yaml
 
@@ -81,3 +81,5 @@ EOF
 kubectl apply -f nethttp3.yaml
 
 ```
+
+
