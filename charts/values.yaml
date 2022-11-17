@@ -52,6 +52,9 @@ feature:
   ## @param feature.taskPollIntervalInSecond the interval to poll the task in controller and agent pod
   taskPollIntervalInSecond: 5
 
+  ## @param feature.multusPodAnnotationKey the multus annotation key for ip status
+  multusPodAnnotationKey: "k8s.v1.cni.cncf.io/networks-status"
+
 ## @section spiderdoctorAgent parameters
 ##
 spiderdoctorAgent:

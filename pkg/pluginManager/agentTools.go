@@ -55,9 +55,10 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 			logger.Sugar().Errorf("failed to generate round report , marsha json error=%v", err)
 		} else {
 			fmt.Printf("%+v\n ", string(jsongByte))
+			// TODO: write report to disk for controler to collect
+
 		}
 
-		// TODO: write report to disk for controler to collect
 	}()
 
 	select {

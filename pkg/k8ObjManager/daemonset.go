@@ -2,8 +2,12 @@ package k8sObjManager
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/spidernet-io/spiderdoctor/pkg/types"
+	"github.com/spidernet-io/spiderdoctor/pkg/utils"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -23,7 +27,7 @@ func (nm *k8sObjManager) GetDaemonset(ctx context.Context, name, namespace strin
 	return d, nil
 }
 
-func (nm *k8sObjManager) ListDaemonsetPodNodes(ctx context.Context, daemonsetName, daemonsetNameSpace string) ([]string, error) {
+func (nm *k8sObjManager) ListDaemonsetPod(ctx context.Context, daemonsetName, daemonsetNameSpace string) ([]corev1.Pod, error) {
 
 	dae, e := nm.GetDaemonset(ctx, daemonsetName, daemonsetNameSpace)
 	if e != nil {
@@ -36,9 +40,14 @@ func (nm *k8sObjManager) ListDaemonsetPodNodes(ctx context.Context, daemonsetNam
 			Selector: labels.SelectorFromSet(podLable),
 		},
 	}
-	podlist, e := nm.GetPodList(ctx, opts...)
+	return nm.GetPodList(ctx, opts...)
+}
+
+func (nm *k8sObjManager) ListDaemonsetPodNodes(ctx context.Context, daemonsetName, daemonsetNameSpace string) ([]string, error) {
+
+	podlist, e := nm.ListDaemonsetPod(ctx, daemonsetName, daemonsetNameSpace)
 	if e != nil {
-		return nil, fmt.Errorf("failed to get pod list, error=%v", e)
+		return nil, e
 	}
 
 	nodelist := []string{}
@@ -46,4 +55,105 @@ func (nm *k8sObjManager) ListDaemonsetPodNodes(ctx context.Context, daemonsetNam
 		nodelist = append(nodelist, v.Spec.NodeName)
 	}
 	return nodelist, nil
+}
+
+// --------------
+
+type PodIp struct {
+	InterfaceName string
+	IPv4          string
+	IPv6          string
+}
+type PodIps map[string][]PodIp
+
+func (nm *k8sObjManager) ListDaemonsetPodIPs(ctx context.Context, daemonsetName, daemonsetNameSpace string) (PodIps, error) {
+
+	podlist, e := nm.ListDaemonsetPod(ctx, daemonsetName, daemonsetNameSpace)
+	if e != nil {
+		return nil, e
+	}
+	if len(podlist) == 0 {
+		return nil, fmt.Errorf("failed to get any pods")
+	}
+
+	result := PodIps{}
+
+	for _, v := range podlist {
+		t := PodIp{}
+		t.InterfaceName = "eth0"
+		for _, m := range v.Status.PodIPs {
+			if utils.CheckIPv4Format(m.IP) {
+				t.IPv4 = m.IP
+			} else {
+				t.IPv6 = m.IP
+			}
+		}
+		result[v.Name] = []PodIp{t}
+	}
+	return result, nil
+}
+
+type MultusAnnotationValueItem struct {
+	Interface string   `json:"interface"`
+	Ips       []string `json:"ips"`
+}
+
+func (nm *k8sObjManager) ListDaemonsetPodMultusIPs(ctx context.Context, daemonsetName, daemonsetNameSpace string) (PodIps, error) {
+	podlist, e := nm.ListDaemonsetPod(ctx, daemonsetName, daemonsetNameSpace)
+	if e != nil {
+		return nil, e
+	}
+	if len(podlist) == 0 {
+		return nil, fmt.Errorf("failed to get any pods")
+	}
+
+	result := PodIps{}
+
+	MultusPodAnnotationKey := types.AgentConfig.Configmap.MultusPodAnnotationKey
+	if len(types.ControllerConfig.Configmap.MultusPodAnnotationKey) > 0 {
+		MultusPodAnnotationKey = types.ControllerConfig.Configmap.MultusPodAnnotationKey
+	}
+
+	// for eth0
+	for _, v := range podlist {
+		t := PodIp{}
+		t.InterfaceName = "eth0"
+		for _, m := range v.Status.PodIPs {
+			if utils.CheckIPv4Format(m.IP) {
+				t.IPv4 = m.IP
+			} else {
+				t.IPv6 = m.IP
+			}
+		}
+		result[v.Name] = []PodIp{t}
+	}
+
+	// for other interface
+	for _, v := range podlist {
+		val, ok := v.Annotations[MultusPodAnnotationKey]
+		if !ok {
+			continue
+		}
+		tmp := []MultusAnnotationValueItem{}
+		if err := json.Unmarshal([]byte(val), &tmp); err != nil {
+			return nil, fmt.Errorf("failed to parse multus annotation, '%v',  error=%v", val, err)
+		}
+		for _, r := range tmp {
+			if r.Interface == "eth0" || len(r.Ips) == 0 {
+				continue
+			}
+			t := PodIp{}
+			t.InterfaceName = r.Interface
+			for _, w := range r.Ips {
+				if utils.CheckIPv4Format(w) {
+					t.IPv4 = w
+				} else {
+					t.IPv6 = w
+				}
+			}
+			result[v.Name] = append(result[v.Name], t)
+		}
+
+	}
+	return result, nil
 }

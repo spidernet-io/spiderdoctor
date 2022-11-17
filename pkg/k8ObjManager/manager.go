@@ -22,6 +22,9 @@ type K8sObjManager interface {
 	// daemonset
 	ListDaemonsetPodNodes(ctx context.Context, daemonsetName, daemonsetNameSpace string) ([]string, error)
 	GetDaemonset(ctx context.Context, name, namespace string) (*appsv1.DaemonSet, error)
+	ListDaemonsetPodIPs(ctx context.Context, daemonsetName, daemonsetNameSpace string) (PodIps, error)
+	ListDaemonsetPodMultusIPs(ctx context.Context, daemonsetName, daemonsetNameSpace string) (PodIps, error)
+
 	// pod
 	GetPodList(ctx context.Context, opts ...client.ListOption) ([]corev1.Pod, error)
 }

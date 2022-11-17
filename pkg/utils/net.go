@@ -25,6 +25,7 @@ func ListHostAllInterfaces() ([]string, error) {
 	return r, nil
 }
 
+// 1.1.1.1
 func CheckIPv4Format(ip string) bool {
 	result := net.ParseIP(ip)
 	if result == nil {

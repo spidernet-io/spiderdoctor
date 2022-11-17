@@ -69,7 +69,7 @@ spec:
     intervalMinute: 2
     timeoutMinute: 1
   target:
-    targetUrl: "http://172.19.0.9"
+    targetUrl: "http://172.19.0.6"
   request:
     durationInSecond: 10
     qps: 10
