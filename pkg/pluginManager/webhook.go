@@ -5,7 +5,6 @@ package pluginManager
 
 import (
 	"context"
-	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"go.uber.org/zap"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -36,28 +35,28 @@ const (
 func (s *pluginWebhookhander) Default(ctx context.Context, obj runtime.Object) error {
 
 	// ------ add crd ------
-	switch s.crdKind {
-	case KindNameNethttp:
-		instance, ok := obj.(*crd.Nethttp)
-		if !ok {
-			s.logger.Error(ApiMsgGetFailure)
-			return apierrors.NewBadRequest(ApiMsgGetFailure)
-		}
-		s.logger.Sugar().Debugf("nethppt instance: %+v", instance)
-
-	case KindNameNetdns:
-		instance, ok := obj.(*crd.Netdns)
-		if !ok {
-			s.logger.Error(ApiMsgGetFailure)
-			return apierrors.NewBadRequest(ApiMsgGetFailure)
-		}
-		s.logger.Sugar().Debugf("netdns instance: %+v", instance)
-		*(instance.Status.ExpectedRound) = instance.Spec.Schedule.RoundNumber
-
-	default:
-		s.logger.Sugar().Errorf("%s, support kind=%v, objkind=%v, obj=%+v", ApiMsgUnknowCRD, s.crdKind, obj.GetObjectKind(), obj)
-		return apierrors.NewBadRequest(ApiMsgUnknowCRD)
-	}
+	// switch s.crdKind {
+	// case KindNameNethttp:
+	// 	instance, ok := obj.(*crd.Nethttp)
+	// 	if !ok {
+	// 		s.logger.Error(ApiMsgGetFailure)
+	// 		return apierrors.NewBadRequest(ApiMsgGetFailure)
+	// 	}
+	// 	s.logger.Sugar().Debugf("nethppt instance: %+v", instance)
+	//
+	// case KindNameNetdns:
+	// 	instance, ok := obj.(*crd.Netdns)
+	// 	if !ok {
+	// 		s.logger.Error(ApiMsgGetFailure)
+	// 		return apierrors.NewBadRequest(ApiMsgGetFailure)
+	// 	}
+	// 	s.logger.Sugar().Debugf("netdns instance: %+v", instance)
+	// 	*(instance.Status.ExpectedRound) = instance.Spec.Schedule.RoundNumber
+	//
+	// default:
+	// 	s.logger.Sugar().Errorf("%s, support kind=%v, objkind=%v, obj=%+v", ApiMsgUnknowCRD, s.crdKind, obj.GetObjectKind(), obj)
+	// 	return apierrors.NewBadRequest(ApiMsgUnknowCRD)
+	// }
 
 	return s.plugin.WebhookMutating(s.logger.Named("mutatingWebhook"), ctx, obj)
 }
