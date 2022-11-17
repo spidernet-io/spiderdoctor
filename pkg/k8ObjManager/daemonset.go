@@ -82,6 +82,7 @@ func (nm *k8sObjManager) ListDaemonsetPodIPs(ctx context.Context, daemonsetName,
 		t := PodIp{}
 		t.InterfaceName = "eth0"
 		for _, m := range v.Status.PodIPs {
+
 			if utils.CheckIPv4Format(m.IP) {
 				t.IPv4 = m.IP
 			} else {

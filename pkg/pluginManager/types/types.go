@@ -38,6 +38,7 @@ type PluginReport struct {
 	RoundNumber   int
 	RoundResult   RoundResultStatus
 	AgentNodeName string
+	AgentPodName  string
 	FailedReason  string
 	StartTimeStam time.Time
 	EndTimeStamp  time.Time

@@ -29,6 +29,7 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 			TaskName:      taskName,
 			RoundNumber:   roundNumber,
 			AgentNodeName: s.localNodeName,
+			AgentPodName:  types.AgentConfig.PodName,
 			StartTimeStam: time.Now(),
 		}
 		failureReason, report, e := s.plugin.AgentEexecuteTask(logger, ctx, obj)

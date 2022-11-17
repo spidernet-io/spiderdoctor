@@ -5,12 +5,14 @@ package pluginManager
 
 import (
 	"context"
+	"fmt"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
 // --------------------
@@ -26,6 +28,11 @@ var _ webhook.CustomValidator = (*pluginWebhookhander)(nil)
 
 // mutating webhook
 func (s *pluginWebhookhander) Default(ctx context.Context, obj runtime.Object) error {
+	req, err := admission.RequestFromContext(ctx)
+	if err != nil {
+		return fmt.Errorf("expected admission.Request in ctx: %w", err)
+	}
+	s.logger.Sugar().Debugf("mutating kind %v", req.Kind.Kind)
 
 	// ------ add crd ------
 	// switch s.crdKind {
@@ -55,19 +62,33 @@ func (s *pluginWebhookhander) Default(ctx context.Context, obj runtime.Object) e
 }
 
 func (s *pluginWebhookhander) ValidateCreate(ctx context.Context, obj runtime.Object) error {
-	if e := s.validateRequest(ctx, obj); e != nil {
-		return e
+	req, err := admission.RequestFromContext(ctx)
+	if err != nil {
+		return fmt.Errorf("expected admission.Request in ctx: %w", err)
 	}
+	s.logger.Sugar().Debugf("create kind %v", req.Kind.Kind)
+
 	return s.plugin.WebhookValidateCreate(s.logger.Named("validatingCreateWebhook"), ctx, obj)
 }
 
 func (s *pluginWebhookhander) ValidateUpdate(ctx context.Context, oldObj, newObj runtime.Object) error {
+	req, err := admission.RequestFromContext(ctx)
+	if err != nil {
+		return fmt.Errorf("expected admission.Request in ctx: %w", err)
+	}
+	s.logger.Sugar().Debugf("update kind %v", req.Kind.Kind)
 
 	return s.plugin.WebhookValidateUpdate(s.logger.Named("validatingCreateWebhook"), ctx, oldObj, newObj)
 }
 
 // ValidateDelete implements webhook.CustomValidator so a webhook will be registered for the type
 func (s *pluginWebhookhander) ValidateDelete(ctx context.Context, obj runtime.Object) error {
+	req, err := admission.RequestFromContext(ctx)
+	if err != nil {
+		return fmt.Errorf("expected admission.Request in ctx: %w", err)
+	}
+	s.logger.Sugar().Debugf("delete kind %v", req.Kind.Kind)
+
 	return nil
 	// return s.plugin.WebhookValidateDelete(s.logger.Named("validatingDeleteWebhook"), ctx, obj)
 }

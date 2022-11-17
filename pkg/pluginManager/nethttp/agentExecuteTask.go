@@ -126,7 +126,7 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 						if len(podips.IPv4) > 0 && (target.TargetAgent.TestIPv4 == nil || (target.TargetAgent.TestIPv4 != nil && *target.TargetAgent.TestIPv4)) {
 							itemReport := map[string]interface{}{}
 							target := fmt.Sprintf("http://%s:%d", podips.IPv4, config.AgentConfig.HttpPort)
-							logger.Sugar().Debugf("test agent single pod ipv4: %v", target)
+							logger.Sugar().Debugf("test agent pod %v ipv4: %v", podname, target)
 							failureReason := SendRequestAndReport(logger, target, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond, successCondition, itemReport)
 							if len(failureReason) > 0 {
 								finalfailureReason = failureReason
@@ -137,7 +137,7 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 						if len(podips.IPv6) > 0 && (target.TargetAgent.TestIPv6 == nil || (target.TargetAgent.TestIPv6 != nil && *target.TargetAgent.TestIPv6)) {
 							itemReport := map[string]interface{}{}
 							target := fmt.Sprintf("http://%s:%d", podips.IPv6, config.AgentConfig.HttpPort)
-							logger.Sugar().Debugf("test agent single pod ipv6: %v", target)
+							logger.Sugar().Debugf("test agent pod %v ipv6: %v", podname, target)
 							failureReason := SendRequestAndReport(logger, target, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond, successCondition, itemReport)
 							if len(failureReason) > 0 {
 								finalfailureReason = failureReason

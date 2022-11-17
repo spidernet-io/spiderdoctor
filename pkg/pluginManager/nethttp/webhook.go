@@ -33,8 +33,8 @@ func (s *PluginNetHttp) WebhookMutating(logger *zap.Logger, ctx context.Context,
 			TestMultusInterface: true,
 			TestClusterIp:       true,
 			TestIngress:         false,
-			TestIPv6:            &enableIpv4,
-			TestIPv4:            &enableIpv6,
+			TestIPv6:            &enableIpv6,
+			TestIPv4:            &enableIpv4,
 			TestNodePort:        true,
 		}
 		req.Spec.Target = &crd.NethttpTarget{
