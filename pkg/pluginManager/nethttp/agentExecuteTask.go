@@ -203,8 +203,7 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 
 			// ----------------------- test clusterIP ipv6
 			if target.TargetAgent.TestClusterIp && target.TargetAgent.TestIPv6 != nil && *(target.TargetAgent.TestIPv6) {
-				reportRoot := map[string]interface{}{}
-				if agentV6Service == nil {
+				if agentV6Service != nil && len(agentV6Service.Spec.ClusterIP) != 0 {
 					testTargetList = append(testTargetList, &TestTarget{
 						Name: "AgentClusterV6IP_" + agentV6Service.Spec.ClusterIP,
 						Url:  fmt.Sprintf("http://%s:%d", agentV6Service.Spec.ClusterIP, config.AgentConfig.HttpPort),
@@ -212,7 +211,6 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 				} else {
 					finalfailureReason = "failed to get cluster IPv6 IP"
 				}
-				finalReport["TestAgentClusterIPv6IP"] = reportRoot
 			} else {
 				logger.Sugar().Debugf("ignore test agent cluster ipv6 ip")
 			}
