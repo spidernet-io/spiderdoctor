@@ -19,7 +19,7 @@ spec:
     perRequestTimeoutInSecond: 5
   success:
     successRate: 1
-    meanAccessDelayInMs: 5000
+    meanAccessDelayInMs: 10000
 EOF
 kubectl apply -f nethttp1.yaml
 
