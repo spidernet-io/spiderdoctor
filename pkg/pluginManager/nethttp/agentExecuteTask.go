@@ -17,9 +17,9 @@ import (
 
 func ParseSucccessCondition(successCondition *crd.NetSuccessCondition, metricResult *vegeta.Metrics) (failureReason string, err error) {
 	switch {
-	case metricResult.Success < successCondition.SuccessRate:
+	case successCondition.SuccessRate != nil && metricResult.Success < *successCondition.SuccessRate:
 		failureReason = fmt.Sprintf("Success Rate %v is lower thant request %v", metricResult.Success, successCondition.SuccessRate)
-	case metricResult.Latencies.Mean.Microseconds() > successCondition.MeanAccessDelayInMs:
+	case successCondition.MeanAccessDelayInMs != nil && metricResult.Latencies.Mean.Microseconds() > *successCondition.MeanAccessDelayInMs:
 		failureReason = fmt.Sprintf("mean delay %vs is lower thant request %vs", metricResult.Latencies.Mean.Microseconds(), successCondition.MeanAccessDelayInMs)
 	default:
 		failureReason = ""

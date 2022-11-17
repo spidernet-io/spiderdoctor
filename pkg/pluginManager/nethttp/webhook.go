@@ -65,9 +65,9 @@ func (s *PluginNetHttp) WebhookMutating(logger *zap.Logger, ctx context.Context,
 	}
 
 	if req.Spec.SuccessCondition == nil {
+		n := float64(1)
 		m := &crd.NetSuccessCondition{
-			SuccessRate:         1,
-			MeanAccessDelayInMs: 10000,
+			SuccessRate: &n,
 		}
 		req.Spec.SuccessCondition = m
 		logger.Sugar().Debugf("set default SuccessCondition for request %v", req.Name)

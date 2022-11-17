@@ -82,10 +82,10 @@ type NetSuccessCondition struct {
 	// +kubebuilder:validation:Maximum=1
 	// +kubebuilder:validation:Minimum=0
 	// +kubebuilder:validation:Optional
-	SuccessRate float64 `json:"successRate,omitempty"`
+	SuccessRate *float64 `json:"successRate,omitempty"`
 
 	// +kubebuilder:default=5000
 	// +kubebuilder:validation:Minimum=1
 	// +kubebuilder:validation:Optional
-	MeanAccessDelayInMs int64 `json:"meanAccessDelayInMs,omitempty"`
+	MeanAccessDelayInMs *int64 `json:"meanAccessDelayInMs,omitempty"`
 }
