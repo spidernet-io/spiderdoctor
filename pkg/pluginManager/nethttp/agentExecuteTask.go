@@ -95,7 +95,7 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 		// ----------------------- test pod ip
 		if target.TargetAgent.TestEndpoint {
 			var PodIps k8sObjManager.PodIps
-			var report map[string]interface{}
+			report := map[string]interface{}{}
 
 			if target.TargetAgent.TestMultusInterface {
 				PodIps, e = k8sObjManager.GetK8sObjManager().ListDaemonsetPodMultusIPs(ctx, config.AgentConfig.SpiderDoctorAgentDaemonsetName, config.AgentConfig.PodNamespace)
@@ -121,7 +121,7 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 					rlist := []interface{}{}
 					for _, podips := range ips {
 						if len(podips.IPv4) > 0 && (target.TargetAgent.TestIPv4 == nil || (target.TargetAgent.TestIPv4 != nil && *target.TargetAgent.TestIPv4)) {
-							var itemReport map[string]interface{}
+							itemReport := map[string]interface{}{}
 							target := fmt.Sprintf("http://%s:%d", podips.IPv4, config.AgentConfig.HttpPort)
 							logger.Sugar().Debugf("test agent single pod ipv4: %v", target)
 							failureReason := SendRequestAndReport(logger, target, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond, successCondition, itemReport)
@@ -132,7 +132,7 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 						}
 
 						if len(podips.IPv6) > 0 && (target.TargetAgent.TestIPv6 == nil || (target.TargetAgent.TestIPv6 != nil && *target.TargetAgent.TestIPv6)) {
-							var itemReport map[string]interface{}
+							itemReport := map[string]interface{}{}
 							target := fmt.Sprintf("http://%s:%d", podips.IPv6, config.AgentConfig.HttpPort)
 							logger.Sugar().Debugf("test agent single pod ipv6: %v", target)
 							failureReason := SendRequestAndReport(logger, target, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond, successCondition, itemReport)
@@ -147,12 +147,14 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 				finalReport["TestAgentPodIP"] = report
 			} else {
 				logger.Sugar().Debugf("ignore test agent pod ip: %v")
-				finalReport["TestAgentPodIP"] = ""
+				finalReport["TestAgentPodIP"] = "not required"
 			}
 
 			// ----------------------- test cluster ip
 
 			// ----------------------- test node port
+
+			// ----------------------- test loadbalancer IP
 
 			// ----------------------- test ingress
 

@@ -105,7 +105,8 @@ spiderdoctorAgent:
     ## @param spiderdoctorAgent.service.annotations the annotations for spiderdoctorAgent service
     annotations: {}
     ## @param spiderdoctorAgent.service.type the type for spiderdoctorAgent service
-    type: ClusterIP
+    type: NodePort
+    #type: ClusterIP
 
   ## @skip spiderdoctorAgent.tolerations
   # --  Node tolerations

@@ -33,6 +33,19 @@ spec:
       targetPort: http
       protocol: TCP
     {{- end }}
+    {{- if and .Values.feature.enableIPv4 .Values.feature.enableIPv6 }}
+    ipFamilyPolicy: PreferDualStack
+    {{- end }}
+    {{- if and (.Values.feature.enableIPv4) ( not .Values.feature.enableIPv6 ) }}
+    ipFamilyPolicy: SingleStack
+    ipFamilies:
+      - IPv4
+    {{- end }}
+    {{- if and (.Values.feature.enableIPv6) ( not .Values.feature.enableIPv4 ) }}
+    ipFamilyPolicy: SingleStack
+    ipFamilies:
+    - IPv6
+    {{- end }}
   selector:
     {{- include "project.spiderdoctorAgent.selectorLabels" . | nindent 4 }}
 {{- end }}
