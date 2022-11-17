@@ -152,6 +152,9 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 
 			// ----------------------- test cluster ip
 
+			if target.TargetAgent.TestClusterIp {
+			}
+
 			// ----------------------- test node port
 
 			// ----------------------- test loadbalancer IP

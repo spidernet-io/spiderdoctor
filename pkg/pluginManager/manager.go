@@ -14,9 +14,12 @@ import (
 	"github.com/spidernet-io/spiderdoctor/pkg/taskStatusManager"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.uber.org/zap"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"time"
 )
@@ -52,6 +55,17 @@ func (s *pluginManager) RunAgentController() {
 		MetricsBindAddress:     "0",
 		HealthProbeBindAddress: "0",
 		LeaderElection:         false,
+		// for this not watched obj, get directly from api-server
+		ClientDisableCacheFor: []client.Object{
+			&corev1.Node{},
+			&corev1.Namespace{},
+			&corev1.Pod{},
+			&corev1.Service{},
+			&appsv1.Deployment{},
+			&appsv1.StatefulSet{},
+			&appsv1.ReplicaSet{},
+			&appsv1.DaemonSet{},
+		},
 	}
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), n)
 	if err != nil {
@@ -118,6 +132,17 @@ func (s *pluginManager) RunControllerController(healthPort int, webhookPort int,
 		LeaderElection:          true,
 		LeaderElectionNamespace: types.ControllerConfig.PodNamespace,
 		LeaderElectionID:        types.ControllerConfig.PodName,
+		// for this not watched obj, get directly from api-server
+		ClientDisableCacheFor: []client.Object{
+			&corev1.Node{},
+			&corev1.Namespace{},
+			&corev1.Pod{},
+			&corev1.Service{},
+			&appsv1.Deployment{},
+			&appsv1.StatefulSet{},
+			&appsv1.ReplicaSet{},
+			&appsv1.DaemonSet{},
+		},
 	}
 	if healthPort != 0 {
 		n.HealthProbeBindAddress = fmt.Sprintf(":%d", healthPort)
