@@ -28,7 +28,7 @@ func (nm *k8sObjManager) GetNodeIP(ctx context.Context, nodeName string) (ipv4, 
 	for _, t := range v.Status.Addresses {
 		if utils.CheckIPv4Format(t.Address) {
 			ipv4 = t.Address
-		} else {
+		} else if utils.CheckIPv6Format(t.Address) {
 			ipv6 = t.Address
 		}
 	}

@@ -36,6 +36,16 @@ func CheckIPv4Format(ip string) bool {
 	}
 	return true
 }
+func CheckIPv6Format(ip string) bool {
+	result := net.ParseIP(ip)
+	if result == nil {
+		return false
+	}
+	if result.To16() == nil {
+		return false
+	}
+	return true
+}
 
 func GetInterfaceUnicastAddrByName(name string) (ipv4MaskList, ipv6MaskList []string, err error) {
 	ipv4MaskList = []string{}

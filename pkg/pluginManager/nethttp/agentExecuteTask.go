@@ -185,7 +185,7 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 				}
 			}
 
-			// ----------------------- test cluster ipv4 ip
+			// ----------------------- test clusterIP ipv4
 			if target.TargetAgent.TestClusterIp && target.TargetAgent.TestIPv4 != nil && *(target.TargetAgent.TestIPv4) {
 				if agentV4Service != nil && len(agentV4Service.Spec.ClusterIP) != 0 {
 					testTargetList = append(testTargetList, &TestTarget{
@@ -199,7 +199,7 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 				logger.Sugar().Debugf("ignore test agent cluster ipv4 ip")
 			}
 
-			// ----------------------- test cluster ipv6 ip
+			// ----------------------- test clusterIP ipv6
 			if target.TargetAgent.TestClusterIp && target.TargetAgent.TestIPv6 != nil && *(target.TargetAgent.TestIPv6) {
 				reportRoot := map[string]interface{}{}
 				if agentV6Service == nil {
@@ -245,11 +245,12 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 
 			// ----------------------- test ingress
 
+			// ------------------------ implement it
 			reportList := []interface{}{}
 			for _, targetItem := range testTargetList {
 				itemReport := map[string]interface{}{}
 				logger.Sugar().Debugf("implement test %v, target=%v", targetItem.Name, targetItem.Url)
-				failureReason := SendRequestAndReport(logger, targetItem.Name, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond, successCondition, itemReport)
+				failureReason := SendRequestAndReport(logger, targetItem.Url, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond, successCondition, itemReport)
 				if len(failureReason) > 0 {
 					finalfailureReason = fmt.Sprintf("test %v: %v", targetItem.Name, failureReason)
 				}
