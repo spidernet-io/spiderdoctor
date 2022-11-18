@@ -56,7 +56,7 @@ feature:
   multusPodAnnotationKey: "k8s.v1.cni.cncf.io/networks-status"
 
   ## @param feature.crdMaxHistory max history items inf CRD status
-  crdMaxHistory: 100
+  crdMaxHistory: 10
 
 ## @section spiderdoctorAgent parameters
 ##
