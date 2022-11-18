@@ -38,6 +38,7 @@ func SendRequestAndReport(logger *zap.Logger, targetName string, TargetUrl strin
 
 	result := loadRequest.HttpRequest(TargetUrl, qps, PerRequestTimeoutInSecond, DurationInSecond)
 	report["MeanDelay"] = result.Duration.String()
+	report["SucceedRate"] = fmt.Sprintf("%v", result.Success)
 
 	var err error
 	failureReason, err = ParseSucccessCondition(successCondition, result)
