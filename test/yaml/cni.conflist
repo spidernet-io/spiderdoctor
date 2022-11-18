@@ -1,0 +1,24 @@
+{
+	"cniVersion": "0.3.1",
+	"name": "k8s-pod-network",
+	"plugins": [
+	{
+		"type": "ptp",
+		"ipMasq": false,
+		"ipam": {
+			"type": "host-local",
+			"dataDir": "/run/cni-ptp81-ipam-state",
+			"ranges": [
+                {{IP_RANGE}}
+			]
+		},
+		"mtu": 1500
+	},
+	{
+		"type": "portmap",
+		"capabilities": {
+			"portMappings": true
+		}
+	}
+	]
+}
