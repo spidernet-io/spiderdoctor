@@ -94,7 +94,7 @@ spec:
           {{- if semverCompare ">=1.20-0" .Capabilities.KubeVersion.Version }}
           startupProbe:
             httpGet:
-              path: /healthy/startup
+              path: /healthy/readiness
               port: {{ .Values.spiderdoctorController.httpServer.port }}
               scheme: HTTP
             failureThreshold: {{ .Values.spiderdoctorController.httpServer.startupProbe.failureThreshold }}
@@ -142,6 +142,8 @@ spec:
               value: {{ .Values.spiderdoctorAgent.grpcServer.port | quote }}
             - name: ENV_AGGREGATE_AGENT_REPORT
               value: {{ .Values.spiderdoctorController.aggregateReport.enabled | quote }}
+            - name: ENV_AGENT_DAEMONSET_NAME
+              value: {{ .Values.spiderdoctorAgent.name | trunc 63 | trimSuffix "-" }}
             {{- if .Values.spiderdoctorController.aggregateReport.enabled }}
             - name: ENV_PATH_AGGREGATE_AGENT_REPORT
               value: "/report"

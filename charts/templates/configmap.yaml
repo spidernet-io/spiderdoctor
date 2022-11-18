@@ -15,3 +15,10 @@ data:
   conf.yml: |
     enableIPv4: {{ .Values.feature.enableIPv4 }}
     enableIPv6: {{ .Values.feature.enableIPv6 }}
+    taskPollIntervalInSecond: {{ .Values.feature.taskPollIntervalInSecond }}
+    nethttp_defaultRequest_Qps: {{ .Values.feature.nethttp_defaultRequest_Qps }}
+    nethttp_defaultRequest_MaxQps: {{ .Values.feature.nethttp_defaultRequest_MaxQps }}
+    nethttp_defaultRequest_DurationInSecond: {{ .Values.feature.nethttp_defaultRequest_DurationInSecond }}
+    nethttp_defaultRequest_PerRequestTimeoutInSecond: {{ .Values.feature.nethttp_defaultRequest_PerRequestTimeoutInSecond }}
+    multusPodAnnotationKey: {{ .Values.feature.multusPodAnnotationKey }}
+    crdMaxHistory: {{ .Values.feature.crdMaxHistory }}

@@ -10,7 +10,6 @@ import (
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.opentelemetry.io/otel/attribute"
 	"path/filepath"
-	"time"
 )
 
 func SetupUtility() {
@@ -32,7 +31,7 @@ func DaemonMain() {
 
 	SetupUtility()
 
-	SetupHttpServer()
+	// SetupHttpServer()
 
 	// ------
 
@@ -55,9 +54,10 @@ func DaemonMain() {
 
 	// ----------
 	s := pluginManager.InitPluginManager(rootLogger.Named("pluginsManager"))
-	s.RunControllerController(int(types.ControllerConfig.WebhookPort), filepath.Dir(types.ControllerConfig.TlsServerCertPath))
+	s.RunControllerController(int(types.ControllerConfig.HttpPort), int(types.ControllerConfig.WebhookPort), filepath.Dir(types.ControllerConfig.TlsServerCertPath))
 
 	// ------------
-	rootLogger.Info("hello world")
-	time.Sleep(time.Hour)
+	rootLogger.Info("finish initialization")
+	// sleep forever
+	select {}
 }

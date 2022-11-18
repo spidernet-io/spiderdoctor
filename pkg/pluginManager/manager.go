@@ -5,15 +5,22 @@ package pluginManager
 
 import (
 	"fmt"
+	k8sObjManager "github.com/spidernet-io/spiderdoctor/pkg/k8ObjManager"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	"github.com/spidernet-io/spiderdoctor/pkg/lock"
+	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager/netdns"
 	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager/nethttp"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
+	"github.com/spidernet-io/spiderdoctor/pkg/taskStatusManager"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.uber.org/zap"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"time"
 )
 
@@ -25,7 +32,7 @@ type pluginManager struct {
 }
 type PluginManager interface {
 	RunAgentController()
-	RunControllerController(webhookPort int, webhookTlsDir string)
+	RunControllerController(healthPort int, webhookPort int, webhookTlsDir string)
 }
 
 var globalPluginManager *pluginManager
@@ -48,24 +55,47 @@ func (s *pluginManager) RunAgentController() {
 		MetricsBindAddress:     "0",
 		HealthProbeBindAddress: "0",
 		LeaderElection:         false,
+		// for this not watched obj, get directly from api-server
+		ClientDisableCacheFor: []client.Object{
+			&corev1.Node{},
+			&corev1.Namespace{},
+			&corev1.Pod{},
+			&corev1.Service{},
+			&appsv1.Deployment{},
+			&appsv1.StatefulSet{},
+			&appsv1.ReplicaSet{},
+			&appsv1.DaemonSet{},
+		},
 	}
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), n)
 	if err != nil {
 		logger.Sugar().Fatalf("failed to NewManager, reason=%v", err)
 	}
 
+	if len(types.AgentConfig.LocalNodeName) == 0 {
+		logger.Sugar().Fatalf("local node name is empty")
+	}
+
+	if e := k8sObjManager.Initk8sObjManager(mgr.GetClient()); e != nil {
+		logger.Sugar().Fatalf("failed to Initk8sObjManager, error=%v", e)
+	}
+
 	for name, plugin := range s.chainingPlugins {
 		logger.Sugar().Infof("run controller for plugin %v", name)
 		k := &pluginAgentReconciler{
-			logger: logger.Named(name + "Reconciler"),
-			plugin: plugin,
-			client: mgr.GetClient(),
+			logger:        logger.Named(name + "Reconciler"),
+			plugin:        plugin,
+			client:        mgr.GetClient(),
+			crdKind:       name,
+			taskRoundData: taskStatusManager.NewTaskStatus(),
+			localNodeName: types.AgentConfig.LocalNodeName,
 		}
 		if e := k.SetupWithManager(mgr); e != nil {
 			s.logger.Sugar().Fatalf("failed to builder reconcile for plugin %v, error=%v", name, e)
 		}
 	}
 
+	// before mgr.Start, it should not use mgr.GetClient() to get api obj, because "the controller cache is not started, can not read objects"
 	go func() {
 		msg := "reconcile of plugin down"
 		if e := mgr.Start(ctrl.SetupSignalHandler()); e != nil {
@@ -79,7 +109,7 @@ func (s *pluginManager) RunAgentController() {
 
 // --------------------------------------
 
-func (s *pluginManager) RunControllerController(webhookPort int, webhookTlsDir string) {
+func (s *pluginManager) RunControllerController(healthPort int, webhookPort int, webhookTlsDir string) {
 
 	logger := s.logger
 	scheme := runtime.NewScheme()
@@ -91,36 +121,73 @@ func (s *pluginManager) RunControllerController(webhookPort int, webhookTlsDir s
 	}
 
 	n := ctrl.Options{
-		Scheme:                  scheme,
-		MetricsBindAddress:      "0",
-		HealthProbeBindAddress:  "0",
-		Port:                    webhookPort,
-		CertDir:                 webhookTlsDir,
+		Scheme:             scheme,
+		MetricsBindAddress: "0",
+		// health
+		HealthProbeBindAddress: "0",
+		// webhook
+		Port:    webhookPort,
+		CertDir: webhookTlsDir,
+		// lease
 		LeaderElection:          true,
 		LeaderElectionNamespace: types.ControllerConfig.PodNamespace,
 		LeaderElectionID:        types.ControllerConfig.PodName,
+		// for this not watched obj, get directly from api-server
+		ClientDisableCacheFor: []client.Object{
+			&corev1.Node{},
+			&corev1.Namespace{},
+			&corev1.Pod{},
+			&corev1.Service{},
+			&appsv1.Deployment{},
+			&appsv1.StatefulSet{},
+			&appsv1.ReplicaSet{},
+			&appsv1.DaemonSet{},
+		},
+	}
+	if healthPort != 0 {
+		n.HealthProbeBindAddress = fmt.Sprintf(":%d", healthPort)
+		n.ReadinessEndpointName = "/healthy/readiness"
+		n.LivenessEndpointName = "/healthy/liveness"
 	}
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), n)
 	if err != nil {
 		logger.Sugar().Fatalf("failed to NewManager, reason=%v", err)
+	}
+	if healthPort != 0 {
+		// could implement your checker , type Checker func(req *http.Request) error
+		if err := mgr.AddHealthzCheck("/healthy/liveness", healthz.Ping); err != nil {
+			logger.Sugar().Fatalf("failed to AddHealthzCheck, reason=%v", err)
+		}
+		if err := mgr.AddReadyzCheck("/healthy/readiness", healthz.Ping); err != nil {
+			logger.Sugar().Fatalf("failed to AddReadyzCheck, reason=%v", err)
+		}
+		// add other route
+		// mgr.GetWebhookServer().Register("/route", XXXX)
+	}
+
+	if e := k8sObjManager.Initk8sObjManager(mgr.GetClient()); e != nil {
+		logger.Sugar().Fatalf("failed to Initk8sObjManager, error=%v", e)
+
 	}
 
 	for name, plugin := range s.chainingPlugins {
 		// setup reconcile
 		logger.Sugar().Infof("run controller for plugin %v", name)
 		k := &pluginControllerReconciler{
-			logger: logger.Named(name + "Reconciler"),
-			plugin: plugin,
-			client: mgr.GetClient(),
+			logger:  logger.Named(name + "Reconciler"),
+			plugin:  plugin,
+			client:  mgr.GetClient(),
+			crdKind: name,
 		}
 		if e := k.SetupWithManager(mgr); e != nil {
 			s.logger.Sugar().Fatalf("failed to builder reconcile for plugin %v, error=%v", name, e)
 		}
 		// setup webhook
 		t := &pluginWebhookhander{
-			logger: logger.Named(name + "Webhook"),
-			plugin: plugin,
-			client: mgr.GetClient(),
+			logger:  logger.Named(name + "Webhook"),
+			plugin:  plugin,
+			client:  mgr.GetClient(),
+			crdKind: name,
 		}
 		if e := t.SetupWebhook(mgr); e != nil {
 			s.logger.Sugar().Fatalf("failed to builder webhook for plugin %v, error=%v", name, e)
@@ -149,10 +216,19 @@ func InitPluginManager(logger *zap.Logger) PluginManager {
 	return globalPluginManager
 }
 
+const (
+	// ------ add crd ------
+	KindNameNethttp = "Nethttp"
+	KindNameNetdns  = "Netdns"
+)
+
 func init() {
 	globalPluginManager = &pluginManager{
 		chainingPlugins: map[string]plugintypes.ChainingPlugin{},
 	}
-	globalPluginManager.chainingPlugins["nethttp"] = &nethttp.PluginNetHttp{}
+
+	// ------ add crd ------
+	globalPluginManager.chainingPlugins[KindNameNethttp] = &nethttp.PluginNetHttp{}
+	globalPluginManager.chainingPlugins[KindNameNetdns] = &netdns.PluginNetDns{}
 
 }

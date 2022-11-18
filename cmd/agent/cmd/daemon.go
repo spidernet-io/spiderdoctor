@@ -7,7 +7,6 @@ import (
 	"github.com/spidernet-io/spiderdoctor/pkg/debug"
 	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
-	"time"
 )
 
 func SetupUtility() {
@@ -70,6 +69,7 @@ func DaemonMain() {
 	s := pluginManager.InitPluginManager(rootLogger.Named("agentContorller"))
 	s.RunAgentController()
 
-	rootLogger.Info("hello world")
-	time.Sleep(time.Hour)
+	rootLogger.Info("finish initialization")
+	// sleep forever
+	select {}
 }
