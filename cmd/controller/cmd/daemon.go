@@ -57,7 +57,7 @@ func DaemonMain() {
 	s.RunControllerController(int(types.ControllerConfig.HttpPort), int(types.ControllerConfig.WebhookPort), filepath.Dir(types.ControllerConfig.TlsServerCertPath))
 
 	// ------------
-	rootLogger.Info("finsh initialization")
+	rootLogger.Info("finish initialization")
 	// sleep forever
 	select {}
 }

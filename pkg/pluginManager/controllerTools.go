@@ -1,3 +1,6 @@
+// Copyright 2022 Authors of spidernet-io
+// SPDX-License-Identifier: Apache-2.0
+
 package pluginManager
 
 import (
@@ -59,7 +62,7 @@ func (s *pluginControllerReconciler) UpdateRoundFinalStatus(logger *zap.Logger, 
 
 	// when not reach deadline, ignore when nothing report
 	if !deadline && len(latestRecord.SucceedAgentNodeList) == 0 && len(latestRecord.FailedAgentNodeList) == 0 {
-		logger.Sugar().Debugf("round %v not report anthing", roundNumber)
+		logger.Sugar().Debugf("round %v not report anything", roundNumber)
 		return false, nil
 	}
 
@@ -165,9 +168,8 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 							tmp := append([]crd.StatusHistoryRecord{*newRecod}, newStatus.History...)
 							if len(tmp) > types.ControllerConfig.Configmap.CrdMaxHistory {
 								tmp = tmp[:(types.ControllerConfig.Configmap.CrdMaxHistory)]
-							} else {
-								newStatus.History = tmp
 							}
+							newStatus.History = tmp
 
 							logger.Sugar().Infof("insert new record for next round : %+v", *newRecod)
 						} else {
@@ -208,7 +210,7 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 
 		} else {
 
-			// when task not finsih , once we update the status succeed , we will not get here , it should go to case nowTime.Before(latestRecord.StartTimeStamp.Time)
+			// when task not finish , once we update the status succeed , we will not get here , it should go to case nowTime.Before(latestRecord.StartTimeStamp.Time)
 			if latestRecord.Status == crd.StatusHistoryRecordStatusOngoing {
 				// here, we should update last round status
 
@@ -228,9 +230,9 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 							tmp := append([]crd.StatusHistoryRecord{*newRecod}, newStatus.History...)
 							if len(tmp) > types.ControllerConfig.Configmap.CrdMaxHistory {
 								tmp = tmp[:(types.ControllerConfig.Configmap.CrdMaxHistory)]
-							} else {
-								newStatus.History = tmp
 							}
+							newStatus.History = tmp
+
 							logger.Sugar().Infof("insert new record for next round : %+v", *newRecod)
 						} else {
 							newStatus.Finish = true

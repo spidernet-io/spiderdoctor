@@ -20,7 +20,7 @@ func (s *PluginNetDns) WebhookMutating(logger *zap.Logger, ctx context.Context, 
 	}
 	logger.Sugar().Infof("obj: %+v", r)
 
-	// TODO: mutating defaul value
+	// TODO: mutating default value
 
 	return nil
 }

@@ -69,7 +69,7 @@ func DaemonMain() {
 	s := pluginManager.InitPluginManager(rootLogger.Named("agentContorller"))
 	s.RunAgentController()
 
-	rootLogger.Info("finsh initialization")
+	rootLogger.Info("finish initialization")
 	// sleep forever
 	select {}
 }

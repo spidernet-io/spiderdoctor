@@ -1,3 +1,6 @@
+// Copyright 2022 Authors of spidernet-io
+// SPDX-License-Identifier: Apache-2.0
+
 package pluginManager
 
 import (
@@ -44,12 +47,12 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 		} else {
 			select {
 			case <-ctx.Done():
-				logger.Sugar().Errorf("plugin finished the round task, timeout, it takes %v , logger than expected %s", time.Now().Sub(startTime).String(), roundDuration.String())
+				logger.Sugar().Errorf("plugin finished the round task, timeout, it takes %v , logger than expected %s", time.Since(startTime).String(), roundDuration.String())
 				taskSucceed <- false
 				msg.RoundResult = plugintypes.RoundResultFail
 				msg.FailedReason = "implementing timeout"
 			default:
-				logger.Sugar().Infof("plugin finished the round task, it takes %v , shorter than expected %s", time.Now().Sub(startTime).String(), roundDuration.String())
+				logger.Sugar().Infof("plugin finished the round task, it takes %v , shorter than expected %s", time.Since(startTime).String(), roundDuration.String())
 				if len(failureReason) == 0 {
 					taskSucceed <- true
 					msg.RoundResult = plugintypes.RoundResultSucceed
@@ -74,7 +77,7 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 			logger.Sugar().Errorf("failed to generate round report , marsha json error=%v", err)
 		} else {
 			fmt.Printf("%+v\n ", string(jsongByte))
-			// TODO: write report to disk for controler to collect
+			// TODO: write report to disk for controller to collect
 
 		}
 
@@ -85,7 +88,7 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 		logger.Sugar().Errorf("timeout for getting result from plugin, the round task failed")
 		s.taskRoundData.SetTask(taskRoundName, taskStatusManager.RoundStatusFail)
 	case r := <-taskSucceed:
-		logger.Sugar().Infof("succed to call plugin to implement round task, succeed=%v", r)
+		logger.Sugar().Infof("succeed to call plugin to implement round task, succeed=%v", r)
 		if r {
 			s.taskRoundData.SetTask(taskRoundName, taskStatusManager.RoundStatusSucceeded)
 		} else {
