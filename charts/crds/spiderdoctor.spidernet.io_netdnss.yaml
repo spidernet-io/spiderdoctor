@@ -38,10 +38,6 @@ spec:
       jsonPath: .spec.schedule.intervalMinute
       name: intervalMinute
       type: integer
-    - description: nextRoundStartTime
-      jsonPath: .status.history[0].startTimeStamp
-      name: nextRoundStartTime
-      type: date
     name: v1
     schema:
       openAPIV3Schema:
