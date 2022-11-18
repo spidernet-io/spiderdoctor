@@ -39,14 +39,8 @@ func (s *PluginNetDns) WebhookValidateCreate(logger *zap.Logger, ctx context.Con
 	return nil
 }
 
-func (s *PluginNetDns) WebhookValidateUpdate(logger *zap.Logger, ctx context.Context, oldObj, newObj runtime.Object) error {
-	r, ok := newObj.(*crd.Netdns)
-	if !ok {
-		s := "failed to get netdns obj"
-		logger.Error(s)
-		return apierrors.NewBadRequest(s)
-	}
-	logger.Sugar().Infof("obj: %+v", r)
+// this will not be called, it is not allowed to modify crd
 
+func (s *PluginNetDns) WebhookValidateUpdate(logger *zap.Logger, ctx context.Context, oldObj, newObj runtime.Object) error {
 	return nil
 }

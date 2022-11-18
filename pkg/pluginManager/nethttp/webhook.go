@@ -8,7 +8,6 @@ import (
 	"fmt"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager/tools"
-	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.uber.org/zap"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -150,17 +149,6 @@ func (s *PluginNetHttp) WebhookValidateCreate(logger *zap.Logger, ctx context.Co
 
 // this will not be called, it is not allowed to modify crd
 func (s *PluginNetHttp) WebhookValidateUpdate(logger *zap.Logger, ctx context.Context, oldObj, newObj runtime.Object) error {
-	r, ok := newObj.(*crd.Nethttp)
-	if !ok {
-		s := "failed to get nethttp obj"
-		logger.Error(s)
-		return apierrors.NewBadRequest(s)
-	}
-	logger.Sugar().Infof("obj: %+v", r.Name)
-
-	if r.DeletionTimestamp == nil {
-		return apierrors.NewBadRequest(plugintypes.ApiMsgUnsupportModify)
-	}
 
 	return nil
 }
