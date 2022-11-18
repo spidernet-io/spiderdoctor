@@ -192,17 +192,19 @@ deploy_multus:
 	#======= install cni and route on nodes
 	- mkdir -p $(E2E_MULTUS_CNI_CONFIG_DIR)
 	- rm -rf $(E2E_MULTUS_CNI_CONFIG_DIR)/*
-	@echo "install cni and route on nodes" ; \
+	echo "install cni and route on nodes" ; \
 		TMP=` docker exec $(E2E_KIND_MASTER_NODE_NAME) ip a s eth0 ` || { echo "error, failed to find master ip" ; exit 1 ; } ; \
-		MASTER_IPV4_ADDR=` grep -oP '(?<=inet\s)[0-9]+(\.[0-9]+){3}' <<< $${TMP} ` ; \
-		MASTER_IPV6_ADDR=` echo $${TMP} |  grep -v "scope link" | grep -oP '(?<=inet6\s)[0-9a-f:]+' ` ; \
+		MASTER_IPV4_ADDR=` grep -oP '(?<=inet\s)[0-9]+(\.[0-9]+){3}' <<< $${TMP} ` || true ; \
+		MASTER_IPV6_ADDR=` echo $${TMP} |  grep -v "scope link" | grep -oP '(?<=inet6\s)[0-9a-f:]+' ` || true ; \
 		TMP=` docker exec $(E2E_KIND_WORKER_NODE_NAME) ip a s eth0 ` || { echo "error, failed to find worker ip" ; exit 1 ; } ; \
-		WORKER_IPV4_ADDR=` grep -oP '(?<=inet\s)[0-9]+(\.[0-9]+){3}' <<< $${TMP} ` ; \
-		WORKER_IPV6_ADDR=` echo $${TMP} |  grep -v "scope link" | grep -oP '(?<=inet6\s)[0-9a-f:]+' ` ; \
+		WORKER_IPV4_ADDR=` grep -oP '(?<=inet\s)[0-9]+(\.[0-9]+){3}' <<< $${TMP} ` || true ; \
+		WORKER_IPV6_ADDR=` echo $${TMP} |  grep -v "scope link" | grep -oP '(?<=inet6\s)[0-9a-f:]+' ` || true ; \
 		echo "master ipv4=$${MASTER_IPV4_ADDR}, ipv6=$${MASTER_IPV6_ADDR} " ; \
 		echo "worker ipv4=$${WORKER_IPV4_ADDR}, ipv6=$${WORKER_IPV6_ADDR} " ; \
 		if [ "$(E2E_IP_FAMILY)" == "ipv4" ] ; then \
 			  echo "install ipv4-only case" ; \
+		  	  [ -n "$${MASTER_IPV4_ADDR}" ] || {echo "error, failed to find master ipv4" ; exit 1 ; } ; \
+		  	  [ -n "$${WORKER_IPV4_ADDR}" ] || {echo "error, failed to find worker ipv4" ; exit 1 ; } ; \
 			  sed 's?{{IP_RANGE}}?[{ "subnet": "172.80.1.0/24" }]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist ; \
 			  sed 's?{{IP_RANGE}}?[{ "subnet": "172.90.1.0/24" }]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni2.conflist ; \
 			  sed 's?{{IP_RANGE}}?[{ "subnet": "172.80.2.0/24" }]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist ; \
@@ -217,6 +219,8 @@ deploy_multus:
 			  docker exec $(E2E_KIND_WORKER_NODE_NAME) ip r add 172.90.1.0/24 via $${MASTER_IPV4_ADDR} ; \
 		elif [ "$(E2E_IP_FAMILY)" == "ipv6" ] ; then \
 			  echo "install ipv6-only case" ; \
+		  	  [ -n "$${MASTER_IPV6_ADDR}" ] || {echo "error, failed to find master ipv6" ; exit 1 ; } ; \
+		  	  [ -n "$${WORKER_IPV6_ADDR}" ] || {echo "error, failed to find worker ipv6" ; exit 1 ; } ; \
 			  sed 's?{{IP_RANGE}}?[{ "subnet": "fd80:1::/64" }]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist ; \
 			  sed 's?{{IP_RANGE}}?[{ "subnet": "fd90:1::/64" }]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist ; \
 			  sed 's?{{IP_RANGE}}?[{ "subnet": "fd80:2::/64" }]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist ; \
@@ -231,6 +235,10 @@ deploy_multus:
 			  docker exec $(E2E_KIND_WORKER_NODE_NAME) ip -6 r add fd90:1::/64 via $${MASTER_IPV6_ADDR} ; \
   		else \
 			  echo "install dual-stack case" ; \
+		  	  [ -n "$${MASTER_IPV4_ADDR}" ] || {echo "error, failed to find master ipv4" ; exit 1 ; } ; \
+		  	  [ -n "$${WORKER_IPV4_ADDR}" ] || {echo "error, failed to find worker ipv4" ; exit 1 ; } ; \
+		  	  [ -n "$${MASTER_IPV6_ADDR}" ] || {echo "error, failed to find master ipv6" ; exit 1 ; } ; \
+		  	  [ -n "$${WORKER_IPV6_ADDR}" ] || {echo "error, failed to find worker ipv6" ; exit 1 ; } ; \
 			  sed 's?{{IP_RANGE}}?[{ "subnet": "172.80.1.0/24" }],[{ "subnet": "fd80:1::/64" }]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist ; \
 			  sed 's?{{IP_RANGE}}?[{ "subnet": "172.90.1.0/24" }],[{ "subnet": "fd90:1::/64" }]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni2.conflist ; \
 			  sed 's?{{IP_RANGE}}?[{ "subnet": "172.80.2.0/24" }],[{ "subnet": "fd80:2::/64" }]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist ; \
