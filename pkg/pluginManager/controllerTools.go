@@ -196,7 +196,7 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 
 			// trigger when deadline
 			result = &reconcile.Result{
-				RequeueAfter: latestRecord.DeadLineTimeStamp.Time.Sub(time.Now()),
+				RequeueAfter: time.Until(latestRecord.DeadLineTimeStamp.Time),
 			}
 		}
 
@@ -252,7 +252,7 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 				currentLatestRecord := &(newStatus.History[0])
 				logger.Sugar().Infof("task %v wait for next round %v at %v", taskName, currentLatestRecord.RoundNumber, currentLatestRecord.StartTimeStamp)
 				result = &reconcile.Result{
-					RequeueAfter: currentLatestRecord.StartTimeStamp.Time.Sub(time.Now()),
+					RequeueAfter: time.Until(currentLatestRecord.StartTimeStamp.Time),
 				}
 			}
 		}
