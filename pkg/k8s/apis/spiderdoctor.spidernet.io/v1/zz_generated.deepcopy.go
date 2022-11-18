@@ -333,8 +333,8 @@ func (in *StatusHistoryRecord) DeepCopyInto(out *StatusHistoryRecord) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
-	if in.UnReportAgentNodeList != nil {
-		in, out := &in.UnReportAgentNodeList, &out.UnReportAgentNodeList
+	if in.NotReportAgentNodeList != nil {
+		in, out := &in.NotReportAgentNodeList, &out.NotReportAgentNodeList
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}

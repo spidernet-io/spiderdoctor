@@ -73,7 +73,7 @@ type StatusHistoryRecord struct {
 
 	SucceedAgentNodeList []string `json:"succeedAgentNodeList"`
 
-	UnReportAgentNodeList []string `json:"unReportAgentNodeList"`
+	NotReportAgentNodeList []string `json:"notReportAgentNodeList"`
 }
 
 type NetSuccessCondition struct {

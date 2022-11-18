@@ -82,7 +82,7 @@ func (s *pluginControllerReconciler) UpdateRoundFinalStatus(logger *zap.Logger, 
 
 		// it's ok to collect round status
 		if len(unknowReportNodeList) > 0 || len(latestRecord.FailedAgentNodeList) > 0 {
-			latestRecord.UnReportAgentNodeList = unknowReportNodeList
+			latestRecord.NotReportAgentNodeList = unknowReportNodeList
 			n := crd.StatusHistoryRecordStatusFail
 			latestRecord.Status = n
 			newStatus.LastRoundStatus = &n
