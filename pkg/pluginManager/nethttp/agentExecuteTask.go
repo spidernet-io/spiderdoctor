@@ -12,7 +12,6 @@ import (
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"time"
 )
 
 func ParseSucccessCondition(successCondition *crd.NetSuccessCondition, metricResult *vegeta.Metrics) (failureReason string, err error) {
@@ -82,7 +81,6 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 
 	logger.Sugar().Infof("plugin implement task round, instance=%+v", instance)
 
-	plan := instance.Spec.Schedule
 	target := instance.Spec.Target
 	request := instance.Spec.Request
 	successCondition := instance.Spec.SuccessCondition
@@ -248,14 +246,7 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 
 			// ------------------------ implement it
 			reportList := []interface{}{}
-			testNum := len(testTargetList)
-			if (testNum * request.DurationInSecond) < (int(plan.TimeoutMinute) * 60) {
-				logger.Sugar().Infof("plugin implement %v tests, it takes about %vs, shorter than required %vs ", testNum, testNum*request.DurationInSecond, plan.TimeoutMinute*60)
-			} else {
-				logger.Sugar().Errorf("plugin implement %v tests, it takes about %vs, logger than required %vs ", testNum, testNum*request.DurationInSecond, plan.TimeoutMinute*60)
-			}
 
-			start := time.Now()
 			for _, targetItem := range testTargetList {
 				itemReport := map[string]interface{}{}
 				logger.Sugar().Debugf("implement test %v, target=%v , QPS=%v, PerRequestTimeoutInSecond=%v, DurationInSecond=%v ", targetItem.Name, targetItem.Url, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond)
@@ -266,13 +257,7 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 				reportList = append(reportList, itemReport)
 			}
 
-			end := time.Now()
-			if end.Sub(start).Microseconds() > int64(int(plan.TimeoutMinute)*60*1000) {
-				fmt.Printf("========%v , %v ", end.Sub(start).Microseconds(), int64(int(plan.TimeoutMinute)*60*1000))
-				logger.Sugar().Errorf("plugin finished %v tests, it taked time with %v , started at %v, logger than required %v seconds", testNum, end.Sub(start).String(), start.String(), int(plan.TimeoutMinute)*60)
-			} else {
-				logger.Sugar().Infof("plugin finished %v tests, it taked time with %v , started at %v, shorter than required %v seconds", testNum, end.Sub(start).String(), start.String(), int(plan.TimeoutMinute)*60)
-			}
+			logger.Sugar().Infof("plugin finished all http request tests")
 
 			// ----------------------- aggregate report
 			finalReport["Detail"] = reportList

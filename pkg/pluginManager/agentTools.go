@@ -22,7 +22,7 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 	ctx, cancel := context.WithTimeout(context.Background(), roundDuration)
 	defer cancel()
 	taskSucceed := make(chan bool)
-	logger.Sugar().Infof("call plugin to implement with timeout %v minute", schedulePlan.TimeoutMinute)
+	logger.Sugar().Infof("plugin begins to implement, expect deadline %v, ", roundDuration.String())
 
 	go func() {
 		startTime := time.Now()
@@ -43,11 +43,12 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 		} else {
 			select {
 			case <-ctx.Done():
-				logger.Sugar().Errorf("plugin failed to implement the round task, timeout ")
+				logger.Sugar().Errorf("plugin finished the round task, timeout, it takes %v , logger than expected %s", time.Now().Sub(startTime).String(), roundDuration.String())
 				taskSucceed <- false
 				msg.RoundResult = plugintypes.RoundResultFail
 				msg.FailedReason = "time out"
 			default:
+				logger.Sugar().Infof("plugin finished the round task, it takes %v , shorter than expected %s", time.Now().Sub(startTime).String(), roundDuration.String())
 				if len(failureReason) == 0 {
 					taskSucceed <- true
 					msg.RoundResult = plugintypes.RoundResultSucceed
