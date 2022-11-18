@@ -81,16 +81,9 @@ func (s *pluginWebhookhander) ValidateUpdate(ctx context.Context, oldObj, newObj
 	return s.plugin.WebhookValidateUpdate(s.logger.Named("validatingCreateWebhook"), ctx, oldObj, newObj)
 }
 
-// ValidateDelete implements webhook.CustomValidator so a webhook will be registered for the type
+// not registered in ValidatingWebhookConfiguration
 func (s *pluginWebhookhander) ValidateDelete(ctx context.Context, obj runtime.Object) error {
-	req, err := admission.RequestFromContext(ctx)
-	if err != nil {
-		return fmt.Errorf("expected admission.Request in ctx: %w", err)
-	}
-	s.logger.Sugar().Debugf("delete kind %v", req.Kind.Kind)
-
 	return nil
-	// return s.plugin.WebhookValidateDelete(s.logger.Named("validatingDeleteWebhook"), ctx, obj)
 }
 
 // --------------------

@@ -36,7 +36,6 @@ webhooks:
         operations:
           - CREATE
           - UPDATE
-          - DELETE
         resources:
           # ====modify==== crdName
           - nethttps
@@ -65,7 +64,6 @@ webhooks:
         operations:
           - CREATE
           - UPDATE
-          - DELETE
         resources:
           - netdnss
 ---
@@ -102,7 +100,6 @@ webhooks:
         operations:
           - CREATE
           - UPDATE
-          - DELETE
         resources:
           - nethttps
   - admissionReviewVersions:
@@ -129,7 +126,6 @@ webhooks:
         operations:
           - CREATE
           - UPDATE
-          - DELETE
         resources:
           - netdnss
 
