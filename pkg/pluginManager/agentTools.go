@@ -15,6 +15,7 @@ import (
 	"time"
 )
 
+// call plugin to implement the round task and collect the report
 func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger, obj runtime.Object, schedulePlan *crd.SchedulePlan, taskName string, roundNumber int, crdObjSpec interface{}) {
 	taskRoundName := fmt.Sprintf("%s.round%d", taskName, roundNumber)
 
@@ -46,7 +47,7 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 				logger.Sugar().Errorf("plugin finished the round task, timeout, it takes %v , logger than expected %s", time.Now().Sub(startTime).String(), roundDuration.String())
 				taskSucceed <- false
 				msg.RoundResult = plugintypes.RoundResultFail
-				msg.FailedReason = "time out"
+				msg.FailedReason = "implementing timeout"
 			default:
 				logger.Sugar().Infof("plugin finished the round task, it takes %v , shorter than expected %s", time.Now().Sub(startTime).String(), roundDuration.String())
 				if len(failureReason) == 0 {

@@ -83,3 +83,43 @@ kubectl apply -f nethttp3.yaml
 ```
 
 
+
+
+metric introduction
+```shell
+
+        "Metrics": {
+          "latencies": {
+            "total": 27964545,
+            "mean": 2796454,
+            "50th": 2821970,
+            "90th": 3102803,
+            "95th": 3188759,
+            "99th": 3188759,
+            "max": 3188759,
+            "min": 2362429
+          },
+          "bytes_in": {
+            "total": 2357,
+            "mean": 235.7
+          },
+          "bytes_out": {
+            "total": 0,
+            "mean": 0
+          },
+          "earliest": "2022-11-18T04:55:20.22108713Z",
+          "latest": "2022-11-18T04:55:24.721276724Z",
+          "end": "2022-11-18T04:55:24.723858358Z",
+          "duration": 4500189594,
+          "wait": 2581634,
+          "requests": 10,
+          "rate": 2.222128599500068,
+          "throughput": 2.220854556815161,
+          "success": 1,
+          "status_codes": {
+            "200": 10
+          },
+          "errors": []
+        }
+
+```
