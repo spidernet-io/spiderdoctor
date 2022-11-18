@@ -42,12 +42,12 @@ func (s *PluginNetHttp) WebhookMutating(logger *zap.Logger, ctx context.Context,
 		req.Spec.Target = &crd.NethttpTarget{
 			TargetAgent: m,
 		}
-		logger.Sugar().Debugf("set default target for request %v", req.Name)
+		logger.Sugar().Debugf("set default target for nethttp %v", req.Name)
 	}
 
 	if req.Spec.Schedule == nil {
 		req.Spec.Schedule = tools.GetDefaultSchedule()
-		logger.Sugar().Debugf("set default SchedulePlan for request %v", req.Name)
+		logger.Sugar().Debugf("set default SchedulePlan for nethttp %v", req.Name)
 	}
 
 	if req.Spec.Request == nil {
@@ -57,12 +57,12 @@ func (s *PluginNetHttp) WebhookMutating(logger *zap.Logger, ctx context.Context,
 			PerRequestTimeoutInSecond: types.ControllerConfig.Configmap.NethttpDefaultRequestPerRequestTimeoutInSecond,
 		}
 		req.Spec.Request = m
-		logger.Sugar().Debugf("set default Request for request %v", req.Name)
+		logger.Sugar().Debugf("set default Request for nethttp %v", req.Name)
 	}
 
 	if req.Spec.SuccessCondition == nil {
 		req.Spec.SuccessCondition = tools.GetDefaultNetSuccessCondition()
-		logger.Sugar().Debugf("set default SuccessCondition for request %v", req.Name)
+		logger.Sugar().Debugf("set default SuccessCondition for nethttp %v", req.Name)
 	}
 
 	return nil
