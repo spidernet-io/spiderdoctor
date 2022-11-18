@@ -21,5 +21,6 @@ data:
     nethttp_defaultRequest_DurationInSecond: {{ .Values.feature.nethttp_defaultRequest_DurationInSecond }}
     nethttp_defaultRequest_PerRequestTimeoutInSecond: {{ .Values.feature.nethttp_defaultRequest_PerRequestTimeoutInSecond }}
     multusPodAnnotationKey: {{ .Values.feature.multusPodAnnotationKey }}
+    crdMaxHistory: {{ .Values.feature.crdMaxHistory }}
 
   

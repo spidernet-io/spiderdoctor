@@ -102,7 +102,6 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 
 func (s *pluginAgentReconciler) HandleAgentTaskRound(logger *zap.Logger, ctx context.Context, oldStatus *crd.TaskStatus, schedulePlan *crd.SchedulePlan, obj runtime.Object, taskName string, crdObjSpec interface{}) (result *reconcile.Result, taskStatus *crd.TaskStatus, e error) {
 	newStatus := oldStatus.DeepCopy()
-	recordLength := len(newStatus.History)
 	nowTime := time.Now()
 
 	// check node selector whether need to implement it
@@ -119,12 +118,12 @@ func (s *pluginAgentReconciler) HandleAgentTaskRound(logger *zap.Logger, ctx con
 		}
 	}
 
-	if newStatus.ExpectedRound == nil || recordLength == 0 || *newStatus.DoneRound == *newStatus.ExpectedRound {
+	if newStatus.ExpectedRound == nil || len(newStatus.History) == 0 || *newStatus.DoneRound == *newStatus.ExpectedRound {
 		// not start or all finish
 		return nil, nil, nil
 	}
 
-	latestRecord := &(newStatus.History[recordLength-1])
+	latestRecord := &(newStatus.History[0])
 	logger.Sugar().Debugf("current time:%v , latest history record: %+v", nowTime, latestRecord)
 	// logger.Sugar().Debugf("all history record: %+v", newStatus.History)
 

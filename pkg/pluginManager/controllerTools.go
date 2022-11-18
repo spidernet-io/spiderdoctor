@@ -50,8 +50,7 @@ OUTER:
 
 func (s *pluginControllerReconciler) UpdateRoundFinalStatus(logger *zap.Logger, ctx context.Context, newStatus *crd.TaskStatus, agentNodeSelector *metav1.LabelSelector, deadline bool) (roundDone bool, err error) {
 
-	recordLength := len(newStatus.History)
-	latestRecord := &(newStatus.History[recordLength-1])
+	latestRecord := &(newStatus.History[0])
 	roundNumber := latestRecord.RoundNumber
 
 	if latestRecord.Status == crd.StatusHistoryRecordStatusFail || latestRecord.Status == crd.StatusHistoryRecordStatusSucceed || latestRecord.Status == crd.StatusHistoryRecordStatusNotstarted {
@@ -105,12 +104,11 @@ func (s *pluginControllerReconciler) UpdateRoundFinalStatus(logger *zap.Logger, 
 
 func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx context.Context, oldStatus *crd.TaskStatus, schedulePlan *crd.SchedulePlan, taskName string) (result *reconcile.Result, taskStatus *crd.TaskStatus, e error) {
 	newStatus := oldStatus.DeepCopy()
-	recordLength := len(newStatus.History)
 	nextInterval := time.Duration(types.ControllerConfig.Configmap.TaskPollIntervalInSecond) * time.Second
 	nowTime := time.Now()
 
 	// init new instance first
-	if newStatus.ExpectedRound == nil || recordLength == 0 {
+	if newStatus.ExpectedRound == nil || len(newStatus.History) == 0 {
 		n := schedulePlan.RoundNumber
 		newStatus.ExpectedRound = &n
 		m := int64(0)
@@ -133,7 +131,7 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 		return nil, nil, nil
 	}
 
-	latestRecord := &(newStatus.History[recordLength-1])
+	latestRecord := &(newStatus.History[0])
 	roundNumber := latestRecord.RoundNumber
 	logger.Sugar().Debugf("current time:%v , latest history record: %+v", nowTime, latestRecord)
 	logger.Sugar().Debugf("all history record: %+v", newStatus.History)
@@ -163,7 +161,14 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 						if n < *(newStatus.ExpectedRound) {
 							startTime := latestRecord.StartTimeStamp.Time.Add(time.Duration(schedulePlan.IntervalMinute) * time.Minute)
 							newRecod := NewStatusHistoryRecord(startTime, int(n+1), schedulePlan)
-							newStatus.History = append(newStatus.History, *newRecod)
+
+							tmp := append([]crd.StatusHistoryRecord{*newRecod}, newStatus.History...)
+							if len(tmp) > types.ControllerConfig.Configmap.CrdMaxHistory {
+								tmp = tmp[:(types.ControllerConfig.Configmap.CrdMaxHistory)]
+							} else {
+								newStatus.History = tmp
+							}
+
 							logger.Sugar().Infof("insert new record for next round : %+v", *newRecod)
 						} else {
 							newStatus.Finish = true
@@ -220,7 +225,12 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 						if n < *(newStatus.ExpectedRound) {
 							startTime := latestRecord.StartTimeStamp.Time.Add(time.Duration(schedulePlan.IntervalMinute) * time.Minute)
 							newRecod := NewStatusHistoryRecord(startTime, int(n+1), schedulePlan)
-							newStatus.History = append(newStatus.History, *newRecod)
+							tmp := append([]crd.StatusHistoryRecord{*newRecod}, newStatus.History...)
+							if len(tmp) > types.ControllerConfig.Configmap.CrdMaxHistory {
+								tmp = tmp[:(types.ControllerConfig.Configmap.CrdMaxHistory)]
+							} else {
+								newStatus.History = tmp
+							}
 							logger.Sugar().Infof("insert new record for next round : %+v", *newRecod)
 						} else {
 							newStatus.Finish = true
@@ -237,11 +247,10 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 			} else {
 				// round finish
 				// trigger when next round start
-				newRoundNumber := len(newStatus.History)
-				currentRecord := &(newStatus.History[newRoundNumber-1])
-				logger.Sugar().Infof("task %v wait for next round %v at %v", taskName, newRoundNumber, currentRecord.StartTimeStamp)
+				currentLatestRecord := &(newStatus.History[0])
+				logger.Sugar().Infof("task %v wait for next round %v at %v", taskName, currentLatestRecord.RoundNumber, currentLatestRecord.StartTimeStamp)
 				result = &reconcile.Result{
-					RequeueAfter: currentRecord.StartTimeStamp.Time.Sub(time.Now()),
+					RequeueAfter: currentLatestRecord.StartTimeStamp.Time.Sub(time.Now()),
 				}
 			}
 		}

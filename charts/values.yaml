@@ -55,6 +55,9 @@ feature:
   ## @param feature.multusPodAnnotationKey the multus annotation key for ip status
   multusPodAnnotationKey: "k8s.v1.cni.cncf.io/networks-status"
 
+  ## @param feature.crdMaxHistory max history items inf CRD status
+  crdMaxHistory: 100
+
 ## @section spiderdoctorAgent parameters
 ##
 spiderdoctorAgent:

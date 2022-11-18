@@ -12,6 +12,7 @@ type ConfigmapConfig struct {
 	NethttpDefaultRequestDurationInSecond          int    `yaml:"nethttp_defaultRequest_DurationInSecond"`
 	NethttpDefaultRequestPerRequestTimeoutInSecond int    `yaml:"nethttp_defaultRequest_PerRequestTimeoutInSecond"`
 	MultusPodAnnotationKey                         string `yaml:"multusPodAnnotationKey"`
+	CrdMaxHistory                                  int    `yaml:"crdMaxHistory"`
 }
 
 type EnvMapping struct {
