@@ -203,8 +203,8 @@ deploy_multus:
 		echo "worker ipv4=$${WORKER_IPV4_ADDR}, ipv6=$${WORKER_IPV6_ADDR} " ; \
 		if [ "$(E2E_IP_FAMILY)" == "ipv4" ] ; then \
 			  echo "install ipv4-only case" ; \
-		  	  [ -n "$${MASTER_IPV4_ADDR}" ] || {echo "error, failed to find master ipv4" ; exit 1 ; } ; \
-		  	  [ -n "$${WORKER_IPV4_ADDR}" ] || {echo "error, failed to find worker ipv4" ; exit 1 ; } ; \
+		  	  [ -n "$${MASTER_IPV4_ADDR}" ] || { echo "error, failed to find master ipv4" ; exit 1 ; } ; \
+		  	  [ -n "$${WORKER_IPV4_ADDR}" ] || { echo "error, failed to find worker ipv4" ; exit 1 ; } ; \
 			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.80.1.0/24" \}\]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist ; \
 			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.90.1.0/24" \}\]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni2.conflist ; \
 			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.80.2.0/24" \}\]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist ; \
