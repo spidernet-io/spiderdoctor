@@ -8,7 +8,6 @@ import (
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
 )
 
@@ -17,8 +16,8 @@ type ChainingPlugin interface {
 
 	AgentEexecuteTask(logger *zap.Logger, ctx context.Context, obj runtime.Object) (failureReason string, report PluginRoundDetail, err error)
 
-	ControllerReconcile(*zap.Logger, client.Client, context.Context, reconcile.Request) (reconcile.Result, error)
-	AgentReconcile(*zap.Logger, client.Client, context.Context, reconcile.Request) (reconcile.Result, error)
+	// ControllerReconcile(*zap.Logger, client.Client, context.Context, reconcile.Request) (reconcile.Result, error)
+	// AgentReconcile(*zap.Logger, client.Client, context.Context, reconcile.Request) (reconcile.Result, error)
 
 	WebhookMutating(logger *zap.Logger, ctx context.Context, obj runtime.Object) error
 	WebhookValidateCreate(logger *zap.Logger, ctx context.Context, obj runtime.Object) error

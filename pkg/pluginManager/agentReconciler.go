@@ -113,10 +113,8 @@ func (s *pluginAgentReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		}
 
 	default:
-		s.logger.Sugar().Errorf("unknown crd type , support kind=%v, detail=%+v", s.crdKind, req)
-		// forget this
-		return ctrl.Result{}, nil
+		s.logger.Sugar().Fatalf("unknown crd type , support kind=%v, detail=%+v", s.crdKind, req)
 	}
 
-	return s.plugin.AgentReconcile(s.logger, s.client, ctx, req)
+	return ctrl.Result{}, nil
 }

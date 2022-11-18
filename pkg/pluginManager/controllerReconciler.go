@@ -104,7 +104,7 @@ func (s *pluginControllerReconciler) Reconcile(ctx context.Context, req reconcil
 		}
 
 	default:
-		s.logger.Sugar().Errorf("unknown crd type , support kind=%v, detail=%+v", s.crdKind, req)
+		s.logger.Sugar().Fatalf("unknown crd type , support kind=%v, detail=%+v", s.crdKind, req)
 
 	}
 	// forget this
