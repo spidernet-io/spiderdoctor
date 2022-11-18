@@ -36,8 +36,8 @@ spec:
       type: string
     - description: roundIntervalMinute
       jsonPath: .spec.schedule.intervalMinute
-      name: roundIntervalMinute
-      type: int64
+      name: intervalMinute
+      type: integer
     - description: nextRoundStartTime
       jsonPath: .status.history[(@.length-1)].startTimeStamp
       name: nextRoundStartTime
