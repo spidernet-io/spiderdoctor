@@ -28,10 +28,11 @@ func ParseSucccessCondition(successCondition *crd.NetSuccessCondition, metricRes
 	return
 }
 
-func SendRequestAndReport(logger *zap.Logger, TargetUrl string, qps, PerRequestTimeoutInSecond, DurationInSecond int, successCondition *crd.NetSuccessCondition, report map[string]interface{}) (failureReason string) {
+func SendRequestAndReport(logger *zap.Logger, targetName string, TargetUrl string, qps, PerRequestTimeoutInSecond, DurationInSecond int, successCondition *crd.NetSuccessCondition, report map[string]interface{}) (failureReason string) {
 	failureReason = ""
 
-	report["Target"] = TargetUrl
+	report["TargetName"] = targetName
+	report["TargetUrl"] = TargetUrl
 	report["Succeed"] = "false"
 
 	result := loadRequest.HttpRequest(TargetUrl, qps, PerRequestTimeoutInSecond, DurationInSecond)
@@ -47,7 +48,7 @@ func SendRequestAndReport(logger *zap.Logger, TargetUrl string, qps, PerRequestT
 
 	// generate report
 	// notice , upper case for first character of key, or else fail to parse json
-	report["Detail"] = *result
+	report["Metrics"] = *result
 	report["FailureReason"] = failureReason
 	if len(report) > 0 {
 		report["Succeed"] = "true"
@@ -88,8 +89,8 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 
 	if target.TargetUrl != nil && len(*target.TargetUrl) != 0 {
 		logger.Sugar().Infof("load test custom target: TargetUrl=%v , qps=%v, PerRequestTimeout=%vs, Duration=%vs", *target.TargetUrl, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond)
-		finalReport["Type"] = "custom url"
-		SendRequestAndReport(logger, *target.TargetUrl, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond, successCondition, finalReport)
+		finalReport["TargetType"] = "custom url"
+		SendRequestAndReport(logger, "custom target", *target.TargetUrl, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond, successCondition, finalReport)
 		return
 
 	} else {
@@ -258,7 +259,7 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 			for _, targetItem := range testTargetList {
 				itemReport := map[string]interface{}{}
 				logger.Sugar().Debugf("implement test %v, target=%v , QPS=%v, PerRequestTimeoutInSecond=%v, DurationInSecond=%v ", targetItem.Name, targetItem.Url, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond)
-				failureReason := SendRequestAndReport(logger, targetItem.Url, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond, successCondition, itemReport)
+				failureReason := SendRequestAndReport(logger, targetItem.Name, targetItem.Url, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond, successCondition, itemReport)
 				if len(failureReason) > 0 {
 					finalfailureReason = fmt.Sprintf("test %v: %v", targetItem.Name, failureReason)
 				}
@@ -267,14 +268,15 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 
 			end := time.Now()
 			if end.Sub(start).Microseconds() > int64(int(plan.TimeoutMinute)*60*1000) {
-				logger.Sugar().Errorf("plugin finished %v tests, it taked time with %v , started at %v, logger than requied %v seconds", testNum, end.Sub(start).String(), start.String(), int(plan.TimeoutMinute)*60)
+				fmt.Printf("========%v , %v ", end.Sub(start).Microseconds(), int64(int(plan.TimeoutMinute)*60*1000))
+				logger.Sugar().Errorf("plugin finished %v tests, it taked time with %v , started at %v, logger than required %v seconds", testNum, end.Sub(start).String(), start.String(), int(plan.TimeoutMinute)*60)
 			} else {
-				logger.Sugar().Infof("plugin finished %v tests, it taked time with %v , started at %v, shorter than requied %v seconds", testNum, end.Sub(start).String(), start.String(), int(plan.TimeoutMinute)*60)
+				logger.Sugar().Infof("plugin finished %v tests, it taked time with %v , started at %v, shorter than required %v seconds", testNum, end.Sub(start).String(), start.String(), int(plan.TimeoutMinute)*60)
 			}
 
 			// ----------------------- aggregate report
 			finalReport["Detail"] = reportList
-			finalReport["Type"] = "spiderdoctor agent"
+			finalReport["TargetType"] = "spiderdoctor agent"
 			if len(finalfailureReason) > 0 {
 				logger.Sugar().Errorf("plugin finally failed, %v", finalfailureReason)
 				finalReport["FailureReason"] = finalfailureReason

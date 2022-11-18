@@ -23,7 +23,6 @@ type ChainingPlugin interface {
 	WebhookMutating(logger *zap.Logger, ctx context.Context, obj runtime.Object) error
 	WebhookValidateCreate(logger *zap.Logger, ctx context.Context, obj runtime.Object) error
 	WebhookValidateUpdate(logger *zap.Logger, ctx context.Context, oldObj, newObj runtime.Object) error
-	WebhookValidateDelete(logger *zap.Logger, ctx context.Context, obj runtime.Object) error
 }
 
 type RoundResultStatus string
@@ -34,15 +33,17 @@ const (
 )
 
 type PluginReport struct {
-	TaskName      string
-	RoundNumber   int
-	RoundResult   RoundResultStatus
-	AgentNodeName string
-	AgentPodName  string
-	FailedReason  string
-	StartTimeStam time.Time
-	EndTimeStamp  time.Time
-	Detail        PluginRoundDetail
+	TaskName       string
+	TaskSpec       interface{}
+	RoundNumber    int
+	RoundResult    RoundResultStatus
+	AgentNodeName  string
+	AgentPodName   string
+	FailedReason   string
+	StartTimeStamp time.Time
+	EndTimeStamp   time.Time
+	RoundDuraiton  string
+	Detail         PluginRoundDetail
 }
 
 type PluginRoundDetail map[string]interface{}

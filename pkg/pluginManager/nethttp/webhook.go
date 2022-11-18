@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
+	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager/tools"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.uber.org/zap"
@@ -45,13 +46,7 @@ func (s *PluginNetHttp) WebhookMutating(logger *zap.Logger, ctx context.Context,
 	}
 
 	if req.Spec.Schedule == nil {
-		m := &crd.SchedulePlan{
-			StartAfterMinute: 0,
-			RoundNumber:      1,
-			IntervalMinute:   60,
-			TimeoutMinute:    60,
-		}
-		req.Spec.Schedule = m
+		req.Spec.Schedule = tools.GetDefaultSchedule()
 		logger.Sugar().Debugf("set default SchedulePlan for request %v", req.Name)
 	}
 
@@ -66,11 +61,7 @@ func (s *PluginNetHttp) WebhookMutating(logger *zap.Logger, ctx context.Context,
 	}
 
 	if req.Spec.SuccessCondition == nil {
-		n := float64(1)
-		m := &crd.NetSuccessCondition{
-			SuccessRate: &n,
-		}
-		req.Spec.SuccessCondition = m
+		req.Spec.SuccessCondition = tools.GetDefaultNetSuccessCondition()
 		logger.Sugar().Debugf("set default SuccessCondition for request %v", req.Name)
 	}
 
@@ -110,9 +101,4 @@ func (s *PluginNetHttp) WebhookValidateUpdate(logger *zap.Logger, ctx context.Co
 	}
 
 	return nil
-}
-
-func (s *PluginNetHttp) WebhookValidateDelete(logger *zap.Logger, ctx context.Context, obj runtime.Object) error {
-	return nil
-
 }

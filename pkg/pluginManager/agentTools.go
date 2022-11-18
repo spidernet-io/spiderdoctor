@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger, obj runtime.Object, schedulePlan *crd.SchedulePlan, taskName string, roundNumber int) {
+func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger, obj runtime.Object, schedulePlan *crd.SchedulePlan, taskName string, roundNumber int, crdObjSpec interface{}) {
 	taskRoundName := fmt.Sprintf("%s.round%d", taskName, roundNumber)
 
 	roundDuration := time.Duration(schedulePlan.TimeoutMinute) * time.Minute
@@ -25,12 +25,14 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 	logger.Sugar().Infof("call plugin to implement with timeout %v minute", schedulePlan.TimeoutMinute)
 
 	go func() {
+		startTime := time.Now()
 		msg := plugintypes.PluginReport{
-			TaskName:      taskName,
-			RoundNumber:   roundNumber,
-			AgentNodeName: s.localNodeName,
-			AgentPodName:  types.AgentConfig.PodName,
-			StartTimeStam: time.Now(),
+			TaskName:       taskName,
+			RoundNumber:    roundNumber,
+			AgentNodeName:  s.localNodeName,
+			AgentPodName:   types.AgentConfig.PodName,
+			StartTimeStamp: startTime,
+			TaskSpec:       crdObjSpec,
 		}
 		failureReason, report, e := s.plugin.AgentEexecuteTask(logger, ctx, obj)
 		if e != nil {
@@ -57,9 +59,13 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 				}
 			}
 		}
-		msg.EndTimeStamp = time.Now()
+		endTime := time.Now()
+		msg.EndTimeStamp = endTime
+		msg.RoundDuraiton = endTime.Sub(startTime).String()
 		if report != nil {
 			msg.Detail = report
+		} else {
+			msg.Detail = map[string]interface{}{}
 		}
 
 		if jsongByte, err := json.Marshal(msg); err != nil {
@@ -92,7 +98,7 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 	}()
 }
 
-func (s *pluginAgentReconciler) HandleAgentTaskRound(logger *zap.Logger, ctx context.Context, oldStatus *crd.TaskStatus, schedulePlan *crd.SchedulePlan, obj runtime.Object, taskName string) (result *reconcile.Result, taskStatus *crd.TaskStatus, e error) {
+func (s *pluginAgentReconciler) HandleAgentTaskRound(logger *zap.Logger, ctx context.Context, oldStatus *crd.TaskStatus, schedulePlan *crd.SchedulePlan, obj runtime.Object, taskName string, crdObjSpec interface{}) (result *reconcile.Result, taskStatus *crd.TaskStatus, e error) {
 	newStatus := oldStatus.DeepCopy()
 	recordLength := len(newStatus.History)
 	nowTime := time.Now()
@@ -152,7 +158,7 @@ func (s *pluginAgentReconciler) HandleAgentTaskRound(logger *zap.Logger, ctx con
 		s.taskRoundData.SetTask(taskRoundName, taskStatusManager.RoundStatusOngoing)
 
 		// we still have not reported the result for an ongoing round. do it
-		go s.CallPluginImplementRoundTask(logger.Named(taskRoundName), obj, schedulePlan, taskName, latestRecord.RoundNumber)
+		go s.CallPluginImplementRoundTask(logger.Named(taskRoundName), obj, schedulePlan, taskName, latestRecord.RoundNumber, crdObjSpec)
 		logger.Sugar().Infof("task %v , trigger to implement task round, and try to poll report after %v second", taskRoundName, types.AgentConfig.Configmap.TaskPollIntervalInSecond)
 
 		// trigger to poll result after interval

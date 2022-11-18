@@ -50,8 +50,3 @@ func (s *PluginNetDns) WebhookValidateUpdate(logger *zap.Logger, ctx context.Con
 
 	return nil
 }
-
-func (s *PluginNetDns) WebhookValidateDelete(logger *zap.Logger, ctx context.Context, obj runtime.Object) error {
-	return nil
-
-}
