@@ -111,11 +111,11 @@ metric introduction
           "latest": "2022-11-18T04:55:24.721276724Z",
           "end": "2022-11-18T04:55:24.723858358Z",
           "duration": 4500189594,
-          "wait": 2581634,
-          "requests": 10,
-          "rate": 2.222128599500068,
-          "throughput": 2.220854556815161,
-          "success": 1,
+          "wait": 2581634, # Wait is the extra time waiting for responses from targets.
+          "requests": 10, #the total number of requests executed
+          "rate": 2.222128599500068, #Rate is the rate of sent requests per second.
+          "throughput": 2.220854556815161, #Throughput is the rate of successful requests per second.
+          "success": 1, #percentage of non-error responses
           "status_codes": {
             "200": 10
           },

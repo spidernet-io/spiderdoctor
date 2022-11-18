@@ -37,7 +37,7 @@ func SendRequestAndReport(logger *zap.Logger, targetName string, TargetUrl strin
 	report["Succeed"] = "false"
 
 	result := loadRequest.HttpRequest(TargetUrl, qps, PerRequestTimeoutInSecond, DurationInSecond)
-
+	logger.Sugar().Debugf("mean dalay %s for target %v", result.Duration.String(), targetName)
 	var err error
 	failureReason, err = ParseSucccessCondition(successCondition, result)
 	if err != nil {
