@@ -118,7 +118,7 @@ deploy_project:
 	else \
 		echo "found image from chart : $${IMAGE_LIST} " ; \
 		for IMAGE in $${IMAGE_LIST} ; do \
-			EXIST=` docker images | awk '{printf("%s:%s\n",$$1,$$2)}' | grep "$${IMAGE}" ` ; \
+			EXIST=` docker images | awk '{printf("%s:%s\n",$$1,$$2)}' | grep "$${IMAGE}" ` || true ; \
 			if [ -z "$${EXIST}" ] ; then \
 			  echo "docker pull $${IMAGE} to local" ; \
 			  docker pull $${IMAGE} ; \
@@ -161,32 +161,34 @@ deploy_project:
 deploy_multus: KIND_KUBECONFIG ?= $(E2E_KIND_KUBECONFIG_PATH)
 deploy_multus: KIND_CLUSTER_NAME ?= $(E2E_KIND_CLUSTER_NAME)
 deploy_multus:
-	[ "$(E2E_ENABLE_MULTUS)" != "true" ] && echo "multus is diabled" && exit 0
+	[ "$(E2E_ENABLE_MULTUS)" == "true" ] || { echo "multus is diabled" ; exit 0 ; }
 	@echo "beign to install multus"
+	- helm repo remove $(MULTUS_REPO_NAME)
 	helm repo add $(MULTUS_REPO_NAME) $(MULTUS_CHART_REPO) ; \
 		helm repo update $(MULTUS_REPO_NAME) ; \
 		echo "try to load local image for multus $(MULTUS_CHART_VERSION) " ; \
-		IMAGE_LIST=` helm template --version=$(MULTUS_CHART_VERSION)  $(MULTUS_REPO_NAME)/(MULTUS_CHART_NAME) | grep " image: " | tr -d '"'| awk '{print $$2}' ` ; \
+		IMAGE_LIST=` helm template --version=$(MULTUS_CHART_VERSION)  $(MULTUS_REPO_NAME)/$(MULTUS_CHART_NAME) | grep " image: " | tr -d '"'| awk '{print $$2}' ` ; \
 		if [ -z "$${IMAGE_LIST}" ] ; then \
 			echo "warning, failed to find image from chart template" ; \
 		else \
 			echo "found image from chart template: $${IMAGE_LIST} " ; \
 			for IMAGE in $${IMAGE_LIST} ; do \
-				EXIST=` docker images | awk '{printf("%s:%s\n",$$1,$$2)}' | grep "$${IMAGE}" ` ; \
+				EXIST=` docker images | awk '{printf("%s:%s\n",$$1,$$2)}' | grep "$${IMAGE}" ` || true ; \
 				if [ -z "$${EXIST}" ] ; then \
 				  echo "docker pull $${IMAGE} to local" ; \
 				  docker pull $${IMAGE} ;\
 				fi ;\
-				echo "load local image $${IMAGE} for $(PROJECT)" ; \
-				kind load docker-image $${IMAGE}  --name $(CLUSTER_GLOBAL_NAME)  ; \
+				echo "load local image $${IMAGE} " ; \
+				kind load docker-image $${IMAGE}  --name $(KIND_CLUSTER_NAME)  ; \
 			done ; \
-		fi ; \
-		helm install multus $(MULTUS_REPO_NAME)/$(MULTUS_CHART_NAME)  \
+		fi
+	- helm --kubeconfig=$(KIND_KUBECONFIG) uninstall -n kube-system multus || true
+	helm install multus $(MULTUS_REPO_NAME)/$(MULTUS_CHART_NAME)  \
 			-n kube-system --kubeconfig=$(KIND_KUBECONFIG)  \
 			--version=$(MULTUS_CHART_VERSION) \
 			--set sriov.manifests.enable=false \
 			--set multus.config.cni_conf.clusterNetwork=k8s-pod-network
-	kubectl --kubeconfig=$(KIND_KUBECONFIG) apply ./yaml/multus.yaml
+	kubectl --kubeconfig=$(KIND_KUBECONFIG) apply -f ./yaml/multus.yaml
 	#======= install cni and route on nodes
 	- mkdir -p $(E2E_MULTUS_CNI_CONFIG_DIR)
 	- rm -rf $(E2E_MULTUS_CNI_CONFIG_DIR)/*
@@ -201,10 +203,10 @@ deploy_multus:
 		echo "worker ipv4=$${WORKER_IPV4_ADDR}, ipv6=$${WORKER_IPV6_ADDR} " ; \
 		if [ "$(E2E_IP_FAMILY)" == "ipv4" ] ; then \
 			  echo "install ipv4-only case" ; \
-			  sed 's?{{IP_RANGE}}?[{ "subnet": "172.80.1.0/24" }]?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist ; \
-			  sed 's?{{IP_RANGE}}?[{ "subnet": "172.90.1.0/24" }]?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni2.conflist ; \
-			  sed 's?{{IP_RANGE}}?[{ "subnet": "172.80.2.0/24" }]?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist ; \
-			  sed 's?{{IP_RANGE}}?[{ "subnet": "172.90.2.0/24" }]?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist ; \
+			  sed 's?{{IP_RANGE}}?[{ "subnet": "172.80.1.0/24" }]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist ; \
+			  sed 's?{{IP_RANGE}}?[{ "subnet": "172.90.1.0/24" }]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni2.conflist ; \
+			  sed 's?{{IP_RANGE}}?[{ "subnet": "172.80.2.0/24" }]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist ; \
+			  sed 's?{{IP_RANGE}}?[{ "subnet": "172.90.2.0/24" }]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist ; \
 			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist $(E2E_KIND_MASTER_NODE_NAME):/etc/cni/net.d ; \
 			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni2.conflist $(E2E_KIND_MASTER_NODE_NAME):/etc/cni/net.d ; \
 			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist $(E2E_KIND_WORKER_NODE_NAME):/etc/cni/net.d ; \
@@ -215,10 +217,10 @@ deploy_multus:
 			  docker exec $(E2E_KIND_WORKER_NODE_NAME) ip r add 172.90.1.0/24 via $${MASTER_IPV4_ADDR} ; \
 		elif [ "$(E2E_IP_FAMILY)" == "ipv6" ] ; then \
 			  echo "install ipv6-only case" ; \
-			  sed 's?{{IP_RANGE}}?[{ "subnet": "fd80:1::/64" }]?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist ; \
-			  sed 's?{{IP_RANGE}}?[{ "subnet": "fd90:1::/64" }]?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist ; \
-			  sed 's?{{IP_RANGE}}?[{ "subnet": "fd80:2::/64" }]?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist ; \
-			  sed 's?{{IP_RANGE}}?[{ "subnet": "fd90:2::/64" }]?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist ; \
+			  sed 's?{{IP_RANGE}}?[{ "subnet": "fd80:1::/64" }]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist ; \
+			  sed 's?{{IP_RANGE}}?[{ "subnet": "fd90:1::/64" }]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist ; \
+			  sed 's?{{IP_RANGE}}?[{ "subnet": "fd80:2::/64" }]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist ; \
+			  sed 's?{{IP_RANGE}}?[{ "subnet": "fd90:2::/64" }]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist ; \
 			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist $(E2E_KIND_MASTER_NODE_NAME):/etc/cni/net.d ; \
 			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni2.conflist $(E2E_KIND_MASTER_NODE_NAME):/etc/cni/net.d ; \
 			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist $(E2E_KIND_WORKER_NODE_NAME):/etc/cni/net.d ; \
@@ -229,10 +231,10 @@ deploy_multus:
 			  docker exec $(E2E_KIND_WORKER_NODE_NAME) ip -6 r add fd90:1::/64 via $${MASTER_IPV6_ADDR} ; \
   		else \
 			  echo "install dual-stack case" ; \
-			  sed 's?{{IP_RANGE}}?[{ "subnet": "172.80.1.0/24" }],[{ "subnet": "fd80:1::/64" }]?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist ; \
-			  sed 's?{{IP_RANGE}}?[{ "subnet": "172.90.1.0/24" }],[{ "subnet": "fd90:1::/64" }]?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni2.conflist ; \
-			  sed 's?{{IP_RANGE}}?[{ "subnet": "172.80.2.0/24" }],[{ "subnet": "fd80:2::/64" }]?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist ; \
-			  sed 's?{{IP_RANGE}}?[{ "subnet": "172.90.2.0/24" }],[{ "subnet": "fd90:2::/64" }]?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist ; \
+			  sed 's?{{IP_RANGE}}?[{ "subnet": "172.80.1.0/24" }],[{ "subnet": "fd80:1::/64" }]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist ; \
+			  sed 's?{{IP_RANGE}}?[{ "subnet": "172.90.1.0/24" }],[{ "subnet": "fd90:1::/64" }]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni2.conflist ; \
+			  sed 's?{{IP_RANGE}}?[{ "subnet": "172.80.2.0/24" }],[{ "subnet": "fd80:2::/64" }]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist ; \
+			  sed 's?{{IP_RANGE}}?[{ "subnet": "172.90.2.0/24" }],[{ "subnet": "fd90:2::/64" }]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist ; \
 			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist $(E2E_KIND_MASTER_NODE_NAME):/etc/cni/net.d ; \
 			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni2.conflist $(E2E_KIND_MASTER_NODE_NAME):/etc/cni/net.d ; \
 			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist $(E2E_KIND_WORKER_NODE_NAME):/etc/cni/net.d ; \
