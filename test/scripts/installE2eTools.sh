@@ -68,8 +68,6 @@ else
 fi
 
 
-if [ -z "$E2E_RUNTIME_DIR" ]
-
 # ====modify==== add more e2e binray
 
 

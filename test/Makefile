@@ -58,7 +58,7 @@ init_one_kind: checkBin clean
 
 .PHONY: checkBin
 checkBin:
-	E2E_RUNTIME_DIR=$(E2E_RUNTIME_DIR) $(ROOT_DIR)/test/scripts/installE2eTools.sh
+	$(ROOT_DIR)/test/scripts/installE2eTools.sh
 
 .PHONY: install_proscope
 install_proscope:
@@ -143,8 +143,8 @@ deploy_project:
 			HELM_OPTION+=" --set feature.enableIPv4=true --set feature.enableIPv6=true " ; \
 		fi ;\
 		if [ "$(E2E_ENABLE_MULTUS)" == "true" ] ; then \
-		    HELM_OPTION+=" --set spiderdoctorAgent.affinity.v1.multus-cni.io/default-network=kube-system/k8s-pod-network " ; \
-		    HELM_OPTION+=" --set spiderdoctorAgent.affinity.v1.k8s.v1.cni.cncf.io/networks=kube-system/ptp " ; \
+		    HELM_OPTION+=' --set spiderdoctorAgent.podAnnotations."v1.multus-cni.io/default-network"=kube-system/k8s-pod-network ' ; \
+		    HELM_OPTION+=' --set spiderdoctorAgent.podAnnotations."v1.k8s.v1.cni.cncf.io/networks"=kube-system/ptp ' ; \
 		fi ; \
 		HELM_OPTION+=" --set spiderdoctorAgent.debug.logLevel=debug --set spiderdoctorController.debug.logLevel=debug " ; \
 		HELM_OPTION+=" --set spiderdoctorAgent.prometheus.enabled=true --set spiderdoctorController.prometheus.enabled=true  " ; \
@@ -246,9 +246,6 @@ deploy_multus:
 			  docker exec $(E2E_KIND_WORKER_NODE_NAME) ip -6 r add fd80:1::/64 via $${MASTER_IPV6_ADDR} ; \
 			  docker exec $(E2E_KIND_WORKER_NODE_NAME) ip -6 r add fd90:1::/64 via $${MASTER_IPV6_ADDR} ; \
   		fi
-
-
-
 
 
 # test kind is ok
