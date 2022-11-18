@@ -6,12 +6,14 @@ import (
 	k8sObjManager "github.com/spidernet-io/spiderdoctor/pkg/k8ObjManager"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	"github.com/spidernet-io/spiderdoctor/pkg/loadRequest"
+	"github.com/spidernet-io/spiderdoctor/pkg/lock"
 	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	config "github.com/spidernet-io/spiderdoctor/pkg/types"
 	vegeta "github.com/tsenart/vegeta/v12/lib"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"sync"
 )
 
 func ParseSucccessCondition(successCondition *crd.NetSuccessCondition, metricResult *vegeta.Metrics) (failureReason string, err error) {
@@ -247,15 +249,24 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 			// ------------------------ implement it
 			reportList := []interface{}{}
 
-			for _, targetItem := range testTargetList {
-				itemReport := map[string]interface{}{}
-				logger.Sugar().Debugf("implement test %v, target=%v , QPS=%v, PerRequestTimeoutInSecond=%v, DurationInSecond=%v ", targetItem.Name, targetItem.Url, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond)
-				failureReason := SendRequestAndReport(logger, targetItem.Name, targetItem.Url, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond, successCondition, itemReport)
-				if len(failureReason) > 0 {
-					finalfailureReason = fmt.Sprintf("test %v: %v", targetItem.Name, failureReason)
-				}
-				reportList = append(reportList, itemReport)
+			var wg sync.WaitGroup
+			var l lock.Mutex
+			for _, item := range testTargetList {
+				wg.Add(1)
+				go func(wg *sync.WaitGroup, l *lock.Mutex, t TestTarget) {
+					itemReport := map[string]interface{}{}
+					logger.Sugar().Debugf("implement test %v, target=%v , QPS=%v, PerRequestTimeoutInSecond=%v, DurationInSecond=%v ", t.Name, t.Url, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond)
+					failureReason := SendRequestAndReport(logger, t.Name, t.Url, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond, successCondition, itemReport)
+					if len(failureReason) > 0 {
+						finalfailureReason = fmt.Sprintf("test %v: %v", t.Name, failureReason)
+					}
+					l.Lock()
+					reportList = append(reportList, itemReport)
+					l.Unlock()
+					wg.Done()
+				}(&wg, &l, *item)
 			}
+			wg.Wait()
 
 			logger.Sugar().Infof("plugin finished all http request tests")
 
