@@ -185,10 +185,11 @@ deploy_multus:
 	- helm --kubeconfig=$(KIND_KUBECONFIG) uninstall -n kube-system multus || true
 	helm install multus $(MULTUS_REPO_NAME)/$(MULTUS_CHART_NAME)  \
 			-n kube-system --kubeconfig=$(KIND_KUBECONFIG)  \
-			--version=$(MULTUS_CHART_VERSION) \
+			--version=$(MULTUS_CHART_VERSION) --wait \
 			--set sriov.manifests.enable=false \
 			--set multus.config.cni_conf.clusterNetwork=k8s-pod-network
 	kubectl --kubeconfig=$(KIND_KUBECONFIG) apply -f ./yaml/multus.yaml
+	sleep 10
 	#======= install cni and route on nodes
 	- mkdir -p $(E2E_MULTUS_CNI_CONFIG_DIR)
 	- rm -rf $(E2E_MULTUS_CNI_CONFIG_DIR)/*
