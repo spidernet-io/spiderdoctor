@@ -9,7 +9,7 @@
 			"type": "host-local",
 			"dataDir": "/run/cni-ptp81-ipam-state",
 			"ranges": [
-                {{IP_RANGE}}
+                <<IP_RANGE>>
 			]
 		},
 		"mtu": 1500
