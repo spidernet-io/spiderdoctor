@@ -25,12 +25,23 @@ func ListHostAllInterfaces() ([]string, error) {
 	return r, nil
 }
 
+// 1.1.1.1
 func CheckIPv4Format(ip string) bool {
 	result := net.ParseIP(ip)
 	if result == nil {
 		return false
 	}
 	if result.To4() == nil {
+		return false
+	}
+	return true
+}
+func CheckIPv6Format(ip string) bool {
+	result := net.ParseIP(ip)
+	if result == nil {
+		return false
+	}
+	if result.To16() == nil {
 		return false
 	}
 	return true

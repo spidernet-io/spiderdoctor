@@ -1,12 +1,12 @@
-# Usage
+# netdns
 
 ```shell
 
-cat <<EOF > nethttp.yaml
+cat <<EOF > netdns1.yaml
 apiVersion: spiderdoctor.spidernet.io/v1
-kind: Nethttp
+kind: Netdns
 metadata:
-  name: test1
+  name: testdns1
 spec:
   schedule:
     startAfterMinute: 10
@@ -24,6 +24,6 @@ spec:
     meanAccessDelayInMs: 1000
 EOF
 
-kubectl apply -f nethttp.yaml
+kubectl apply -f netdns1.yaml
 
 ```

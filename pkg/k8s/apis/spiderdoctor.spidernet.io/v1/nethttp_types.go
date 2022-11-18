@@ -22,6 +22,25 @@ type NethttpSpec struct {
 }
 
 type NethttpRequest struct {
+
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default=2
+	// +kubebuilder:validation:Minimum=1
+	DurationInSecond int `json:"durationInSecond,omitempty"`
+
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default=5
+	// +kubebuilder:validation:Maximum=100
+	// +kubebuilder:validation:Minimum=1
+	QPS int `json:"qps,omitempty"`
+
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default=5
+	// +kubebuilder:validation:Minimum=1
+	PerRequestTimeoutInSecond int `json:"perRequestTimeoutInSecond,omitempty"`
+}
+
+type TargetAgentSepc struct {
 	// +kubebuilder:default=true
 	// +kubebuilder:validation:Optional
 	TestIPv4 *bool `json:"testIPv4,omitempty"`
@@ -30,27 +49,14 @@ type NethttpRequest struct {
 	// +kubebuilder:validation:Optional
 	TestIPv6 *bool `json:"testIPv6,omitempty"`
 
-	// +kubebuilder:validation:Optional
-	// +kubebuilder:default=2
-	// +kubebuilder:validation:Minimum=1
-	DurationInSecond *uint64 `json:"durationInSecond,omitempty"`
-
-	// +kubebuilder:validation:Optional
-	// +kubebuilder:default=5
-	// +kubebuilder:validation:Minimum=1
-	// +kubebuilder:validation:Maximum=20
-	QPS *uint64 `json:"qps,omitempty"`
-
-	// +kubebuilder:validation:Optional
-	// +kubebuilder:default=5
-	// +kubebuilder:validation:Minimum=1
-	PerRequestTimeoutInSecond *uint64 `json:"perRequestTimeoutInSecond,omitempty"`
-}
-
-type NethttpTarget struct {
-
 	// +kubebuilder:default=true
 	TestEndpoint bool `json:"testEndpoint,omitempty"`
+
+	// +kubebuilder:default=true
+	TestMultusInterface bool `json:"testMultusInterface,omitempty"`
+
+	// +kubebuilder:default=true
+	TestClusterIp bool `json:"testClusterIp,omitempty"`
 
 	// +kubebuilder:default=true
 	TestNodePort bool `json:"testNodePort,omitempty"`
@@ -59,12 +65,22 @@ type NethttpTarget struct {
 	TestIngress bool `json:"testIngress,omitempty"`
 }
 
+type NethttpTarget struct {
+
+	// +kubebuilder:validation:Optional
+	TargetUrl *string `json:"targetUrl,omitempty"`
+
+	// +kubebuilder:validation:Optional
+	TargetAgent *TargetAgentSepc `json:"rargetAgent,omitempty"`
+}
+
 // scope(Namespaced or Cluster)
 // +kubebuilder:resource:categories={spiderdoctor},path="nethttps",singular="nethttp",scope="Cluster"
-// +kubebuilder:printcolumn:JSONPath=".status.Finish",description="Finish",name="Finish",type=boolean
-// +kubebuilder:printcolumn:JSONPath=".status.ExpectedRound",description="ExpectedRound",name="ExpectedRound",type=integer
-// +kubebuilder:printcolumn:JSONPath=".status.DoneRound",description="DoneRound",name="DoneRound",type=integer
-// +kubebuilder:printcolumn:JSONPath=".status.LastRoundStatus",description="LastRoundStatus",name="LastRoundStatus",type=integer
+// +kubebuilder:printcolumn:JSONPath=".status.finish",description="finish",name="finish",type=boolean
+// +kubebuilder:printcolumn:JSONPath=".status.expectedRound",description="expectedRound",name="expectedRound",type=integer
+// +kubebuilder:printcolumn:JSONPath=".status.doneRound",description="doneRound",name="doneRound",type=integer
+// +kubebuilder:printcolumn:JSONPath=".status.lastRoundStatus",description="lastRoundStatus",name="lastRoundStatus",type=string
+// +kubebuilder:printcolumn:JSONPath=".spec.schedule.intervalMinute",description="roundIntervalMinute",name="intervalMinute",type=integer
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +genclient

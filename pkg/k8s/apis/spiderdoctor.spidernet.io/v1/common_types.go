@@ -21,61 +21,71 @@ type SchedulePlan struct {
 	// +kubebuilder:default=60
 	// +kubebuilder:validation:Minimum=1
 	TimeoutMinute int64 `json:"timeoutMinute"`
+
+	// +kubebuilder:validation:Optional
+	SourceAgentNodeSelector *metav1.LabelSelector `json:"sourceAgentNodeSelector,omitempty"`
 }
 
 type TaskStatus struct {
+	// +kubebuilder:validation:Optional
 	// +kubebuilder:validation:Minimum=0
-	ExpectedRound int64 `json:"expectedRound"`
-
-	// +kubebuilder:validation:Minimum=0
-	DoneRound *int64 `json:"doneRound"`
-
-	Finish bool `json:"finish"`
+	ExpectedRound *int64 `json:"expectedRound,omitempty"`
 
 	// +kubebuilder:validation:Optional
-	// +kubebuilder:validation:Type:=string
-	// +kubebuilder:validation:Format:=date-time
-	LastRoundFinishTimeStamp *metav1.Time `json:"lastRoundFinishTimeStamp,omitempty"`
+	// +kubebuilder:validation:Minimum=0
+	DoneRound *int64 `json:"doneRound,omitempty"`
+
+	Finish bool `json:"finish"`
 
 	// +kubebuilder:validation:Optional
 	// +kubebuilder:validation:Enum=succeed;fail;unknown
 	LastRoundStatus *string `json:"lastRoundStatus,omitempty"`
 
-	// +kubebuilder:validation:Optional
-	// +kubebuilder:validation:Type:=string
-	// +kubebuilder:validation:Format:=date-time
-	NextRoundStartTimeStamp *metav1.Time `json:"nextRoundStartTimeStamp,omitempty"`
-
-	// +kubebuilder:validation:Optional
-	// +kubebuilder:validation:Type:=string
-	// +kubebuilder:validation:Format:=date-time
-	NextRoundDeadLineTimeStamp *metav1.Time `json:"nextRoundDeadLineTimeStamp,omitempty"`
-
 	History []StatusHistoryRecord `json:"history"`
 }
 
+const (
+	StatusHistoryRecordStatusSucceed    = "succeed"
+	StatusHistoryRecordStatusFail       = "fail"
+	StatusHistoryRecordStatusOngoing    = "ongoing"
+	StatusHistoryRecordStatusNotstarted = "notstarted"
+)
+
 type StatusHistoryRecord struct {
 
-	// +kubebuilder:validation:Enum=succeed;fail;unknown
+	// +kubebuilder:validation:Enum=succeed;fail;ongoing;notstarted
 	Status string `json:"status"`
+
+	// +kubebuilder:validation:Optional
+	FailureReason string `json:"failureReason,omitempty"`
+
+	RoundNumber int `json:"roundNumber"`
 
 	// +kubebuilder:validation:Type:=string
 	// +kubebuilder:validation:Format:=date-time
-	StartTimeStamp *metav1.Time `json:"startTimeStamp,omitempty"`
+	StartTimeStamp metav1.Time `json:"startTimeStamp"`
+
+	// +kubebuilder:validation:Type:=string
+	// +kubebuilder:validation:Format:=date-time
+	DeadLineTimeStamp metav1.Time `json:"deadLineTimeStamp"`
 
 	FailedAgentNodeList []string `json:"failedAgentNodeList"`
+
+	SucceedAgentNodeList []string `json:"succeedAgentNodeList"`
+
+	NotReportAgentNodeList []string `json:"notReportAgentNodeList"`
 }
 
 type NetSuccessCondition struct {
 
 	// +kubebuilder:default=1
-	// +kubebuilder:validation:Minimum=0
 	// +kubebuilder:validation:Maximum=1
+	// +kubebuilder:validation:Minimum=0
 	// +kubebuilder:validation:Optional
-	SuccessRate *float32 `json:"successRate,omitempty"`
+	SuccessRate *float64 `json:"successRate,omitempty"`
 
 	// +kubebuilder:default=5000
-	// +kubebuilder:validation:Minimum=100
+	// +kubebuilder:validation:Minimum=1
 	// +kubebuilder:validation:Optional
-	MeanAccessDelayInMs *uint64 `json:"meanAccessDelayInMs,omitempty"`
+	MeanAccessDelayInMs *int64 `json:"meanAccessDelayInMs,omitempty"`
 }

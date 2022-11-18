@@ -33,6 +33,9 @@ spec:
       targetPort: http
       protocol: TCP
     {{- end }}
+  ipFamilyPolicy: SingleStack
+  ipFamilies:
+    - IPv4
   selector:
     {{- include "project.spiderdoctorAgent.selectorLabels" . | nindent 4 }}
 {{- end }}
@@ -72,6 +75,9 @@ spec:
       targetPort: http
       protocol: TCP
     {{- end }}
+  ipFamilyPolicy: SingleStack
+  ipFamilies:
+    - IPv6
   selector:
     {{- include "project.spiderdoctorAgent.selectorLabels" . | nindent 4 }}
   {{- end }}

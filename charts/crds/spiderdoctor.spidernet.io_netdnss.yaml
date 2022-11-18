@@ -18,21 +18,25 @@ spec:
   scope: Cluster
   versions:
   - additionalPrinterColumns:
-    - description: Finish
-      jsonPath: .status.Finish
-      name: Finish
+    - description: finish
+      jsonPath: .status.finish
+      name: finish
       type: boolean
-    - description: ExpectedRound
-      jsonPath: .status.ExpectedRound
-      name: ExpectedRound
+    - description: expectedRound
+      jsonPath: .status.expectedRound
+      name: expectedRound
       type: integer
-    - description: DoneRound
-      jsonPath: .status.DoneRound
-      name: DoneRound
+    - description: doneRound
+      jsonPath: .status.doneRound
+      name: doneRound
       type: integer
-    - description: LastRoundStatus
-      jsonPath: .status.LastRoundStatus
-      name: LastRoundStatus
+    - description: lastRoundStatus
+      jsonPath: .status.lastRoundStatus
+      name: lastRoundStatus
+      type: string
+    - description: roundIntervalMinute
+      jsonPath: .spec.schedule.intervalMinute
+      name: intervalMinute
       type: integer
     name: v1
     schema:
@@ -89,6 +93,54 @@ spec:
                     format: int64
                     minimum: 0
                     type: integer
+                  sourceAgentNodeSelector:
+                    description: A label selector is a label query over a set of resources.
+                      The result of matchLabels and matchExpressions are ANDed. An
+                      empty label selector matches all objects. A null label selector
+                      matches no objects.
+                    properties:
+                      matchExpressions:
+                        description: matchExpressions is a list of label selector
+                          requirements. The requirements are ANDed.
+                        items:
+                          description: A label selector requirement is a selector
+                            that contains values, a key, and an operator that relates
+                            the key and values.
+                          properties:
+                            key:
+                              description: key is the label key that the selector
+                                applies to.
+                              type: string
+                            operator:
+                              description: operator represents a key's relationship
+                                to a set of values. Valid operators are In, NotIn,
+                                Exists and DoesNotExist.
+                              type: string
+                            values:
+                              description: values is an array of string values. If
+                                the operator is In or NotIn, the values array must
+                                be non-empty. If the operator is Exists or DoesNotExist,
+                                the values array must be empty. This array is replaced
+                                during a strategic merge patch.
+                              items:
+                                type: string
+                              type: array
+                          required:
+                          - key
+                          - operator
+                          type: object
+                        type: array
+                      matchLabels:
+                        additionalProperties:
+                          type: string
+                        description: matchLabels is a map of {key,value} pairs. A
+                          single {key,value} in the matchLabels map is equivalent
+                          to an element of matchExpressions, whose key field is "key",
+                          the operator is "In", and the values array contains only
+                          "value". The requirements are ANDed.
+                        type: object
+                    type: object
+                    x-kubernetes-map-type: atomic
                   startAfterMinute:
                     default: 0
                     format: int64
@@ -110,7 +162,7 @@ spec:
                   meanAccessDelayInMs:
                     default: 5000
                     format: int64
-                    minimum: 100
+                    minimum: 1
                     type: integer
                   successRate:
                     default: 1
@@ -134,10 +186,21 @@ spec:
               history:
                 items:
                   properties:
+                    deadLineTimeStamp:
+                      format: date-time
+                      type: string
                     failedAgentNodeList:
                       items:
                         type: string
                       type: array
+                    failureReason:
+                      type: string
+                    notReportAgentNodeList:
+                      items:
+                        type: string
+                      type: array
+                    roundNumber:
+                      type: integer
                     startTimeStamp:
                       format: date-time
                       type: string
@@ -145,31 +208,30 @@ spec:
                       enum:
                       - succeed
                       - fail
-                      - unknown
+                      - ongoing
+                      - notstarted
                       type: string
+                    succeedAgentNodeList:
+                      items:
+                        type: string
+                      type: array
                   required:
+                  - deadLineTimeStamp
                   - failedAgentNodeList
+                  - notReportAgentNodeList
+                  - roundNumber
+                  - startTimeStamp
                   - status
+                  - succeedAgentNodeList
                   type: object
                 type: array
-              lastRoundFinishTimeStamp:
-                format: date-time
-                type: string
               lastRoundStatus:
                 enum:
                 - succeed
                 - fail
                 - unknown
                 type: string
-              nextRoundDeadLineTimeStamp:
-                format: date-time
-                type: string
-              nextRoundStartTimeStamp:
-                format: date-time
-                type: string
             required:
-            - doneRound
-            - expectedRound
             - finish
             - history
             type: object

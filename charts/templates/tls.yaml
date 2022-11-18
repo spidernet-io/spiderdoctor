@@ -17,7 +17,6 @@ webhooks:
       service:
         name: {{ .Values.spiderdoctorController.name | trunc 63 | trimSuffix "-" }}
         namespace: {{ .Release.Namespace }}
-        # ====modify==== the mutating route path : "/mutate-" + strings.ReplaceAll(gvk.Group, ".", "-") + "-" + gvk.Version + "-" + strings.ToLower(gvk.Kind)
         path: "/mutate-spiderdoctor-spidernet-io-v1-nethttp"
         port: {{ .Values.spiderdoctorController.webhookPort }}
       {{- if (eq .Values.spiderdoctorController.tls.method "provided") }}
@@ -26,7 +25,7 @@ webhooks:
       caBundle: {{ .ca.Cert | b64enc }}
       {{- end }}
     failurePolicy: Fail
-    # ====modify====
+    sideEffects: None
     name: nethttp.spiderdoctor.spidernet.io
     rules:
       - apiGroups:
@@ -37,12 +36,36 @@ webhooks:
         operations:
           - CREATE
           - UPDATE
-          - DELETE
         resources:
           # ====modify==== crdName
           - nethttps
+  - admissionReviewVersions:
+      - v1
+    clientConfig:
+      service:
+        name: {{ .Values.spiderdoctorController.name | trunc 63 | trimSuffix "-" }}
+        namespace: {{ .Release.Namespace }}
+        path: "/mutate-spiderdoctor-spidernet-io-v1-netdns"
+        port: {{ .Values.spiderdoctorController.webhookPort }}
+      {{- if (eq .Values.spiderdoctorController.tls.method "provided") }}
+      caBundle: {{ .Values.spiderdoctorController.tls.provided.tlsCa | required "missing tls.provided.tlsCa" }}
+      {{- else if (eq .Values.spiderdoctorController.tls.method "auto") }}
+      caBundle: {{ .ca.Cert | b64enc }}
+      {{- end }}
+    failurePolicy: Fail
     sideEffects: None
-
+    # ====modify====
+    name: netdns.spiderdoctor.spidernet.io
+    rules:
+      - apiGroups:
+          - spiderdoctor.spidernet.io
+        apiVersions:
+          - v1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - netdnss
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
@@ -59,7 +82,6 @@ webhooks:
       service:
         name: {{ .Values.spiderdoctorController.name | trunc 63 | trimSuffix "-" }}
         namespace: {{ .Release.Namespace }}
-        # ====modify==== the validate route path : "/validate-" + strings.ReplaceAll(gvk.Group, ".", "-") + "-" + gvk.Version + "-" + strings.ToLower(gvk.Kind)
         path: "/validate-spiderdoctor-spidernet-io-v1-nethttp"
         port: {{ .Values.spiderdoctorController.webhookPort }}
       {{- if (eq .Values.spiderdoctorController.tls.method "provided") }}
@@ -68,22 +90,44 @@ webhooks:
       caBundle: {{ .ca.Cert | b64enc }}
       {{- end }}
     failurePolicy: Fail
-    # ====modify====
     name: nethttp.spiderdoctor.spidernet.io
+    sideEffects: None
     rules:
       - apiGroups:
-          # ====modify====
           - spiderdoctor.spidernet.io
         apiVersions:
           - v1
         operations:
           - CREATE
           - UPDATE
-          - DELETE
         resources:
-          # ====modify==== crdName
           - nethttps
+  - admissionReviewVersions:
+      - v1
+    clientConfig:
+      service:
+        name: {{ .Values.spiderdoctorController.name | trunc 63 | trimSuffix "-" }}
+        namespace: {{ .Release.Namespace }}
+        path: "/validate-spiderdoctor-spidernet-io-v1-netdns"
+        port: {{ .Values.spiderdoctorController.webhookPort }}
+      {{- if (eq .Values.spiderdoctorController.tls.method "provided") }}
+      caBundle: {{ .Values.spiderdoctorController.tls.provided.tlsCa | required "missing tls.provided.tlsCa" }}
+      {{- else if (eq .Values.spiderdoctorController.tls.method "auto") }}
+      caBundle: {{ .ca.Cert | b64enc }}
+      {{- end }}
+    failurePolicy: Fail
+    name: netdns.spiderdoctor.spidernet.io
     sideEffects: None
+    rules:
+      - apiGroups:
+          - spiderdoctor.spidernet.io
+        apiVersions:
+          - v1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - netdnss
 
 {{- if eq .Values.spiderdoctorController.tls.method "certmanager" -}}
 ---
