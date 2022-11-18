@@ -39,7 +39,7 @@ spec:
       name: intervalMinute
       type: integer
     - description: nextRoundStartTime
-      jsonPath: .status.history[(@.length-1)].startTimeStamp
+      jsonPath: .status.history[0].startTimeStamp
       name: nextRoundStartTime
       type: date
     name: v1
