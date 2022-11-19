@@ -1,6 +1,6 @@
 {
 	"cniVersion": "0.3.1",
-	"name": "k8s-pod-network",
+	"name": "<<NAME>>",
 	"plugins": [
 	{
 		"type": "ptp",
