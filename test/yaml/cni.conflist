@@ -7,9 +7,9 @@
 		"ipMasq": false,
 		"ipam": {
 			"type": "host-local",
-			"dataDir": "/run/cni-ptp<<NAME>>-ipam-state",
+			"dataDir": "/run/cni-<<NAME>>-ipam",
 			"routes": [
-			      { "dst": "0.0.0.0/0" },{ "dst": "::/0" }
+			      <<ROUTE>>
             ],
 			"ranges": [
                 <<IP_RANGE>>
