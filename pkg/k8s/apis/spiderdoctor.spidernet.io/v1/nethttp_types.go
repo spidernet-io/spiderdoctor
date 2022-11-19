@@ -71,7 +71,7 @@ type NethttpTarget struct {
 	TargetUrl *string `json:"targetUrl,omitempty"`
 
 	// +kubebuilder:validation:Optional
-	TargetAgent *TargetAgentSepc `json:"rargetAgent,omitempty"`
+	TargetAgent *TargetAgentSepc `json:"targetAgent,omitempty"`
 }
 
 // scope(Namespaced or Cluster)

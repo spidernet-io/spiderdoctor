@@ -163,7 +163,7 @@ spec:
                 type: object
               target:
                 properties:
-                  rargetAgent:
+                  targetAgent:
                     properties:
                       testClusterIp:
                         default: true

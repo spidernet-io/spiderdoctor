@@ -82,7 +82,38 @@ kubectl apply -f nethttp3.yaml
 
 ```
 
+```shell
 
+cat <<EOF > nethttp4.yaml
+apiVersion: spiderdoctor.spidernet.io/v1
+kind: Nethttp
+metadata:
+  name: testhttp4
+spec:
+  schedule:
+    startAfterMinute: 0
+    roundNumber: 2
+    intervalMinute: 2
+    timeoutMinute: 1
+  target:
+    targetAgent:
+      testIPv4: true
+      testIPv6: true
+      testEndpoint: true
+      testMultusInterface: true
+      testClusterIp: true
+      testNodePort: true
+  request:
+    durationInSecond: 5
+    qps: 10
+    perRequestTimeoutInSecond: 5
+  success:
+    successRate: 1
+    meanAccessDelayInMs: 10000
+EOF
+kubectl apply -f nethttp4.yaml
+
+```
 
 
 metric introduction

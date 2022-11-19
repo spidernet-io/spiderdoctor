@@ -31,7 +31,7 @@ func (s *PluginNetHttp) WebhookMutating(logger *zap.Logger, ctx context.Context,
 		enableIpv6 := types.ControllerConfig.Configmap.EnableIPv6
 		m := &crd.TargetAgentSepc{
 			TestEndpoint:        true,
-			TestMultusInterface: true,
+			TestMultusInterface: false,
 			TestClusterIp:       true,
 			TestIngress:         false,
 			TestIPv6:            &enableIpv6,
