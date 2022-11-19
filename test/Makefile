@@ -143,8 +143,8 @@ deploy_project:
 			HELM_OPTION+=" --set feature.enableIPv4=true --set feature.enableIPv6=true " ; \
 		fi ;\
 		if [ "$(E2E_ENABLE_MULTUS)" == "true" ] ; then \
-		    HELM_OPTION+=' --set spiderdoctorAgent.podAnnotations.v1\.multus-cni\.io/default-network="kube-system/k8s-pod-network" ' ; \
-		    HELM_OPTION+=' --set spiderdoctorAgent.podAnnotations.v1\.k8s\.v1\.cni\.cncf\.io/networks="kube-system/ptp" ' ; \
+		    HELM_OPTION+=" --set spiderdoctorAgent.podAnnotations.v1\.multus-cni\.io/default-network=kube-system/k8s-pod-network " ; \
+		    HELM_OPTION+=" --set spiderdoctorAgent.podAnnotations.k8s\.v1\.cni\.cncf\.io/networks=kube-system/ptp " ; \
 		fi ; \
 		HELM_OPTION+=" --set spiderdoctorAgent.debug.logLevel=debug --set spiderdoctorController.debug.logLevel=debug " ; \
 		HELM_OPTION+=" --set spiderdoctorAgent.prometheus.enabled=true --set spiderdoctorController.prometheus.enabled=true  " ; \
