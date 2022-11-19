@@ -15,6 +15,7 @@ import (
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"strings"
 	"time"
 )
 
@@ -31,7 +32,7 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 	go func() {
 		startTime := time.Now()
 		msg := plugintypes.PluginReport{
-			TaskName:       taskName,
+			TaskName:       strings.ToLower(taskName),
 			RoundNumber:    roundNumber,
 			AgentNodeName:  s.localNodeName,
 			AgentPodName:   types.AgentConfig.PodName,
