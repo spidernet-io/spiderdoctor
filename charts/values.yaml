@@ -68,7 +68,7 @@ spiderdoctorAgent:
   cmdBinName: "/usr/bin/agent"
 
   ## @param spiderdoctorAgent.hostnetwork enable hostnetwork mode of spiderdoctorAgent pod
-  hostnetwork: true
+  hostnetwork: false
 
   image:
     ## @param spiderdoctorAgent.image.registry the image registry of spiderdoctorAgent

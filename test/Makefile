@@ -206,10 +206,10 @@ deploy_multus:
 			  echo "install ipv4-only case" ; \
 		  	  [ -n "$${MASTER_IPV4_ADDR}" ] || { echo "error, failed to find master ipv4" ; exit 1 ; } ; \
 		  	  [ -n "$${WORKER_IPV4_ADDR}" ] || { echo "error, failed to find worker ipv4" ; exit 1 ; } ; \
-			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.80.1.0/24" \}\]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist ; \
-			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.90.1.0/24" \}\]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni2.conflist ; \
-			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.80.2.0/24" \}\]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist ; \
-			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.90.2.0/24" \}\]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni2.conflist ; \
+			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.80.1.0/24" \}\]?' ./yaml/cni.conflist | sed 's?<<NAME>>?80?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist ; \
+			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.90.1.0/24" \}\]?' ./yaml/cni.conflist | sed 's?<<NAME>>?90?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni2.conflist ; \
+			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.80.2.0/24" \}\]?' ./yaml/cni.conflist | sed 's?<<NAME>>?80?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist ; \
+			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.90.2.0/24" \}\]?' ./yaml/cni.conflist | sed 's?<<NAME>>?90?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni2.conflist ; \
 			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist $(E2E_KIND_MASTER_NODE_NAME):/etc/cni/net.d ; \
 			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni2.conflist $(E2E_KIND_MASTER_NODE_NAME):/etc/cni/net.d ; \
 			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist $(E2E_KIND_WORKER_NODE_NAME):/etc/cni/net.d ; \
@@ -222,10 +222,10 @@ deploy_multus:
 			  echo "install ipv6-only case" ; \
 		  	  [ -n "$${MASTER_IPV6_ADDR}" ] || { echo "error, failed to find master ipv6" ; exit 1 ; } ; \
 		  	  [ -n "$${WORKER_IPV6_ADDR}" ] || { echo "error, failed to find worker ipv6" ; exit 1 ; } ; \
-			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "fd80:1::/64" \}\]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist ; \
-			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "fd90:1::/64" \}\]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist ; \
-			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "fd80:2::/64" \}\]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist ; \
-			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "fd90:2::/64" \}\]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni2.conflist ; \
+			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "fd80:1::/64" \}\]?' ./yaml/cni.conflist | sed 's?<<NAME>>?80?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist ; \
+			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "fd90:1::/64" \}\]?' ./yaml/cni.conflist | sed 's?<<NAME>>?90?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist ; \
+			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "fd80:2::/64" \}\]?' ./yaml/cni.conflist | sed 's?<<NAME>>?80?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist ; \
+			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "fd90:2::/64" \}\]?' ./yaml/cni.conflist | sed 's?<<NAME>>?90?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni2.conflist ; \
 			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist $(E2E_KIND_MASTER_NODE_NAME):/etc/cni/net.d ; \
 			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni2.conflist $(E2E_KIND_MASTER_NODE_NAME):/etc/cni/net.d ; \
 			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist $(E2E_KIND_WORKER_NODE_NAME):/etc/cni/net.d ; \
@@ -240,10 +240,10 @@ deploy_multus:
 		  	  [ -n "$${WORKER_IPV4_ADDR}" ] || { echo "error, failed to find worker ipv4" ; exit 1 ; } ; \
 		  	  [ -n "$${MASTER_IPV6_ADDR}" ] || { echo "error, failed to find master ipv6" ; exit 1 ; } ; \
 		  	  [ -n "$${WORKER_IPV6_ADDR}" ] || { echo "error, failed to find worker ipv6" ; exit 1 ; } ; \
-			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.80.1.0/24" \}\],\[\{ "subnet": "fd80:1::/64" \}\]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist ; \
-			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.90.1.0/24" \}\],\[\{ "subnet": "fd90:1::/64" \}\]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni2.conflist ; \
-			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.80.2.0/24" \}\],\[\{ "subnet": "fd80:2::/64" \}\]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist ; \
-			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.90.2.0/24" \}\],\[\{ "subnet": "fd90:2::/64" \}\]?' ./yaml/cni.conflist > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni2.conflist ; \
+			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.80.1.0/24" \}\],\[\{ "subnet": "fd80:1::/64" \}\]?' ./yaml/cni.conflist | sed 's?<<NAME>>?80?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist ; \
+			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.90.1.0/24" \}\],\[\{ "subnet": "fd90:1::/64" \}\]?' ./yaml/cni.conflist | sed 's?<<NAME>>?90?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni2.conflist ; \
+			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.80.2.0/24" \}\],\[\{ "subnet": "fd80:2::/64" \}\]?' ./yaml/cni.conflist | sed 's?<<NAME>>?80?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist ; \
+			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.90.2.0/24" \}\],\[\{ "subnet": "fd90:2::/64" \}\]?' ./yaml/cni.conflist | sed 's?<<NAME>>?90?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni2.conflist ; \
 			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist $(E2E_KIND_MASTER_NODE_NAME):/etc/cni/net.d ; \
 			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni2.conflist $(E2E_KIND_MASTER_NODE_NAME):/etc/cni/net.d ; \
 			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist $(E2E_KIND_WORKER_NODE_NAME):/etc/cni/net.d ; \
