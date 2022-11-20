@@ -61,7 +61,7 @@ feature:
   ## aggregate report from agent for each crd
   aggregateReport:
     ## @param feature.aggregateReport.enabled aggregate report from agent for each crd
-    enabled: false
+    enabled: true
 
     ## @param feature.aggregateReport.cleanAgedReportIntervalInMinute the interval in minute for removing aged report
     cleanAgedReportIntervalInMinute: "10"

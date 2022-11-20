@@ -117,12 +117,15 @@ kubectl apply -f nethttp4.yaml
 
 
 
-get report 
+
 ```shell
+#get log 
+kubectl logs -n kube-system  spiderdoctor-agent-v4vzx | grpe -i "nethttp.testhttp1"
+
+# get report 
 kubectl logs -n kube-system  spiderdoctor-agent-v4vzx | jq 'select( .TaskName=="nethttp.testhttp1" )'
 
 ```
-
 
 
 
