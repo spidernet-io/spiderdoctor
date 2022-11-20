@@ -25,19 +25,19 @@ var _ = Describe("test ippool CR", Label("ippoolCR"), func() {
 
 	It("test basic", func() {
 		log := logger.NewStdoutLogger("debug", "test")
-		nodeName := "worker1"
 		cleanInterval := 2 * time.Second
-		f, e := fileManager.NewManager(log, reportDir, nodeName, cleanInterval)
+		f, e := fileManager.NewManager(log, reportDir, cleanInterval)
 		Expect(e).NotTo(HaveOccurred(), "failed to NewManager, error=%v", e)
 		f.RunCleanerByAge()
 
 		// --write
 		kindName := "kindTom"
 		taskName := "taskFire"
+		nodeName := "worker1"
 		roundNumber := 10
 		endTime := time.Now().Add(10 * time.Second)
 		data := []byte("line1 \n line2\n")
-		e = f.WriteTaskFile(kindName, taskName, roundNumber, endTime, data)
+		e = f.WriteTaskFile(kindName, taskName, roundNumber, nodeName, endTime, data)
 		Expect(e).NotTo(HaveOccurred(), "failed to write task file %v", e)
 
 		// ---- check existence

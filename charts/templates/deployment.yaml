@@ -140,16 +140,18 @@ spec:
               value: {{ .Values.spiderdoctorController.httpServer.port | quote }}
             - name: ENV_AGENT_GRPC_LISTEN_PORT
               value: {{ .Values.spiderdoctorAgent.grpcServer.port | quote }}
-            - name: ENV_AGGREGATE_AGENT_REPORT
-              value: {{ .Values.spiderdoctorController.aggregateReport.enabled | quote }}
             - name: ENV_AGENT_DAEMONSET_NAME
               value: {{ .Values.spiderdoctorAgent.name | trunc 63 | trimSuffix "-" }}
-            {{- if .Values.spiderdoctorController.aggregateReport.enabled }}
-            - name: ENV_PATH_AGGREGATE_AGENT_REPORT
+            - name: ENV_ENABLE_AGGREGATE_AGENT_REPORT
+              value: {{ .Values.feature.aggregateReport.enabled | quote }}
+            {{- if .Values.feature.aggregateReport.enabled }}
+            - name: ENV_CONTROLLER_REPORT_STORAGE_PATH
               value: "/report"
+            - name: ENV_AGENT_REPORT_STORAGE_PATH
+              value: {{ .Values.feature.aggregateReport.agent.reportPath | quote }}
+            - name: ENV_CLEAN_AGED_REPORT_INTERVAL_IN_MINUTE
+              value: {{ .Values.feature.aggregateReport.cleanAgedReportIntervalInMinute | quote }}
             {{- end }}
-            - name: ENV_PATH_AGENT_POD_REPORT
-              value: "/report"
             - name: ENV_POD_NAME
               valueFrom:
                 fieldRef:
@@ -169,7 +171,7 @@ spec:
             - name: config-path
               mountPath: /tmp/config-map
               readOnly: true
-            {{- if .Values.spiderdoctorController.aggregateReport.enabled }}
+            {{- if .Values.feature.aggregateReport.enabled }}
             - name: report-data
               mountPath: /report
             {{- end }}
@@ -180,15 +182,15 @@ spec:
             {{- include "tplvalues.render" ( dict "value" .Values.spiderdoctorController.extraVolumeMounts "context" $ ) | nindent 12 }}
             {{- end }}
       volumes:
-        {{- if .Values.spiderdoctorController.aggregateReport.enabled }}
-        {{- if .Values.spiderdoctorController.aggregateReport.pvc.enabled }}
+        {{- if .Values.feature.aggregateReport.enabled }}
+        {{- if .Values.feature.aggregateReport.controller.pvc.enabled }}
         - name: report-data
           persistentVolumeClaim:
             claimName: {{ .Values.spiderdoctorController.name | trunc 63 | trimSuffix "-" }}
         {{- else }}
         - name: report-data
           hostPath:
-            path: {{ .Values.spiderdoctorController.aggregateReport.reportHostPath }}
+            path: {{ .Values.feature.aggregateReport.controller.reportHostPath }}
             type: DirectoryOrCreate
         {{- end }}
         {{- end }}

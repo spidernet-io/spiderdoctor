@@ -5,6 +5,7 @@ package pluginManager
 
 import (
 	"fmt"
+	"github.com/spidernet-io/spiderdoctor/pkg/fileManager"
 	k8sObjManager "github.com/spidernet-io/spiderdoctor/pkg/k8ObjManager"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	"github.com/spidernet-io/spiderdoctor/pkg/lock"
@@ -50,6 +51,17 @@ func (s *pluginManager) RunAgentController() {
 		logger.Sugar().Fatalf("failed to add scheme for plugins, reason=%v", e)
 	}
 
+	var fm fileManager.FileManager
+	var e error
+	if types.AgentConfig.EnableAggregateAgentReport {
+		gcInterval := time.Duration(types.AgentConfig.CleanAgedReportInMinute) * time.Minute
+		logger.Sugar().Infof("save report to %v, clean interval %v", types.AgentConfig.DirPathAgentReport, gcInterval.String())
+		fm, e = fileManager.NewManager(logger.Named("fileManager"), types.AgentConfig.DirPathAgentReport, gcInterval)
+		if e != nil {
+			logger.Sugar().Fatalf("failed to new fileManager , reason=%v", e)
+		}
+	}
+
 	n := ctrl.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     "0",
@@ -89,6 +101,7 @@ func (s *pluginManager) RunAgentController() {
 			crdKind:       name,
 			taskRoundData: taskStatusManager.NewTaskStatus(),
 			localNodeName: types.AgentConfig.LocalNodeName,
+			fm:            fm,
 		}
 		if e := k.SetupWithManager(mgr); e != nil {
 			s.logger.Sugar().Fatalf("failed to builder reconcile for plugin %v, error=%v", name, e)
@@ -170,6 +183,17 @@ func (s *pluginManager) RunControllerController(healthPort int, webhookPort int,
 
 	}
 
+	var fm fileManager.FileManager
+	var e error
+	if types.ControllerConfig.EnableAggregateAgentReport {
+		gcInterval := time.Duration(types.ControllerConfig.CleanAgedReportInMinute) * time.Minute
+		logger.Sugar().Infof("save report to %v, clean interval %v", types.ControllerConfig.DirPathAgentReport, gcInterval.String())
+		fm, e = fileManager.NewManager(logger.Named("fileManager"), types.ControllerConfig.DirPathAgentReport, gcInterval)
+		if e != nil {
+			logger.Sugar().Fatalf("failed to new fileManager , reason=%v", e)
+		}
+	}
+
 	for name, plugin := range s.chainingPlugins {
 		// setup reconcile
 		logger.Sugar().Infof("run controller for plugin %v", name)
@@ -178,6 +202,7 @@ func (s *pluginManager) RunControllerController(healthPort int, webhookPort int,
 			plugin:  plugin,
 			client:  mgr.GetClient(),
 			crdKind: name,
+			fm:      fm,
 		}
 		if e := k.SetupWithManager(mgr); e != nil {
 			s.logger.Sugar().Fatalf("failed to builder reconcile for plugin %v, error=%v", name, e)

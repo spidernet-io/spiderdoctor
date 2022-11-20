@@ -5,6 +5,7 @@ package pluginManager
 
 import (
 	"context"
+	"github.com/spidernet-io/spiderdoctor/pkg/fileManager"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"go.uber.org/zap"
@@ -19,6 +20,7 @@ type pluginControllerReconciler struct {
 	plugin  plugintypes.ChainingPlugin
 	logger  *zap.Logger
 	crdKind string
+	fm      fileManager.FileManager
 }
 
 // contorller reconcile

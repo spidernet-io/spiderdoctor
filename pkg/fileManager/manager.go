@@ -15,7 +15,7 @@ import (
 type FileManager interface {
 	RunCleanerByAge()
 	RemoveTaskFiles(kindName string, taskName string) error
-	WriteTaskFile(kindName string, taskName string, roundNumber int, endTime time.Time, data []byte) error
+	WriteTaskFile(kindName string, taskName string, roundNumber int, nodeName string, endTime time.Time, data []byte) error
 	GetTaskAllFile(kindName string, taskName string) ([]string, error)
 	GetAllFile() ([]string, error)
 }
@@ -24,13 +24,12 @@ type fileManager struct {
 	reportDir     string
 	logger        *zap.Logger
 	cleanInterval time.Duration
-	nodeName      string
 }
 
 var _ FileManager = &fileManager{}
 
-func NewManager(logger *zap.Logger, reportDir string, nodeName string, cleanInterval time.Duration) (FileManager, error) {
-	if logger == nil || len(reportDir) == 0 || len(nodeName) == 0 {
+func NewManager(logger *zap.Logger, reportDir string, cleanInterval time.Duration) (FileManager, error) {
+	if logger == nil || len(reportDir) == 0 {
 		return nil, fmt.Errorf("bad request")
 	}
 
@@ -51,7 +50,6 @@ func NewManager(logger *zap.Logger, reportDir string, nodeName string, cleanInte
 		reportDir:     reportDir,
 		logger:        logger,
 		cleanInterval: cleanInterval,
-		nodeName:      nodeName,
 	}
 	return p, nil
 }
@@ -174,9 +172,9 @@ func (s *fileManager) RemoveTaskFiles(kindName string, taskName string) error {
 
 }
 
-func (s *fileManager) WriteTaskFile(kindName string, taskName string, roundNumber int, endTime time.Time, data []byte) error {
+func (s *fileManager) WriteTaskFile(kindName string, taskName string, roundNumber int, nodeName string, endTime time.Time, data []byte) error {
 
-	name := GenerateTaskFileName(kindName, taskName, roundNumber, s.nodeName, endTime)
+	name := GenerateTaskFileName(kindName, taskName, roundNumber, nodeName, endTime)
 	filePath := path.Join(s.reportDir, name)
 
 	v := NewFileWriter(filePath)
