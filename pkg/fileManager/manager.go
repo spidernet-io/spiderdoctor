@@ -38,7 +38,7 @@ func NewManager(logger *zap.Logger, reportDir string, cleanInterval time.Duratio
 		if os.IsNotExist(err) {
 			// try to create it
 			if e := os.MkdirAll(reportDir, os.ModePerm); e != nil {
-				return nil, fmt.Errorf("failed to create diretory %v, error=%v", reportDir, e)
+				return nil, fmt.Errorf("failed to create directory %v, error=%v", reportDir, e)
 			}
 			logger.Sugar().Infof("succeed to create reportDir directory %v", reportDir)
 		} else {
@@ -84,7 +84,7 @@ func (s *fileManager) cleanByAgeOnce() {
 		}
 
 		if endTime, e := getTaskFileEndTime(item.Name()); e != nil {
-			s.logger.Sugar().Warnf("ignore unknow file %v, error=%v", item.Name(), e)
+			s.logger.Sugar().Warnf("ignore unknown file %v, error=%v", item.Name(), e)
 			continue
 		} else {
 			if time.Now().Before(endTime) {
@@ -145,6 +145,7 @@ func (s *fileManager) GetTaskAllFile(kindName string, taskName string) ([]string
 		if item.IsDir() {
 			continue
 		}
+		// file name format: fmt.Sprintf("%s_%s_round%d_%s_%s", kindName, taskName, roundNumber, nodeName, suffix)
 		if strings.HasPrefix(item.Name(), fmt.Sprintf("%s_%s_round", kindName, taskName)) {
 			fileList = append(fileList, path.Join(s.reportDir, item.Name()))
 		}
@@ -164,6 +165,7 @@ func (s *fileManager) CheckTaskFileExisted(kindName string, taskName string, rou
 			continue
 		}
 		name := item.Name()
+		// file name format: fmt.Sprintf("%s_%s_round%d_%s_%s", kindName, taskName, roundNumber, nodeName, suffix)
 		if strings.HasPrefix(name, fmt.Sprintf("%s_%s_round%d_", kindName, taskName, roundNumber)) {
 			return true
 		}

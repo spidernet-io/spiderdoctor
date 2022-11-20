@@ -163,7 +163,7 @@ deploy_project:
 deploy_multus: KIND_KUBECONFIG ?= $(E2E_KIND_KUBECONFIG_PATH)
 deploy_multus: KIND_CLUSTER_NAME ?= $(E2E_KIND_CLUSTER_NAME)
 deploy_multus:
-	[ "$(E2E_ENABLE_MULTUS)" == "true" ] || { echo "multus is diabled" ; exit 0 ; }
+	[ "$(E2E_ENABLE_MULTUS)" == "true" ] || { echo "multus is disabled" ; exit 0 ; }
 	@echo "beign to install multus"
 	- helm repo remove $(MULTUS_REPO_NAME)
 	helm repo add $(MULTUS_REPO_NAME) $(MULTUS_CHART_REPO) ; \

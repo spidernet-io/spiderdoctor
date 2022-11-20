@@ -115,7 +115,7 @@ func (s *pluginControllerReconciler) WriteSummaryReport(taskName string, roundNu
 	}
 
 	kindName := strings.Split(taskName, ".")[0]
-	instanceName := strings.TrimPrefix(taskName, kindName)
+	instanceName := strings.TrimPrefix(taskName, kindName+".")
 	t := time.Duration(types.ControllerConfig.ReportAgeInDay*24) * time.Hour
 	endTime := newStatus.History[0].StartTimeStamp.Add(t)
 
@@ -133,7 +133,7 @@ func (s *pluginControllerReconciler) WriteSummaryReport(taskName string, roundNu
 			PodName:        types.ControllerConfig.PodName,
 			StartTimeStamp: newStatus.History[0].StartTimeStamp.Time,
 			EndTimeStamp:   time.Now(),
-			RoundDuraiton:  time.Now().Sub(newStatus.History[0].StartTimeStamp.Time).String(),
+			RoundDuraiton:  time.Since(newStatus.History[0].StartTimeStamp.Time).String(),
 			Detail:         newStatus.History[0],
 			ReportType:     plugintypes.ReportTypeSummary,
 		}
@@ -148,6 +148,7 @@ func (s *pluginControllerReconciler) WriteSummaryReport(taskName string, roundNu
 			if e := json.Indent(&out, jsongByte, "", "\t"); e != nil {
 				s.logger.Sugar().Errorf("failed to generate round summary report for kind %v task %v round %v, json Indent error=%v", kindName, instanceName, roundNumber, e)
 			} else {
+				// file name format: fmt.Sprintf("%s_%s_round%d_%s_%s", kindName, taskName, roundNumber, nodeName, suffix)
 				if e := s.fm.WriteTaskFile(kindName, instanceName, roundNumber, "controller", endTime, out.Bytes()); e != nil {
 					s.logger.Sugar().Errorf("failed to generate round summary report for kind %v task %v round %v, write file error=%v", kindName, instanceName, roundNumber, e)
 				} else {
