@@ -1,4 +1,4 @@
-{{- if ( and .Values.spiderdoctorController.aggregateReport.enabled .Values.spiderdoctorController.aggregateReport.pvc.enabled ) -}}
+{{- if ( and .Values.feature.aggregateReport.enabled .Values.feature.aggregateReport.controller.pvc.enabled ) -}}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -7,16 +7,16 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  {{- if .Values.spiderdoctorController.aggregateReport.pvc.storageClass }}
-  storageClassName: {{ .Values.spiderdoctorController.aggregateReport.pvc.storageClass | quote }}
+  {{- if .Values.feature.aggregateReport.controller.pvc.storageClass }}
+  storageClassName: {{ .Values.feature.aggregateReport.controller.pvc.storageClass | quote }}
   {{- end }}
   resources:
-    {{- if .Values.spiderdoctorController.aggregateReport.pvc.storageLimits }}
+    {{- if .Values.feature.aggregateReport.controller.pvc.storageLimits }}
     limits:
-      storage: {{ .Values.spiderdoctorController.aggregateReport.pvc.storageLimits | quote }}
+      storage: {{ .Values.feature.aggregateReport.controller.pvc.storageLimits | quote }}
     {{- end }}
-    {{- if .Values.spiderdoctorController.aggregateReport.pvc.storageRequests }}
+    {{- if .Values.feature.aggregateReport.controller.pvc.storageRequests }}
     requests:
-      storage: {{ .Values.spiderdoctorController.aggregateReport.pvc.storageRequests | quote }}
+      storage: {{ .Values.feature.aggregateReport.controller.pvc.storageRequests | quote }}
     {{- end }}
 {{- end }}

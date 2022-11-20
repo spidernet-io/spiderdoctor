@@ -163,7 +163,7 @@ spec:
                 type: object
               target:
                 properties:
-                  rargetAgent:
+                  targetAgent:
                     properties:
                       testClusterIp:
                         default: true
@@ -181,7 +181,7 @@ spec:
                         default: false
                         type: boolean
                       testMultusInterface:
-                        default: true
+                        default: false
                         type: boolean
                       testNodePort:
                         default: true
@@ -207,6 +207,11 @@ spec:
                 items:
                   properties:
                     deadLineTimeStamp:
+                      format: date-time
+                      type: string
+                    duration:
+                      type: string
+                    endTimeStamp:
                       format: date-time
                       type: string
                     failedAgentNodeList:

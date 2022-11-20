@@ -118,7 +118,7 @@ deploy_project:
 	else \
 		echo "found image from chart : $${IMAGE_LIST} " ; \
 		for IMAGE in $${IMAGE_LIST} ; do \
-			EXIST=` docker images | awk '{printf("%s:%s\n",$$1,$$2)}' | grep "$${IMAGE}" ` ; \
+			EXIST=` docker images | awk '{printf("%s:%s\n",$$1,$$2)}' | grep "$${IMAGE}" ` || true ; \
 			if [ -z "$${EXIST}" ] ; then \
 			  echo "docker pull $${IMAGE} to local" ; \
 			  docker pull $${IMAGE} ; \
@@ -142,6 +142,12 @@ deploy_project:
 		else  \
 			HELM_OPTION+=" --set feature.enableIPv4=true --set feature.enableIPv6=true " ; \
 		fi ;\
+		if [ "$(E2E_ENABLE_MULTUS)" == "true" ] ; then \
+		    HELM_OPTION+=" --set spiderdoctorAgent.podAnnotations.v1\.multus-cni\.io/default-network=kube-system/k8s-pod-network " ; \
+		    HELM_OPTION+=" --set spiderdoctorAgent.podAnnotations.k8s\.v1\.cni\.cncf\.io/networks=kube-system/ptp " ; \
+		fi ; \
+		HELM_OPTION+=" --set feature.aggregateReport.enabled=true " ; \
+		HELM_OPTION+=" --set feature.aggregateReport.controller.reportHostPath=/var/run/spiderdoctor/controller " ; \
 		HELM_OPTION+=" --set spiderdoctorAgent.debug.logLevel=debug --set spiderdoctorController.debug.logLevel=debug " ; \
 		HELM_OPTION+=" --set spiderdoctorAgent.prometheus.enabled=true --set spiderdoctorController.prometheus.enabled=true  " ; \
 		helm --kubeconfig=$(KIND_KUBECONFIG) install project $(ROOT_DIR)/charts \
@@ -150,6 +156,109 @@ deploy_project:
 				$${HELM_OPTION} \
 				|| { KIND_CLUSTER_NAME=$(KIND_CLUSTER_NAME) ./scripts/debugCluster.sh $(KIND_KUBECONFIG) "detail"   ; exit 1 ; } ; \
 		exit 0
+
+
+
+.PHONY: deploy_multus
+deploy_multus: KIND_KUBECONFIG ?= $(E2E_KIND_KUBECONFIG_PATH)
+deploy_multus: KIND_CLUSTER_NAME ?= $(E2E_KIND_CLUSTER_NAME)
+deploy_multus:
+	[ "$(E2E_ENABLE_MULTUS)" == "true" ] || { echo "multus is disabled" ; exit 0 ; }
+	@echo "beign to install multus"
+	- helm repo remove $(MULTUS_REPO_NAME)
+	helm repo add $(MULTUS_REPO_NAME) $(MULTUS_CHART_REPO) ; \
+		helm repo update $(MULTUS_REPO_NAME) ; \
+		echo "try to load local image for multus $(MULTUS_CHART_VERSION) " ; \
+		IMAGE_LIST=` helm template --version=$(MULTUS_CHART_VERSION)  $(MULTUS_REPO_NAME)/$(MULTUS_CHART_NAME) | grep " image: " | tr -d '"'| awk '{print $$2}' ` ; \
+		if [ -z "$${IMAGE_LIST}" ] ; then \
+			echo "warning, failed to find image from chart template" ; \
+		else \
+			echo "found image from chart template: $${IMAGE_LIST} " ; \
+			for IMAGE in $${IMAGE_LIST} ; do \
+				EXIST=` docker images | awk '{printf("%s:%s\n",$$1,$$2)}' | grep "$${IMAGE}" ` || true ; \
+				if [ -z "$${EXIST}" ] ; then \
+				  echo "docker pull $${IMAGE} to local" ; \
+				  docker pull $${IMAGE} ;\
+				fi ;\
+				echo "load local image $${IMAGE} " ; \
+				kind load docker-image $${IMAGE}  --name $(KIND_CLUSTER_NAME)  ; \
+			done ; \
+		fi
+	- helm --kubeconfig=$(KIND_KUBECONFIG) uninstall -n kube-system multus || true
+	helm install multus $(MULTUS_REPO_NAME)/$(MULTUS_CHART_NAME)  \
+			-n kube-system --kubeconfig=$(KIND_KUBECONFIG)  \
+			--version=$(MULTUS_CHART_VERSION) --wait \
+			--set sriov.manifests.enable=false \
+			--set multus.config.cni_conf.clusterNetwork=k8s-pod-network
+	kubectl --kubeconfig=$(KIND_KUBECONFIG) apply -f ./yaml/multus.yaml
+	sleep 10
+	#======= install cni and route on nodes
+	- mkdir -p $(E2E_MULTUS_CNI_CONFIG_DIR)
+	- rm -rf $(E2E_MULTUS_CNI_CONFIG_DIR)/*
+	echo "install cni and route on nodes" ; \
+		TMP=` docker exec $(E2E_KIND_MASTER_NODE_NAME) ip a s eth0 ` || { echo "error, failed to find master ip" ; exit 1 ; } ; \
+		MASTER_IPV4_ADDR=` grep -oP '(?<=inet\s)[0-9]+(\.[0-9]+){3}' <<< "$${TMP}" ` || true ; \
+		MASTER_IPV6_ADDR=` echo "$${TMP}" |  grep -v "scope link" | grep -oP '(?<=inet6\s)[0-9a-f:]+' ` || true ; \
+		TMP=` docker exec $(E2E_KIND_WORKER_NODE_NAME) ip a s eth0 ` || { echo "error, failed to find worker ip" ; exit 1 ; } ; \
+		WORKER_IPV4_ADDR=` grep -oP '(?<=inet\s)[0-9]+(\.[0-9]+){3}' <<< "$${TMP}" ` || true ; \
+		WORKER_IPV6_ADDR=` echo "$${TMP}" |  grep -v "scope link" | grep -oP '(?<=inet6\s)[0-9a-f:]+' ` || true ; \
+		echo "master ipv4=$${MASTER_IPV4_ADDR}, ipv6=$${MASTER_IPV6_ADDR} " ; \
+		echo "worker ipv4=$${WORKER_IPV4_ADDR}, ipv6=$${WORKER_IPV6_ADDR} " ; \
+		if [ "$(E2E_IP_FAMILY)" == "ipv4" ] ; then \
+			  echo "install ipv4-only case" ; \
+		  	  [ -n "$${MASTER_IPV4_ADDR}" ] || { echo "error, failed to find master ipv4" ; exit 1 ; } ; \
+		  	  [ -n "$${WORKER_IPV4_ADDR}" ] || { echo "error, failed to find worker ipv4" ; exit 1 ; } ; \
+			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.80.1.0/24" \}\]?' ./yaml/cni.conflist | sed 's?<<NAME>>?k8s-pod-network?g' | sed 's?<<ROUTE>>?\{ "dst": "0.0.0.0/0" \}?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist ; \
+			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.90.1.0/24" \}\]?' ./yaml/cni.conflist | sed 's?<<NAME>>?ptp?g' | sed 's?<<ROUTE>>??' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni2.conflist ; \
+			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.80.2.0/24" \}\]?' ./yaml/cni.conflist | sed 's?<<NAME>>?k8s-pod-network?g' | sed 's?<<ROUTE>>?\{ "dst": "0.0.0.0/0" \}?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist ; \
+			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.90.2.0/24" \}\]?' ./yaml/cni.conflist | sed 's?<<NAME>>?ptp?g' | sed 's?<<ROUTE>>??' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni2.conflist ; \
+			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist $(E2E_KIND_MASTER_NODE_NAME):/etc/cni/net.d ; \
+			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni2.conflist $(E2E_KIND_MASTER_NODE_NAME):/etc/cni/net.d ; \
+			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist $(E2E_KIND_WORKER_NODE_NAME):/etc/cni/net.d ; \
+			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni2.conflist $(E2E_KIND_WORKER_NODE_NAME):/etc/cni/net.d ; \
+			  docker exec $(E2E_KIND_MASTER_NODE_NAME) ip r add 172.80.2.0/24 via $${WORKER_IPV4_ADDR} ; \
+			  docker exec $(E2E_KIND_MASTER_NODE_NAME) ip r add 172.90.2.0/24 via $${WORKER_IPV4_ADDR} ; \
+			  docker exec $(E2E_KIND_WORKER_NODE_NAME) ip r add 172.80.1.0/24 via $${MASTER_IPV4_ADDR} ; \
+			  docker exec $(E2E_KIND_WORKER_NODE_NAME) ip r add 172.90.1.0/24 via $${MASTER_IPV4_ADDR} ; \
+		elif [ "$(E2E_IP_FAMILY)" == "ipv6" ] ; then \
+			  echo "install ipv6-only case" ; \
+		  	  [ -n "$${MASTER_IPV6_ADDR}" ] || { echo "error, failed to find master ipv6" ; exit 1 ; } ; \
+		  	  [ -n "$${WORKER_IPV6_ADDR}" ] || { echo "error, failed to find worker ipv6" ; exit 1 ; } ; \
+			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "fd80:1::/64" \}\]?' ./yaml/cni.conflist | sed 's?<<NAME>>?k8s-pod-network?' | sed 's?<<ROUTE>>?\{ "dst": "::/0" \}?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist ; \
+			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "fd90:1::/64" \}\]?' ./yaml/cni.conflist | sed 's?<<NAME>>?ptp?' | sed 's?<<ROUTE>>??' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist ; \
+			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "fd80:2::/64" \}\]?' ./yaml/cni.conflist | sed 's?<<NAME>>?k8s-pod-network?' | sed 's?<<ROUTE>>?\{ "dst": "::/0" \}?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist ; \
+			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "fd90:2::/64" \}\]?' ./yaml/cni.conflist | sed 's?<<NAME>>?ptp?' | sed 's?<<ROUTE>>??' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni2.conflist ; \
+			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist $(E2E_KIND_MASTER_NODE_NAME):/etc/cni/net.d ; \
+			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni2.conflist $(E2E_KIND_MASTER_NODE_NAME):/etc/cni/net.d ; \
+			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist $(E2E_KIND_WORKER_NODE_NAME):/etc/cni/net.d ; \
+			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni2.conflist $(E2E_KIND_WORKER_NODE_NAME):/etc/cni/net.d ; \
+			  docker exec $(E2E_KIND_MASTER_NODE_NAME) ip -6 r add fd80:2::/64 via $${WORKER_IPV6_ADDR} ; \
+			  docker exec $(E2E_KIND_MASTER_NODE_NAME) ip -6 r add fd90:2::/64 via $${WORKER_IPV6_ADDR} ; \
+			  docker exec $(E2E_KIND_WORKER_NODE_NAME) ip -6 r add fd80:1::/64 via $${MASTER_IPV6_ADDR} ; \
+			  docker exec $(E2E_KIND_WORKER_NODE_NAME) ip -6 r add fd90:1::/64 via $${MASTER_IPV6_ADDR} ; \
+  		else \
+			  echo "install dual-stack case" ; \
+		  	  [ -n "$${MASTER_IPV4_ADDR}" ] || { echo "error, failed to find master ipv4" ; exit 1 ; } ; \
+		  	  [ -n "$${WORKER_IPV4_ADDR}" ] || { echo "error, failed to find worker ipv4" ; exit 1 ; } ; \
+		  	  [ -n "$${MASTER_IPV6_ADDR}" ] || { echo "error, failed to find master ipv6" ; exit 1 ; } ; \
+		  	  [ -n "$${WORKER_IPV6_ADDR}" ] || { echo "error, failed to find worker ipv6" ; exit 1 ; } ; \
+			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.80.1.0/24" \}\],\[\{ "subnet": "fd80:1::/64" \}\]?' ./yaml/cni.conflist | sed 's?<<NAME>>?k8s-pod-network?' | sed 's?<<ROUTE>>?\{ "dst": "0.0.0.0/0" \},\{ "dst": "::/0" \}?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist ; \
+			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.90.1.0/24" \}\],\[\{ "subnet": "fd90:1::/64" \}\]?' ./yaml/cni.conflist | sed 's?<<NAME>>?ptp?' | sed 's?<<ROUTE>>??' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni2.conflist ; \
+			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.80.2.0/24" \}\],\[\{ "subnet": "fd80:2::/64" \}\]?' ./yaml/cni.conflist | sed 's?<<NAME>>?k8s-pod-network?' | sed 's?<<ROUTE>>?\{ "dst": "0.0.0.0/0" \},\{ "dst": "::/0" \}?' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist ; \
+			  sed 's?<<IP_RANGE>>?\[\{ "subnet": "172.90.2.0/24" \}\],\[\{ "subnet": "fd90:2::/64" \}\]?' ./yaml/cni.conflist | sed 's?<<NAME>>?ptp?' | sed 's?<<ROUTE>>??' > $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni2.conflist ; \
+			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni1.conflist $(E2E_KIND_MASTER_NODE_NAME):/etc/cni/net.d ; \
+			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-master-cni2.conflist $(E2E_KIND_MASTER_NODE_NAME):/etc/cni/net.d ; \
+			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni1.conflist $(E2E_KIND_WORKER_NODE_NAME):/etc/cni/net.d ; \
+			  docker cp $(E2E_MULTUS_CNI_CONFIG_DIR)/20-worker-cni2.conflist $(E2E_KIND_WORKER_NODE_NAME):/etc/cni/net.d ; \
+			  docker exec $(E2E_KIND_MASTER_NODE_NAME) ip r add 172.80.2.0/24 via $${WORKER_IPV4_ADDR} ; \
+			  docker exec $(E2E_KIND_MASTER_NODE_NAME) ip r add 172.90.2.0/24 via $${WORKER_IPV4_ADDR} ; \
+			  docker exec $(E2E_KIND_WORKER_NODE_NAME) ip r add 172.80.1.0/24 via $${MASTER_IPV4_ADDR} ; \
+			  docker exec $(E2E_KIND_WORKER_NODE_NAME) ip r add 172.90.1.0/24 via $${MASTER_IPV4_ADDR} ; \
+			  docker exec $(E2E_KIND_MASTER_NODE_NAME) ip -6 r add fd80:2::/64 via $${WORKER_IPV6_ADDR} ; \
+			  docker exec $(E2E_KIND_MASTER_NODE_NAME) ip -6 r add fd90:2::/64 via $${WORKER_IPV6_ADDR} ; \
+			  docker exec $(E2E_KIND_WORKER_NODE_NAME) ip -6 r add fd80:1::/64 via $${MASTER_IPV6_ADDR} ; \
+			  docker exec $(E2E_KIND_WORKER_NODE_NAME) ip -6 r add fd90:1::/64 via $${MASTER_IPV6_ADDR} ; \
+  		fi
 
 
 # test kind is ok

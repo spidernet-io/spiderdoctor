@@ -151,8 +151,6 @@ spec:
               value: {{ .Values.spiderdoctorAgent.httpServer.port | quote }}
             - name: ENV_GOPS_LISTEN_PORT
               value: {{ .Values.spiderdoctorAgent.debug.gopsPort | quote }}
-            - name: ENV_GC_REPORT_FOR_DELETED_CRD
-              value: {{ .Values.spiderdoctorAgent.gcReport | quote }}
             - name: ENV_AGENT_GRPC_LISTEN_PORT
               value: {{ .Values.spiderdoctorAgent.grpcServer.port | quote }}
             - name: ENV_CLUSTER_DNS_DOMAIN
@@ -165,8 +163,14 @@ spec:
             - name: ENV_AGENT_IPV6_SERVICE_NAME
               value: {{ include "project.spiderdoctorAgent.serviceIpv6Name" . }}
             {{- end }}
-            - name: ENV_PATH_AGENT_POD_REPORT
-              value: "/report"
+            - name: ENV_ENABLE_AGGREGATE_AGENT_REPORT
+              value: {{ .Values.feature.aggregateReport.enabled | quote }}
+            {{- if .Values.feature.aggregateReport.enabled }}
+            - name: ENV_AGENT_REPORT_STORAGE_PATH
+              value: {{ .Values.feature.aggregateReport.agent.reportPath | quote }}
+            - name: ENV_CLEAN_AGED_REPORT_INTERVAL_IN_MINUTE
+              value: {{ .Values.feature.aggregateReport.cleanAgedReportIntervalInMinute | quote }}
+            {{- end }}
             - name: ENV_POD_NAME
               valueFrom:
                 fieldRef:

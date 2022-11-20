@@ -9,6 +9,8 @@ if [ -n "$http_proxy" ]; then
   DOWNLOAD_OPT=" -x $http_proxy "
 fi
 
+
+
 if ! kubectl help &>/dev/null  ; then
     echo "error, miss 'kubectl', try to install it "
     LATEST_VERSION=$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)
@@ -64,6 +66,7 @@ if ! docker &> /dev/null ; then
 else
     echo "pass   'docker' installed:  $(docker -v) "
 fi
+
 
 # ====modify==== add more e2e binray
 
