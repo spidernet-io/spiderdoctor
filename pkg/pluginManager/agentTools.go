@@ -81,7 +81,6 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 			fmt.Printf("%+v\n ", string(jsongByte))
 			// TODO: write report to disk for controller to collect
 			if s.fm != nil {
-
 				kindName := strings.Split(taskName, ".")[0]
 				instanceName := strings.TrimPrefix(taskName, kindName)
 				t := time.Duration(2*schedulePlan.IntervalMinute) * time.Second
@@ -91,6 +90,8 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 				} else {
 					if e := s.fm.WriteTaskFile(kindName, instanceName, roundNumber, s.localNodeName, time.Now().Add(t), out.Bytes()); e != nil {
 						logger.Sugar().Errorf("failed to write report of %v, error=%v", taskRoundName, e)
+					} else {
+						logger.Sugar().Debugf("succeed to write report for %v", taskRoundName)
 					}
 				}
 			}
