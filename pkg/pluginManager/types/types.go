@@ -36,13 +36,13 @@ type PluginReport struct {
 	TaskSpec       interface{}
 	RoundNumber    int
 	RoundResult    RoundResultStatus
-	AgentNodeName  string
-	AgentPodName   string
+	NodeName       string
+	PodName        string
 	FailedReason   string
 	StartTimeStamp time.Time
 	EndTimeStamp   time.Time
 	RoundDuraiton  string
-	Detail         PluginRoundDetail
+	Detail         interface{}
 }
 
 type PluginRoundDetail map[string]interface{}

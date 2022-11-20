@@ -10,6 +10,7 @@ import (
 	"fmt"
 	k8sObjManager "github.com/spidernet-io/spiderdoctor/pkg/k8ObjManager"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
+	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.uber.org/zap"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -122,7 +123,20 @@ func (s *pluginControllerReconciler) WriteSummaryReport(taskName string, roundNu
 		// TODO: add to workqueue to collect all report of last round, for node latestRecord.FailedAgentNodeList and latestRecord.SucceedAgentNodeList
 
 		// write controller summary report
-		if jsongByte, e := json.Marshal(newStatus.History[0]); e != nil {
+		msg := plugintypes.PluginReport{
+			TaskName:       strings.ToLower(taskName),
+			TaskSpec:       "",
+			RoundNumber:    roundNumber,
+			RoundResult:    plugintypes.RoundResultStatus(newStatus.History[0].Status),
+			FailedReason:   newStatus.History[0].FailureReason,
+			NodeName:       "",
+			PodName:        types.ControllerConfig.PodName,
+			StartTimeStamp: newStatus.History[0].StartTimeStamp.Time,
+			EndTimeStamp:   time.Now(),
+			RoundDuraiton:  time.Now().Sub(newStatus.History[0].StartTimeStamp.Time).String(),
+			Detail:         newStatus.History[0],
+		}
+		if jsongByte, e := json.Marshal(msg); e != nil {
 			s.logger.Sugar().Errorf("failed to generate round summary report for kind %v task %v round %v, json marsha error=%v", kindName, instanceName, roundNumber, e)
 		} else {
 			// print to stdout for human reading

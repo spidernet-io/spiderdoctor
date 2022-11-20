@@ -35,8 +35,8 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 		msg := plugintypes.PluginReport{
 			TaskName:       strings.ToLower(taskName),
 			RoundNumber:    roundNumber,
-			AgentNodeName:  s.localNodeName,
-			AgentPodName:   types.AgentConfig.PodName,
+			NodeName:       s.localNodeName,
+			PodName:        types.AgentConfig.PodName,
 			StartTimeStamp: startTime,
 			TaskSpec:       crdObjSpec,
 		}
