@@ -90,7 +90,7 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 				} else {
 					kindName := strings.Split(taskName, ".")[0]
 					instanceName := strings.TrimPrefix(taskName, kindName+".")
-					// save with maximum age, and the controller will collect and remove it automatically
+					// save with maximum age roundDuration , in this interval, the controller also will collect it
 					// file name format: fmt.Sprintf("%s_%s_round%d_%s_%s", kindName, taskName, roundNumber, nodeName, suffix)
 					if e := s.fm.WriteTaskFile(kindName, instanceName, roundNumber, s.localNodeName, time.Now().Add(roundDuration), out.Bytes()); e != nil {
 						logger.Sugar().Errorf("failed to write report of %v, error=%v", taskRoundName, e)
