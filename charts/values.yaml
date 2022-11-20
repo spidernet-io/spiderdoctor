@@ -68,7 +68,7 @@ feature:
 
     agent:
       ## @param feature.aggregateReport.agent.reportPath the path where the agent pod temporarily store task report.
-      reportPath: "/tmp/report"
+      reportPath: "/report"
 
     controller:
       ## @param feature.aggregateReport.controller.reportHostPath storage path when pvc is disabled
