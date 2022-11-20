@@ -89,7 +89,7 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 				if e := json.Indent(&out, jsongByte, "", "\n"); e != nil {
 					logger.Sugar().Errorf("failed to json Indent for report of %v, error=%v", taskRoundName, e)
 				} else {
-					if e := s.fm.WriteTaskFile(kindName, instanceName, roundNumber, s.localNodeName, time.Now().Add(t), jsongByte); e != nil {
+					if e := s.fm.WriteTaskFile(kindName, instanceName, roundNumber, s.localNodeName, time.Now().Add(t), out.Bytes()); e != nil {
 						logger.Sugar().Errorf("failed to write report of %v, error=%v", taskRoundName, e)
 					}
 				}
