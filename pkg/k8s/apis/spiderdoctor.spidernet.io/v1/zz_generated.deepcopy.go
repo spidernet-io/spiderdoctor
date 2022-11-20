@@ -322,6 +322,10 @@ func (in *SchedulePlan) DeepCopy() *SchedulePlan {
 func (in *StatusHistoryRecord) DeepCopyInto(out *StatusHistoryRecord) {
 	*out = *in
 	in.StartTimeStamp.DeepCopyInto(&out.StartTimeStamp)
+	if in.EndTimeStamp != nil {
+		in, out := &in.EndTimeStamp, &out.EndTimeStamp
+		*out = (*in).DeepCopy()
+	}
 	in.DeadLineTimeStamp.DeepCopyInto(&out.DeadLineTimeStamp)
 	if in.FailedAgentNodeList != nil {
 		in, out := &in.FailedAgentNodeList, &out.FailedAgentNodeList

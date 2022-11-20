@@ -65,6 +65,14 @@ type StatusHistoryRecord struct {
 	// +kubebuilder:validation:Format:=date-time
 	StartTimeStamp metav1.Time `json:"startTimeStamp"`
 
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:validation:Type:=string
+	// +kubebuilder:validation:Format:=date-time
+	EndTimeStamp *metav1.Time `json:"endTimeStamp,omitempty"`
+
+	// +kubebuilder:validation:Optional
+	Duration *string `json:"duration,omitempty"`
+
 	// +kubebuilder:validation:Type:=string
 	// +kubebuilder:validation:Format:=date-time
 	DeadLineTimeStamp metav1.Time `json:"deadLineTimeStamp"`

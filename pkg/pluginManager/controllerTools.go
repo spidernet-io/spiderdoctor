@@ -104,6 +104,12 @@ func (s *pluginControllerReconciler) UpdateRoundFinalStatus(logger *zap.Logger, 
 			newStatus.LastRoundStatus = &n
 			logger.Sugar().Infof("round %v succeeded ", latestRecord.RoundNumber)
 		}
+		latestRecord.EndTimeStamp = &metav1.Time{
+			Time: time.Now(),
+		}
+		i := time.Since(latestRecord.StartTimeStamp.Time).String()
+		latestRecord.Duration = &i
+
 		return true, nil
 	}
 

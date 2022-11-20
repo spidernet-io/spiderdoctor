@@ -189,6 +189,9 @@ spec:
                     deadLineTimeStamp:
                       format: date-time
                       type: string
+                    endTimeStamp:
+                      format: date-time
+                      type: string
                     failedAgentNodeList:
                       items:
                         type: string
