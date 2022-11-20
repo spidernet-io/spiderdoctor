@@ -78,8 +78,10 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 		if jsongByte, err := json.Marshal(msg); err != nil {
 			logger.Sugar().Errorf("failed to generate round report , marsha json error=%v", err)
 		} else {
+			// print to stdout for human reading
 			fmt.Printf("%+v\n ", string(jsongByte))
-			// TODO: write report to disk for controller to collect
+
+			// write report to disk for controller to collect
 			if s.fm != nil {
 				kindName := strings.Split(taskName, ".")[0]
 				instanceName := strings.TrimPrefix(taskName, kindName)
