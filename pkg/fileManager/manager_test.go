@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-var _ = Describe("test ippool CR", Label("ippoolCR"), func() {
+var _ = Describe("test ippool CR", Label("ippoolCR"), Pending, func() {
 
 	var reportDir string
 
@@ -28,7 +28,6 @@ var _ = Describe("test ippool CR", Label("ippoolCR"), func() {
 		cleanInterval := 2 * time.Second
 		f, e := fileManager.NewManager(log, reportDir, cleanInterval)
 		Expect(e).NotTo(HaveOccurred(), "failed to NewManager, error=%v", e)
-		f.RunCleanerByAge()
 
 		// --write
 		kindName := "kindTom"

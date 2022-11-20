@@ -198,11 +198,12 @@ func (s *pluginManager) RunControllerController(healthPort int, webhookPort int,
 		// setup reconcile
 		logger.Sugar().Infof("run controller for plugin %v", name)
 		k := &pluginControllerReconciler{
-			logger:  logger.Named(name + "Reconciler"),
-			plugin:  plugin,
-			client:  mgr.GetClient(),
-			crdKind: name,
-			fm:      fm,
+			logger:      logger.Named(name + "Reconciler"),
+			plugin:      plugin,
+			client:      mgr.GetClient(),
+			crdKind:     name,
+			fm:          fm,
+			crdKindName: name,
 		}
 		if e := k.SetupWithManager(mgr); e != nil {
 			s.logger.Sugar().Fatalf("failed to builder reconcile for plugin %v, error=%v", name, e)

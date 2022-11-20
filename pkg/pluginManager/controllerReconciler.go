@@ -16,11 +16,12 @@ import (
 )
 
 type pluginControllerReconciler struct {
-	client  client.Client
-	plugin  plugintypes.ChainingPlugin
-	logger  *zap.Logger
-	crdKind string
-	fm      fileManager.FileManager
+	client      client.Client
+	plugin      plugintypes.ChainingPlugin
+	logger      *zap.Logger
+	crdKind     string
+	fm          fileManager.FileManager
+	crdKindName string
 }
 
 // contorller reconcile

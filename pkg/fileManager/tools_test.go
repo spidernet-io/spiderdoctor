@@ -22,4 +22,5 @@ var _ = Describe("test ippool CR", Label("ippoolCR"), func() {
 		Expect(t).NotTo(HaveOccurred())
 
 	})
+
 })

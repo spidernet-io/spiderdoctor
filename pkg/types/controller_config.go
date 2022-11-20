@@ -19,6 +19,7 @@ var ControllerEnvMapping = []EnvMapping{
 	{"ENV_AGENT_REPORT_STORAGE_PATH", "", &ControllerConfig.DirPathAgentReport},
 	{"ENV_CLEAN_AGED_REPORT_INTERVAL_IN_MINUTE", "10", &ControllerConfig.CleanAgedReportInMinute},
 	{"ENV_AGENT_DAEMONSET_NAME", "spiderdoctor-agent", &ControllerConfig.SpiderDoctorAgentDaemonsetName},
+	{"ENV_CONTROLLER_REPORT_AGE_IN_DAY", "30", &ControllerConfig.ReportAgeInDay},
 }
 
 type ControllerConfigStruct struct {
@@ -40,6 +41,7 @@ type ControllerConfigStruct struct {
 	CleanAgedReportInMinute    int32
 	DirPathControllerReport    string
 	DirPathAgentReport         string
+	ReportAgeInDay             int32
 
 	// -------- from flags
 	ConfigMapPath     string

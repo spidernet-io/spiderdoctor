@@ -13,11 +13,11 @@ import (
 )
 
 type FileManager interface {
-	RunCleanerByAge()
 	RemoveTaskFiles(kindName string, taskName string) error
 	WriteTaskFile(kindName string, taskName string, roundNumber int, nodeName string, endTime time.Time, data []byte) error
 	GetTaskAllFile(kindName string, taskName string) ([]string, error)
 	GetAllFile() ([]string, error)
+	CheckTaskFileExisted(kindName string, taskName string, roundNumber int) bool
 }
 
 type fileManager struct {
@@ -51,6 +51,9 @@ func NewManager(logger *zap.Logger, reportDir string, cleanInterval time.Duratio
 		logger:        logger,
 		cleanInterval: cleanInterval,
 	}
+
+	p.runCleanerByAge()
+
 	return p, nil
 }
 
@@ -99,7 +102,7 @@ func (s *fileManager) cleanByAgeOnce() {
 }
 
 // remove files by deadline
-func (s *fileManager) RunCleanerByAge() {
+func (s *fileManager) runCleanerByAge() {
 	// clean files at interval
 	s.logger.Sugar().Infof("start task file cleaner at interval %v", s.cleanInterval.String())
 	go func() {
@@ -147,6 +150,25 @@ func (s *fileManager) GetTaskAllFile(kindName string, taskName string) ([]string
 		}
 	}
 	return fileList, nil
+}
+
+func (s *fileManager) CheckTaskFileExisted(kindName string, taskName string, roundNumber int) bool {
+	filelist, e := os.ReadDir(s.reportDir)
+	if e != nil {
+		s.logger.Sugar().Errorf("failed to read directory %s, error=%v", s.reportDir, e)
+		return false
+	}
+
+	for _, item := range filelist {
+		if item.IsDir() {
+			continue
+		}
+		name := item.Name()
+		if strings.HasPrefix(name, fmt.Sprintf("%s_%s_round%d_", kindName, taskName, roundNumber)) {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *fileManager) RemoveTaskFiles(kindName string, taskName string) error {

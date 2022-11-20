@@ -147,6 +147,8 @@ spec:
             {{- if .Values.feature.aggregateReport.enabled }}
             - name: ENV_CONTROLLER_REPORT_STORAGE_PATH
               value: "/report"
+            - name: ENV_CONTROLLER_REPORT_AGE_IN_DAY
+              value: {{ .Values.feature.aggregateReport.controller.maxAgeInDay | quote }}
             - name: ENV_AGENT_REPORT_STORAGE_PATH
               value: {{ .Values.feature.aggregateReport.agent.reportPath | quote }}
             - name: ENV_CLEAN_AGED_REPORT_INTERVAL_IN_MINUTE
