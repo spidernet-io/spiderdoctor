@@ -195,7 +195,7 @@ deploy_multus:
 	#======= install cni and route on nodes
 	- mkdir -p $(E2E_MULTUS_CNI_CONFIG_DIR)
 	- rm -rf $(E2E_MULTUS_CNI_CONFIG_DIR)/*
-	echo "install cni and route on nodes" ; \
+	set -x ; echo "install cni and route on nodes" ; \
 		TMP=` docker exec $(E2E_KIND_MASTER_NODE_NAME) ip a s eth0 ` || { echo "error, failed to find master ip" ; exit 1 ; } ; \
 		MASTER_IPV4_ADDR=` grep -oP '(?<=inet\s)[0-9]+(\.[0-9]+){3}' <<< "$${TMP}" ` || true ; \
 		MASTER_IPV6_ADDR=` echo "$${TMP}" |  grep -v "scope link" | grep -oP '(?<=inet6\s)[0-9a-f:]+' ` || true ; \
