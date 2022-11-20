@@ -80,7 +80,7 @@ feature:
       # for store report
       pvc:
         ## @param feature.aggregateReport.controller.pvc.enabled store report to pvc
-        enabled: true
+        enabled: false
 
         ## @param feature.aggregateReport.controller.pvc.storageClass storage class name
         storageClass: ""
