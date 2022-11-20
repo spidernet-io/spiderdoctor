@@ -85,7 +85,7 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 			if s.fm != nil {
 
 				var out bytes.Buffer
-				if e := json.Indent(&out, jsongByte, "", "\n"); e != nil {
+				if e := json.Indent(&out, jsongByte, "", "\t"); e != nil {
 					logger.Sugar().Errorf("failed to json Indent for report of %v, error=%v", taskRoundName, e)
 				} else {
 

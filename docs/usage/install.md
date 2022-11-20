@@ -9,27 +9,28 @@
 helm add spiderdoctor
 
 helm  install spiderdoctor spiderdoctor/spiderdoctor \
--n kube-system --wait --debug \
---set feature.enableIPv4=true --set feature.enableIPv6=true \
---set feature.aggregateReport.enabled=false
+    -n kube-system --wait --debug \
+    --set feature.enableIPv4=true --set feature.enableIPv6=true \
+    --set feature.aggregateReport.enabled=false
 
 
 helm  install spiderdoctor spiderdoctor/spiderdoctor \
--n kube-system --wait --debug \
---set feature.enableIPv4=true --set feature.enableIPv6=true \
---set feature.aggregateReport.enabled=true \
---set feature.aggregateReport.controller.reportHostPath="/var/run/spiderdoctor/controller"
+    -n kube-system --wait --debug \
+    --set feature.enableIPv4=true --set feature.enableIPv6=true \
+    --set feature.aggregateReport.enabled=true \
+    --set feature.aggregateReport.controller.reportHostPath="/var/run/spiderdoctor/controller"
 
 
 #===================
 
 helm  install spiderdoctor spiderdoctor/spiderdoctor \
--n kube-system --wait --debug \
---set feature.enableIPv4=true --set feature.enableIPv6=true \
---set feature.aggregateReport.enabled=true \
---set feature.aggregateReport.controller.pvc.enabled=true \
---set feature.aggregateReport.controller.pvc.storageClass=local \
---set feature.aggregateReport.controller.pvc.storageRequests="100Mi"
+    -n kube-system --wait --debug \
+    --set feature.enableIPv4=true --set feature.enableIPv6=true \
+    --set feature.aggregateReport.enabled=true \
+    --set feature.aggregateReport.controller.pvc.enabled=true \
+    --set feature.aggregateReport.controller.pvc.storageClass=local \
+    --set feature.aggregateReport.controller.pvc.storageRequests="100Mi" \
+    --set feature.aggregateReport.controller.pvc.storageLimits="500Mi"
 
 
 #===================
