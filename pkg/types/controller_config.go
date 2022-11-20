@@ -13,29 +13,35 @@ var ControllerEnvMapping = []EnvMapping{
 	{"ENV_POD_NAME", "", &ControllerConfig.PodName},
 	{"ENV_POD_NAMESPACE", "", &ControllerConfig.PodNamespace},
 	{"ENV_GOLANG_MAXPROCS", "8", &ControllerConfig.GolangMaxProcs},
-	{"ENV_AGGREGATE_AGENT_REPORT", "false", &ControllerConfig.EnableAggregateAgentReport},
-	{"ENV_PATH_AGGREGATE_AGENT_REPORT", "/report", &ControllerConfig.DirPathAggregateAgentReport},
 	{"ENV_AGENT_GRPC_LISTEN_PORT", "3000", &ControllerConfig.AgentGrpcListenPort},
-	{"ENV_PATH_AGENT_POD_REPORT", "/report", &ControllerConfig.AgentPodReportRootDirPath},
+	{"ENV_ENABLE_AGGREGATE_AGENT_REPORT", "false", &ControllerConfig.EnableAggregateAgentReport},
+	{"ENV_CONTROLLER_REPORT_STORAGE_PATH", "/report", &ControllerConfig.DirPathControllerReport},
+	{"ENV_AGENT_REPORT_STORAGE_PATH", "", &ControllerConfig.DirPathAgentReport},
+	{"ENV_CLEAN_AGED_REPORT_INTERVAL_IN_MINUTE", "10", &ControllerConfig.CleanAgedReportInMinute},
 	{"ENV_AGENT_DAEMONSET_NAME", "spiderdoctor-agent", &ControllerConfig.SpiderDoctorAgentDaemonsetName},
+	{"ENV_CONTROLLER_REPORT_AGE_IN_DAY", "30", &ControllerConfig.ReportAgeInDay},
 }
 
 type ControllerConfigStruct struct {
 	// ------- from env
-	EnableMetric                   bool
-	MetricPort                     int32
-	HttpPort                       int32
-	GopsPort                       int32
-	WebhookPort                    int32
-	PyroscopeServerAddress         string
+	EnableMetric           bool
+	MetricPort             int32
+	HttpPort               int32
+	GopsPort               int32
+	WebhookPort            int32
+	AgentGrpcListenPort    int32
+	PyroscopeServerAddress string
+	GolangMaxProcs         int32
+
 	PodName                        string
 	PodNamespace                   string
-	GolangMaxProcs                 int32
-	EnableAggregateAgentReport     bool
-	DirPathAggregateAgentReport    string
-	AgentGrpcListenPort            int32
-	AgentPodReportRootDirPath      string
 	SpiderDoctorAgentDaemonsetName string
+
+	EnableAggregateAgentReport bool
+	CleanAgedReportInMinute    int32
+	DirPathControllerReport    string
+	DirPathAgentReport         string
+	ReportAgeInDay             int32
 
 	// -------- from flags
 	ConfigMapPath     string

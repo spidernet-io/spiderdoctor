@@ -40,7 +40,7 @@ func SendRequestAndReport(logger *zap.Logger, targetName string, TargetUrl strin
 	report["Succeed"] = "false"
 
 	result := loadRequest.HttpRequest(TargetUrl, qps, PerRequestTimeoutInSecond, DurationInSecond)
-	report["MeanDelay"] = result.Duration.String()
+	report["MeanDelay"] = result.Latencies.Mean.String()
 	report["SucceedRate"] = fmt.Sprintf("%v", result.Success)
 
 	var err error
@@ -95,6 +95,7 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 	if target.TargetUrl != nil && len(*target.TargetUrl) != 0 {
 		logger.Sugar().Infof("load test custom target: TargetUrl=%v , qps=%v, PerRequestTimeout=%vs, Duration=%vs", *target.TargetUrl, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond)
 		finalReport["TargetType"] = "custom url"
+		finalReport["TargetNumber"] = "1"
 		SendRequestAndReport(logger, "custom target", *target.TargetUrl, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond, successCondition, finalReport)
 		return
 
@@ -278,6 +279,7 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 			// ----------------------- aggregate report
 			finalReport["Detail"] = reportList
 			finalReport["TargetType"] = "spiderdoctor agent"
+			finalReport["TargetNumber"] = fmt.Sprintf("%d", len(testTargetList))
 			if len(finalfailureReason) > 0 {
 				logger.Sugar().Errorf("plugin finally failed, %v", finalfailureReason)
 				finalReport["FailureReason"] = finalfailureReason
