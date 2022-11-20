@@ -72,7 +72,7 @@ feature:
 
     controller:
       ## @param feature.aggregateReport.controller.reportHostPath storage path when pvc is disabled
-      reportHostPath: "/var/run/spiderdoctor/controller"
+      reportHostPath: "/var/run/spiderdoctor/reports"
 
       ## @param feature.aggregateReport.controller.maxAgeInDay report file maximum age in days
       maxAgeInDay: 30
