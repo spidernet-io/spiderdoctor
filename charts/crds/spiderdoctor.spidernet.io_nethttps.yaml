@@ -181,7 +181,7 @@ spec:
                         default: false
                         type: boolean
                       testMultusInterface:
-                        default: true
+                        default: false
                         type: boolean
                       testNodePort:
                         default: true

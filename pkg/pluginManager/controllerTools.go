@@ -135,7 +135,9 @@ func (s *pluginControllerReconciler) WriteSummaryReport(taskName string, roundNu
 			EndTimeStamp:   time.Now(),
 			RoundDuraiton:  time.Now().Sub(newStatus.History[0].StartTimeStamp.Time).String(),
 			Detail:         newStatus.History[0],
+			ReportType:     plugintypes.ReportTypeSummary,
 		}
+
 		if jsongByte, e := json.Marshal(msg); e != nil {
 			s.logger.Sugar().Errorf("failed to generate round summary report for kind %v task %v round %v, json marsha error=%v", kindName, instanceName, roundNumber, e)
 		} else {
@@ -208,6 +210,9 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 				if roundDone {
 					logger.Sugar().Infof("round %v get reports from all agents ", roundNumber)
 
+					// before insert new record, write summary of last round
+					s.WriteSummaryReport(taskName, roundNumber, newStatus)
+
 					// add new round record
 					if *(newStatus.DoneRound) < *(newStatus.ExpectedRound) {
 						n := *(newStatus.DoneRound) + 1
@@ -227,8 +232,6 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 							newStatus.Finish = true
 						}
 					}
-
-					s.WriteSummaryReport(taskName, roundNumber, newStatus)
 
 					// requeue immediately to make sure the update succeed , not conflicted
 					result = &reconcile.Result{
@@ -271,6 +274,9 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 					// all agent finished, so try to update the summary
 					logger.Sugar().Infof("round %v got reports from all agents, try to summarize", roundNumber)
 
+					// before insert new record, write summary of last round
+					s.WriteSummaryReport(taskName, roundNumber, newStatus)
+
 					// add new round record
 					if *(newStatus.DoneRound) < *(newStatus.ExpectedRound) {
 						n := *(newStatus.DoneRound) + 1
@@ -290,8 +296,6 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 							newStatus.Finish = true
 						}
 					}
-
-					s.WriteSummaryReport(taskName, roundNumber, newStatus)
 
 					// requeue immediately to make sure the update succeed , not conflicted
 					result = &reconcile.Result{

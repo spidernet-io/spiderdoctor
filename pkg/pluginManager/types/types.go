@@ -42,8 +42,16 @@ type PluginReport struct {
 	StartTimeStamp time.Time
 	EndTimeStamp   time.Time
 	RoundDuraiton  string
+	ReportType     ReportTypeType
 	Detail         interface{}
 }
+
+type ReportTypeType string
+
+const (
+	ReportTypeSummary = "round summray report"
+	ReportTypeAgent   = "agent test report"
+)
 
 type PluginRoundDetail map[string]interface{}
 

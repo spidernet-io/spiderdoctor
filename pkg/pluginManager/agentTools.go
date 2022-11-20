@@ -39,6 +39,7 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 			PodName:        types.AgentConfig.PodName,
 			StartTimeStamp: startTime,
 			TaskSpec:       crdObjSpec,
+			ReportType:     plugintypes.ReportTypeAgent,
 		}
 		failureReason, report, e := s.plugin.AgentEexecuteTask(logger, ctx, obj)
 		if e != nil {
