@@ -83,13 +83,17 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 
 			// write report to disk for controller to collect
 			if s.fm != nil {
-				kindName := strings.Split(taskName, ".")[0]
-				instanceName := strings.TrimPrefix(taskName, kindName)
-				t := time.Duration(2*schedulePlan.IntervalMinute) * time.Second
+
 				var out bytes.Buffer
 				if e := json.Indent(&out, jsongByte, "", "\n"); e != nil {
 					logger.Sugar().Errorf("failed to json Indent for report of %v, error=%v", taskRoundName, e)
 				} else {
+
+					kindName := strings.Split(taskName, ".")[0]
+					instanceName := strings.TrimPrefix(taskName, kindName)
+					// save with maximum age, and the controller will collect and remove it automatically
+					t := 30 * time.Minute
+
 					if e := s.fm.WriteTaskFile(kindName, instanceName, roundNumber, s.localNodeName, time.Now().Add(t), out.Bytes()); e != nil {
 						logger.Sugar().Errorf("failed to write report of %v, error=%v", taskRoundName, e)
 					} else {
