@@ -11,6 +11,7 @@ import (
 	k8sObjManager "github.com/spidernet-io/spiderdoctor/pkg/k8ObjManager"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
+	"github.com/spidernet-io/spiderdoctor/pkg/reportManager"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.uber.org/zap"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -126,7 +127,8 @@ func (s *pluginControllerReconciler) WriteSummaryReport(taskName string, roundNu
 	endTime := newStatus.History[0].StartTimeStamp.Add(t)
 
 	if !s.fm.CheckTaskFileExisted(kindName, instanceName, roundNumber) {
-		// TODO: add to workqueue to collect all report of last round, for node latestRecord.FailedAgentNodeList and latestRecord.SucceedAgentNodeList
+		// add to workqueue to collect all report of last round, for node latestRecord.FailedAgentNodeList and latestRecord.SucceedAgentNodeList
+		reportManager.TriggerSyncReport(fmt.Sprintf("%s.%d", taskName, roundNumber))
 
 		// write controller summary report
 		msg := plugintypes.PluginReport{
@@ -155,7 +157,7 @@ func (s *pluginControllerReconciler) WriteSummaryReport(taskName string, roundNu
 				s.logger.Sugar().Errorf("failed to generate round summary report for kind %v task %v round %v, json Indent error=%v", kindName, instanceName, roundNumber, e)
 			} else {
 				// file name format: fmt.Sprintf("%s_%s_round%d_%s_%s", kindName, taskName, roundNumber, nodeName, suffix)
-				if e := s.fm.WriteTaskFile(kindName, instanceName, roundNumber, "controller", endTime, out.Bytes()); e != nil {
+				if e := s.fm.WriteTaskFile(kindName, instanceName, roundNumber, "summary", endTime, out.Bytes()); e != nil {
 					s.logger.Sugar().Errorf("failed to generate round summary report for kind %v task %v round %v, write file error=%v", kindName, instanceName, roundNumber, e)
 				} else {
 					s.logger.Sugar().Debugf("succeeded to generate round summary report for kind %v task %v round %v", kindName, instanceName, roundNumber)

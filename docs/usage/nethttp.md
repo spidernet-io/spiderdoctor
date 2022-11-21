@@ -29,7 +29,10 @@ items:
       perRequestTimeoutInSecond: 5
       qps: 10
     target:
-      targetUrl: "http://172.19.0.6"
+      targetUser:
+        targetUser:
+          method: GET
+          url: http://172.80.1.2
       targetAgent:
         testClusterIp: true
         testEndpoint: true
@@ -68,7 +71,7 @@ items:
 
       timeoutMinute: the timeout in minute for each round, when the rask does not finish in time, it results to be failuire
 
-      sourceAgentNodeSelector [optional]: set the node label selector, then, the spiderdoctor agent who locates on these nodes will implement the task
+      sourceAgentNodeSelector [optional]: set the node label selector, then, the spiderdoctor agent who locates on these nodes will implement the task. If not set this field, all spiderdoctor agent will execute the task
 
 * spec.request: how each spiderdoctor agent should send the http request
 
@@ -81,16 +84,25 @@ items:
 * spec.target: set the target of http request. it could not set targetUser and targetAgent at the same time
 
       targetUser [optional]: set an user-defined URL for the http request
+
         url: the url for http
+
         method: http method, must be one of GET POST PUT DELETE CONNECT OPTIONS PATCH HEAD
 
       targetAgent: [optional]: set the http tareget to spiderdoctor agents
+
         testClusterIp: send http request to the cluster ipv4 or ipv6 address of spiderdoctor agnent, according to testIPv4 and testIPv6.
+
         testEndpoint: send http request to other spiderdoctor agnent ipv4 or ipv6 address according to testIPv4 and testIPv6.
+
         testMultusInterface: whether send http request to all interfaces ip in testEndpoint case.
+
         testIPv4: test any IPv4 address. Notice, the 'enableIPv4' in configmap  spiderdocter must be enabled
+
         testIPv6: test any IPv6 address. Notice, the 'enableIPv6' in configmap  spiderdocter must be enabled
+
         testIngress: send http request to the ingress ipv4 or ipv6 address of spiderdoctor agnent
+
         testNodePort: send http request to the nodePort ipv4 or ipv6 address with each local node of spiderdoctor agnent , according to testIPv4 and testIPv6.
 
         >notice: when test targetAgent case, it will send http request to all targets at the same time with spec.request.qps for each one. That meaning, the actually QPS may be bigger than spec.request.qps
@@ -98,22 +110,35 @@ items:
 * spec.success: define the success condition of the task result 
 
     meanAccessDelayInMs: mean access delay in MS, if the actual delay is bigger than this, it results to be failure
+
     successRate: the success rate of all http requests. if the actual success rate is smalller than this, it results to be failure
 
 * status: the status of the task
     doneRound: how many rounds have finished
+
     expectedRound: how many rounds the task expect
+
     finish: whether all rounds of this task have finished
+
     lastRoundStatus: the result of last round
+
     history:
         roundNumber: the round number
+
         status: the status of this round
+
         startTimeStamp: when this round begins
+
         endTimeStamp: when this round finally finished
+
         duration: how long the round spent
+
         deadLineTimeStamp: the time deadline of a round 
+
         failedAgentNodeList: the node list where failed spiderdoctor agent locate
+
         notReportAgentNodeList: the node list where uknown spiderdoctor agent locate. This means these agents have problems.
+
         succeedAgentNodeList: the node list where successful spiderdoctor agent locate
 
 
@@ -253,9 +278,9 @@ kubectl apply -f source-agent.yaml
 when something wrong happen, see the log for your task with following command
 ```shell
 #get log 
-CRD_KIND="nethtpp"
+CRD_KIND="nethttp"
 CRD_NAME="test1"
-kubectl logs -n kube-system  spiderdoctor-agent-v4vzx | grpe -i "${CRD_KIND}.${CRD_NAME}"
+kubectl logs -n kube-system  spiderdoctor-agent-v4vzx | grep -i "${CRD_KIND}.${CRD_NAME}"
 
 ```
 
@@ -268,7 +293,7 @@ Use the following command to get its report
 kubectl logs -n kube-system  spiderdoctor-agent-v4vzx | jq 'select( .TaskName=="nethttp.testhttp1" )'
 ```
 
-when the spiderdoctor is enabled to aggerate reports, all reports will be collected in the PVC or hostPath of spiderdoctor controller.
+when the spiderdoctor is enabled to aggregate reports, all reports will be collected in the PVC or hostPath of spiderdoctor controller.
 
 
 metric introduction

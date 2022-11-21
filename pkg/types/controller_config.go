@@ -20,6 +20,7 @@ var ControllerEnvMapping = []EnvMapping{
 	{"ENV_CLEAN_AGED_REPORT_INTERVAL_IN_MINUTE", "10", &ControllerConfig.CleanAgedReportInMinute},
 	{"ENV_AGENT_DAEMONSET_NAME", "spiderdoctor-agent", &ControllerConfig.SpiderDoctorAgentDaemonsetName},
 	{"ENV_CONTROLLER_REPORT_AGE_IN_DAY", "30", &ControllerConfig.ReportAgeInDay},
+	{"ENV_COLLECT_AGENT_REPORT_INTERVAL_IN_SECOND", "600", &ControllerConfig.CollectAgentReportIntervalInSecond},
 }
 
 type ControllerConfigStruct struct {
@@ -37,11 +38,12 @@ type ControllerConfigStruct struct {
 	PodNamespace                   string
 	SpiderDoctorAgentDaemonsetName string
 
-	EnableAggregateAgentReport bool
-	CleanAgedReportInMinute    int32
-	DirPathControllerReport    string
-	DirPathAgentReport         string
-	ReportAgeInDay             int32
+	EnableAggregateAgentReport         bool
+	CleanAgedReportInMinute            int32
+	DirPathControllerReport            string
+	DirPathAgentReport                 string
+	ReportAgeInDay                     int32
+	CollectAgentReportIntervalInSecond int32
 
 	// -------- from flags
 	ConfigMapPath     string

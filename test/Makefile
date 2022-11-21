@@ -158,12 +158,21 @@ deploy_project:
 		exit 0
 
 
-
 .PHONY: deploy_multus
 deploy_multus: KIND_KUBECONFIG ?= $(E2E_KIND_KUBECONFIG_PATH)
 deploy_multus: KIND_CLUSTER_NAME ?= $(E2E_KIND_CLUSTER_NAME)
 deploy_multus:
-	[ "$(E2E_ENABLE_MULTUS)" == "true" ] || { echo "multus is disabled" ; exit 0 ; }
+	if [ "$(E2E_ENABLE_MULTUS)" == "true" ] ; then \
+  		  echo "install multus" ; \
+  		  make install_multus -e KIND_KUBECONFIG=$(KIND_KUBECONFIG) -e KIND_CLUSTER_NAME=$(KIND_CLUSTER_NAME) ; \
+  		else \
+  		  echo "ignore multus" ; \
+  		fi
+
+.PHONY: install_multus
+install_multus: KIND_KUBECONFIG ?= $(E2E_KIND_KUBECONFIG_PATH)
+install_multus: KIND_CLUSTER_NAME ?= $(E2E_KIND_CLUSTER_NAME)
+install_multus:
 	@echo "beign to install multus"
 	- helm repo remove $(MULTUS_REPO_NAME)
 	helm repo add $(MULTUS_REPO_NAME) $(MULTUS_CHART_REPO) ; \

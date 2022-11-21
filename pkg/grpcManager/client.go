@@ -29,6 +29,8 @@ const (
 
 type GrpcClientManager interface {
 	SendRequestForExecRequest(ctx context.Context, serverAddress []string, request *agentGrpc.ExecRequestMsg) (*agentGrpc.ExecResponseMsg, error)
+	GetFileList(ctx context.Context, serverAddress, directory string) ([]string, error)
+	SaveRemoteFileToLocal(ctx context.Context, serverAddress, remoteFilePath, localFilePath string) error
 }
 
 type grpcClientManager struct {

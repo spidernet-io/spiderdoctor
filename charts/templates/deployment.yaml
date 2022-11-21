@@ -153,6 +153,8 @@ spec:
               value: {{ .Values.feature.aggregateReport.agent.reportPath | quote }}
             - name: ENV_CLEAN_AGED_REPORT_INTERVAL_IN_MINUTE
               value: {{ .Values.feature.aggregateReport.cleanAgedReportIntervalInMinute | quote }}
+            - name: ENV_COLLECT_AGENT_REPORT_INTERVAL_IN_SECOND
+              value: {{ .Values.feature.aggregateReport.controller.collectAgentReportIntervalInSecond | quote }}
             {{- end }}
             - name: ENV_POD_NAME
               valueFrom:

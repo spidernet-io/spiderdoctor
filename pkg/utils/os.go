@@ -73,3 +73,19 @@ EXE:
 
 	return
 }
+
+func GetFileList(dirName string) ([]string, error) {
+	filelist, e := os.ReadDir(dirName)
+	if e != nil {
+		return nil, fmt.Errorf("failed to read directory %s, error=%v", dirName, e)
+	}
+
+	nameList := []string{}
+	for _, item := range filelist {
+		if item.IsDir() {
+			continue
+		}
+		nameList = append(nameList, item.Name())
+	}
+	return nameList, nil
+}

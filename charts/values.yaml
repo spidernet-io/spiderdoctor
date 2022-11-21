@@ -77,6 +77,9 @@ feature:
       ## @param feature.aggregateReport.controller.maxAgeInDay report file maximum age in days
       maxAgeInDay: 30
 
+      ## @param feature.aggregateReport.controller.collectAgentReportIntervalInSecond how long the controller collects all agent report at interval in second
+      collectAgentReportIntervalInSecond: 600
+
       # for store report
       pvc:
         ## @param feature.aggregateReport.controller.pvc.enabled store report to pvc
