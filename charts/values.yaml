@@ -58,6 +58,39 @@ feature:
   ## @param feature.crdMaxHistory max history items inf CRD status
   crdMaxHistory: 10
 
+  ## aggregate report from agent for each crd
+  aggregateReport:
+    ## @param feature.aggregateReport.enabled aggregate report from agent for each crd
+    enabled: true
+
+    ## @param feature.aggregateReport.cleanAgedReportIntervalInMinute the interval in minute for removing aged report
+    cleanAgedReportIntervalInMinute: "10"
+
+    agent:
+      ## @param feature.aggregateReport.agent.reportPath the path where the agent pod temporarily store task report.
+      reportPath: "/report"
+
+    controller:
+      ## @param feature.aggregateReport.controller.reportHostPath storage path when pvc is disabled
+      reportHostPath: "/var/run/spiderdoctor/reports"
+
+      ## @param feature.aggregateReport.controller.maxAgeInDay report file maximum age in days
+      maxAgeInDay: 30
+
+      # for store report
+      pvc:
+        ## @param feature.aggregateReport.controller.pvc.enabled store report to pvc
+        enabled: false
+
+        ## @param feature.aggregateReport.controller.pvc.storageClass storage class name
+        storageClass: ""
+
+        ## @param feature.aggregateReport.controller.pvc.storageRequests storage request
+        storageRequests: "100Mi"
+
+        ## @param feature.aggregateReport.controller.pvc.storageLimits storage limit
+        storageLimits: "1024Mi"
+
 ## @section spiderdoctorAgent parameters
 ##
 spiderdoctorAgent:
@@ -68,7 +101,7 @@ spiderdoctorAgent:
   cmdBinName: "/usr/bin/agent"
 
   ## @param spiderdoctorAgent.hostnetwork enable hostnetwork mode of spiderdoctorAgent pod
-  hostnetwork: true
+  hostnetwork: false
 
   image:
     ## @param spiderdoctorAgent.image.registry the image registry of spiderdoctorAgent
@@ -267,9 +300,6 @@ spiderdoctorAgent:
     logLevel: "info"
     ## @param spiderdoctorAgent.debug.gopsPort the gops port of template agent
     gopsPort: 5712
-
-  ## @param spiderdoctorAgent.gcReport delete report file when CR is deleted
-  gcReport: true
 
 ## @section spiderdoctorController parameters
 ##
@@ -536,26 +566,3 @@ spiderdoctorController:
 
       ## @param spiderdoctorController.tls.auto.extraDnsNames extra DNS names of server cert for auto method
       extraDnsNames: []
-
-  ## aggregate report from agent for each crd
-  aggregateReport:
-    ## @param spiderdoctorController.aggregateReport.enabled aggregate report from agent for each crd
-    enabled: false
-
-    ## @param spiderdoctorController.aggregateReport.reportHostPath storage path when pvc is disabled
-    reportHostPath: "/var/run/spiderdoctor/controller"
-
-    # for store report
-    pvc:
-      ## @param spiderdoctorController.aggregateReport.pvc.enabled store report to pvc
-      enabled: true
-
-      ## @param spiderdoctorController.aggregateReport.pvc.storageClass storage class name
-      storageClass: ""
-
-      ## @param spiderdoctorController.aggregateReport.pvc.storageRequests storage request
-      storageRequests: "100Mi"
-
-      ## @param spiderdoctorController.aggregateReport.pvc.storageLimits storage limit
-      storageLimits: "1024Mi"
-

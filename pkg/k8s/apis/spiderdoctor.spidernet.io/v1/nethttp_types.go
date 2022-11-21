@@ -52,7 +52,7 @@ type TargetAgentSepc struct {
 	// +kubebuilder:default=true
 	TestEndpoint bool `json:"testEndpoint,omitempty"`
 
-	// +kubebuilder:default=true
+	// +kubebuilder:default=false
 	TestMultusInterface bool `json:"testMultusInterface,omitempty"`
 
 	// +kubebuilder:default=true
@@ -71,7 +71,7 @@ type NethttpTarget struct {
 	TargetUrl *string `json:"targetUrl,omitempty"`
 
 	// +kubebuilder:validation:Optional
-	TargetAgent *TargetAgentSepc `json:"rargetAgent,omitempty"`
+	TargetAgent *TargetAgentSepc `json:"targetAgent,omitempty"`
 }
 
 // scope(Namespaced or Cluster)

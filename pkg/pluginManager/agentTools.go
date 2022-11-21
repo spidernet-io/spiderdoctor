@@ -4,6 +4,7 @@
 package pluginManager
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -15,6 +16,7 @@ import (
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"strings"
 	"time"
 )
 
@@ -31,12 +33,13 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 	go func() {
 		startTime := time.Now()
 		msg := plugintypes.PluginReport{
-			TaskName:       taskName,
+			TaskName:       strings.ToLower(taskName),
 			RoundNumber:    roundNumber,
-			AgentNodeName:  s.localNodeName,
-			AgentPodName:   types.AgentConfig.PodName,
+			NodeName:       s.localNodeName,
+			PodName:        types.AgentConfig.PodName,
 			StartTimeStamp: startTime,
 			TaskSpec:       crdObjSpec,
+			ReportType:     plugintypes.ReportTypeAgent,
 		}
 		failureReason, report, e := s.plugin.AgentEexecuteTask(logger, ctx, obj)
 		if e != nil {
@@ -76,9 +79,28 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 		if jsongByte, err := json.Marshal(msg); err != nil {
 			logger.Sugar().Errorf("failed to generate round report , marsha json error=%v", err)
 		} else {
+			// print to stdout for human reading
 			fmt.Printf("%+v\n ", string(jsongByte))
-			// TODO: write report to disk for controller to collect
 
+			// write report to disk for controller to collect
+			if s.fm != nil {
+				var out bytes.Buffer
+				if e := json.Indent(&out, jsongByte, "", "\t"); e != nil {
+					logger.Sugar().Errorf("failed to json Indent for report of %v, error=%v", taskRoundName, e)
+				} else {
+					kindName := strings.Split(taskName, ".")[0]
+					instanceName := strings.TrimPrefix(taskName, kindName+".")
+					// save with maximum age roundDuration , in this interval, the controller also will collect it
+					t := time.Duration(schedulePlan.TimeoutMinute+5) * time.Minute
+
+					// file name format: fmt.Sprintf("%s_%s_round%d_%s_%s", kindName, taskName, roundNumber, nodeName, suffix)
+					if e := s.fm.WriteTaskFile(kindName, instanceName, roundNumber, s.localNodeName, time.Now().Add(t), out.Bytes()); e != nil {
+						logger.Sugar().Errorf("failed to write report of %v, error=%v", taskRoundName, e)
+					} else {
+						logger.Sugar().Debugf("succeed to write report for %v", taskRoundName)
+					}
+				}
+			}
 		}
 
 	}()

@@ -4,14 +4,18 @@
 package pluginManager
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	k8sObjManager "github.com/spidernet-io/spiderdoctor/pkg/k8ObjManager"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
+	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.uber.org/zap"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"strings"
 	"time"
 )
 
@@ -100,9 +104,65 @@ func (s *pluginControllerReconciler) UpdateRoundFinalStatus(logger *zap.Logger, 
 			newStatus.LastRoundStatus = &n
 			logger.Sugar().Infof("round %v succeeded ", latestRecord.RoundNumber)
 		}
+		latestRecord.EndTimeStamp = &metav1.Time{
+			Time: time.Now(),
+		}
+		i := time.Since(latestRecord.StartTimeStamp.Time).String()
+		latestRecord.Duration = &i
+
 		return true, nil
 	}
 
+}
+
+func (s *pluginControllerReconciler) WriteSummaryReport(taskName string, roundNumber int, newStatus *crd.TaskStatus) {
+	if s.fm == nil {
+		return
+	}
+
+	kindName := strings.Split(taskName, ".")[0]
+	instanceName := strings.TrimPrefix(taskName, kindName+".")
+	t := time.Duration(types.ControllerConfig.ReportAgeInDay*24) * time.Hour
+	endTime := newStatus.History[0].StartTimeStamp.Add(t)
+
+	if !s.fm.CheckTaskFileExisted(kindName, instanceName, roundNumber) {
+		// TODO: add to workqueue to collect all report of last round, for node latestRecord.FailedAgentNodeList and latestRecord.SucceedAgentNodeList
+
+		// write controller summary report
+		msg := plugintypes.PluginReport{
+			TaskName:       strings.ToLower(taskName),
+			TaskSpec:       "",
+			RoundNumber:    roundNumber,
+			RoundResult:    plugintypes.RoundResultStatus(newStatus.History[0].Status),
+			FailedReason:   newStatus.History[0].FailureReason,
+			NodeName:       "",
+			PodName:        types.ControllerConfig.PodName,
+			StartTimeStamp: newStatus.History[0].StartTimeStamp.Time,
+			EndTimeStamp:   time.Now(),
+			RoundDuraiton:  time.Since(newStatus.History[0].StartTimeStamp.Time).String(),
+			Detail:         newStatus.History[0],
+			ReportType:     plugintypes.ReportTypeSummary,
+		}
+
+		if jsongByte, e := json.Marshal(msg); e != nil {
+			s.logger.Sugar().Errorf("failed to generate round summary report for kind %v task %v round %v, json marsha error=%v", kindName, instanceName, roundNumber, e)
+		} else {
+			// print to stdout for human reading
+			fmt.Printf("%+v\n ", string(jsongByte))
+
+			var out bytes.Buffer
+			if e := json.Indent(&out, jsongByte, "", "\t"); e != nil {
+				s.logger.Sugar().Errorf("failed to generate round summary report for kind %v task %v round %v, json Indent error=%v", kindName, instanceName, roundNumber, e)
+			} else {
+				// file name format: fmt.Sprintf("%s_%s_round%d_%s_%s", kindName, taskName, roundNumber, nodeName, suffix)
+				if e := s.fm.WriteTaskFile(kindName, instanceName, roundNumber, "controller", endTime, out.Bytes()); e != nil {
+					s.logger.Sugar().Errorf("failed to generate round summary report for kind %v task %v round %v, write file error=%v", kindName, instanceName, roundNumber, e)
+				} else {
+					s.logger.Sugar().Debugf("succeeded to generate round summary report for kind %v task %v round %v", kindName, instanceName, roundNumber)
+				}
+			}
+		}
+	}
 }
 
 func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx context.Context, oldStatus *crd.TaskStatus, schedulePlan *crd.SchedulePlan, taskName string) (result *reconcile.Result, taskStatus *crd.TaskStatus, e error) {
@@ -157,6 +217,9 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 				if roundDone {
 					logger.Sugar().Infof("round %v get reports from all agents ", roundNumber)
 
+					// before insert new record, write summary of last round
+					s.WriteSummaryReport(taskName, roundNumber, newStatus)
+
 					// add new round record
 					if *(newStatus.DoneRound) < *(newStatus.ExpectedRound) {
 						n := *(newStatus.DoneRound) + 1
@@ -176,8 +239,6 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 							newStatus.Finish = true
 						}
 					}
-
-					// TODO: add to workqueue to collect all report of last round, for node latestRecord.FailedAgentNodeList and latestRecord.SucceedAgentNodeList
 
 					// requeue immediately to make sure the update succeed , not conflicted
 					result = &reconcile.Result{
@@ -217,7 +278,11 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 				if _, e := s.UpdateRoundFinalStatus(logger, ctx, newStatus, schedulePlan.SourceAgentNodeSelector, true); e != nil {
 					return nil, nil, e
 				} else {
-					logger.Sugar().Infof("round %v get reports from all agents ", roundNumber)
+					// all agent finished, so try to update the summary
+					logger.Sugar().Infof("round %v got reports from all agents, try to summarize", roundNumber)
+
+					// before insert new record, write summary of last round
+					s.WriteSummaryReport(taskName, roundNumber, newStatus)
 
 					// add new round record
 					if *(newStatus.DoneRound) < *(newStatus.ExpectedRound) {
@@ -238,8 +303,6 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 							newStatus.Finish = true
 						}
 					}
-
-					// TODO: add to workqueue to collect all report of last round, for node latestRecord.FailedAgentNodeList and latestRecord.SucceedAgentNodeList
 
 					// requeue immediately to make sure the update succeed , not conflicted
 					result = &reconcile.Result{
