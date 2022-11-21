@@ -35,15 +35,15 @@ func (s *grpcClientManager) GetFileList(ctx context.Context, serverAddress, dire
 		Timeoutsecond: 10,
 		Command:       fmt.Sprintf("ls %v", directory),
 	}
-	resonse, e := s.SendRequestForExecRequest(ctx, []string{serverAddress}, request)
+	response, e := s.SendRequestForExecRequest(ctx, []string{serverAddress}, request)
 	if e != nil {
 		return nil, fmt.Errorf("failed to get file list under directory %v of %v, error=%v", directory, serverAddress, e)
 	}
-	if resonse.Code != 0 {
-		return nil, fmt.Errorf("failed to get file list under directory %v of %v, exit code=%v, stderr=%v", directory, serverAddress, resonse.Code, resonse.Stderr)
+	if response.Code != 0 {
+		return nil, fmt.Errorf("failed to get file list under directory %v of %v, exit code=%v, stderr=%v", directory, serverAddress, response.Code, response.Stderr)
 	}
 
-	return strings.Fields(resonse.Stdmsg), nil
+	return strings.Fields(response.Stdmsg), nil
 }
 
 func (s *grpcClientManager) SaveRemoteFileToLocal(ctx context.Context, serverAddress, remoteFilePath, localFilePath string) error {
@@ -53,15 +53,15 @@ func (s *grpcClientManager) SaveRemoteFileToLocal(ctx context.Context, serverAdd
 		Timeoutsecond: 10,
 		Command:       fmt.Sprintf("cat %v", remoteFilePath),
 	}
-	resonse, e := s.SendRequestForExecRequest(ctx, []string{serverAddress}, request)
+	response, e := s.SendRequestForExecRequest(ctx, []string{serverAddress}, request)
 	if e != nil {
 		return fmt.Errorf("failed to get remote file %v of %v, error=%v", remoteFilePath, serverAddress, e)
 	}
-	if resonse.Code != 0 {
-		return fmt.Errorf("failed to get remote file %v of %v, exit code=%v, stderr=%v", remoteFilePath, serverAddress, resonse.Code, resonse.Stderr)
+	if response.Code != 0 {
+		return fmt.Errorf("failed to get remote file %v of %v, exit code=%v, stderr=%v", remoteFilePath, serverAddress, response.Code, response.Stderr)
 	}
 
-	if len(resonse.Stdmsg) == 0 {
+	if len(response.Stdmsg) == 0 {
 		return fmt.Errorf("got empty remote file %v of %v ", remoteFilePath, serverAddress)
 	}
 
@@ -70,13 +70,13 @@ func (s *grpcClientManager) SaveRemoteFileToLocal(ctx context.Context, serverAdd
 		return fmt.Errorf("open file %v failed, error=%v", localFilePath, e)
 	}
 	defer f.Close()
-	// _, e = f.Write([]byte(resonse.Stdmsg))
+	// _, e = f.Write([]byte(response.Stdmsg))
 	// if e != nil {
 	// 	return fmt.Errorf("failed to write file %v, error=%v", localFilePath, e)
 	// }
 
 	writer := bufio.NewWriter(f)
-	_, e = writer.WriteString(resonse.Stdmsg)
+	_, e = writer.WriteString(response.Stdmsg)
 	if e != nil {
 		return fmt.Errorf("failed to write file %v, error=%v", localFilePath, e)
 	}

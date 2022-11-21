@@ -1,3 +1,6 @@
+// Copyright 2022 Authors of spidernet-io
+// SPDX-License-Identifier: Apache-2.0
+
 package pluginManager
 
 import (
@@ -81,7 +84,7 @@ func (s *pluginManager) RunControllerController(healthPort int, webhookPort int,
 	var fm fileManager.FileManager
 	var e error
 	if types.ControllerConfig.EnableAggregateAgentReport {
-		// fileManager takes charge of wirting and removing local report
+		// fileManager takes charge of writing and removing local report
 		gcInterval := time.Duration(types.ControllerConfig.CleanAgedReportInMinute) * time.Minute
 		logger.Sugar().Infof("save report to %v, clean interval %v", types.ControllerConfig.DirPathControllerReport, gcInterval.String())
 		fm, e = fileManager.NewManager(logger.Named("fileManager"), types.ControllerConfig.DirPathControllerReport, gcInterval)
