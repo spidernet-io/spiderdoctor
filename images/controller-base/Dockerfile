@@ -3,7 +3,7 @@
 # Copyright 2022 Authors of spidernet-io
 # SPDX-License-Identifier: Apache-2.0
 
-ARG GOLANG_IMAGE=docker.io/library/golang:1.19@sha256:25de7b6b28219279a409961158c547aadd0960cf2dcbc533780224afa1157fd4
+ARG GOLANG_IMAGE=docker.io/library/golang:1.19@sha256:dc76ef03e54c34a00dcdca81e55c242d24b34d231637776c4bb5c1a8e8514253
 ARG UBUNTU_IMAGE=docker.io/library/ubuntu:22.04@sha256:35fb073f9e56eb84041b0745cb714eff0f7b225ea9e024f703cab56aaa5c7720
 
 # report error by github ci
