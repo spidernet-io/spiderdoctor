@@ -9,7 +9,7 @@ when POC or E2E case, it could disable the controller to collect reports, so no 
 
 the following method leads the agent just print report to console
 ```shell 
-helm add spiderdoctor https://spidernet-io.github.io/spiderdoctor
+helm repo add spiderdoctor https://spidernet-io.github.io/spiderdoctor
 
 helm install spiderdoctor spiderdoctor/spiderdoctor \
     -n kube-system --wait --debug \
@@ -19,7 +19,7 @@ helm install spiderdoctor spiderdoctor/spiderdoctor \
 
 the following method leads controller collects all report to disc of local host. BTW, when the spiderdoctor controller is schedules to other nodes, the historical reports will be not migrated 
 ```shell 
-helm add spiderdoctor https://spidernet-io.github.io/spiderdoctor
+helm repo add spiderdoctor https://spidernet-io.github.io/spiderdoctor
 
 helm  install spiderdoctor spiderdoctor/spiderdoctor \
     -n kube-system --wait --debug \
@@ -33,7 +33,7 @@ helm  install spiderdoctor spiderdoctor/spiderdoctor \
 the following method leads the spiderdoctor controller collect report to stroage, so firstly, it should install storageClass
 
 ```shell 
-helm add spiderdoctor https://spidernet-io.github.io/spiderdoctor
+helm repo add spiderdoctor https://spidernet-io.github.io/spiderdoctor
 
 helm  install spiderdoctor spiderdoctor/spiderdoctor \
     -n kube-system --wait --debug \
@@ -50,7 +50,7 @@ helm  install spiderdoctor spiderdoctor/spiderdoctor \
 if it is required to test all interface of agent pod, it should annotate the agent with multus annotation
 
 ```shell 
-helm add spiderdoctor https://spidernet-io.github.io/spiderdoctor
+helm repo add spiderdoctor https://spidernet-io.github.io/spiderdoctor
 
 # replace following with actual multus configuration
 MULTUS_DEFAULT_CNI=kube-system/k8s-pod-network
