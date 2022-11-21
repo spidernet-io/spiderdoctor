@@ -68,10 +68,18 @@ type TargetAgentSepc struct {
 type NethttpTarget struct {
 
 	// +kubebuilder:validation:Optional
-	TargetUrl *string `json:"targetUrl,omitempty"`
+	TargetUser *HttpTarget `json:"targetUser,omitempty"`
 
 	// +kubebuilder:validation:Optional
 	TargetAgent *TargetAgentSepc `json:"targetAgent,omitempty"`
+}
+
+type HttpTarget struct {
+	Url string `json:"url"`
+
+	// +kubebuilder:validation:Type:=string
+	// +kubebuilder:validation:Enum=GET;POST;PUT;DELETE;CONNECT;OPTIONS;PATCH;HEAD
+	Method string `json:"method"`
 }
 
 // scope(Namespaced or Cluster)
