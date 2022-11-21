@@ -187,8 +187,25 @@ spec:
                         default: true
                         type: boolean
                     type: object
-                  targetUrl:
-                    type: string
+                  targetUser:
+                    properties:
+                      method:
+                        enum:
+                        - GET
+                        - POST
+                        - PUT
+                        - DELETE
+                        - CONNECT
+                        - OPTIONS
+                        - PATCH
+                        - HEAD
+                        type: string
+                      url:
+                        type: string
+                    required:
+                    - method
+                    - url
+                    type: object
                 type: object
             type: object
           status:

@@ -92,8 +92,8 @@ func (s *PluginNetHttp) WebhookValidateCreate(logger *zap.Logger, ctx context.Co
 			logger.Error(s)
 			return apierrors.NewBadRequest(s)
 		}
-		if r.Spec.Request.PerRequestTimeoutInSecond > r.Spec.Request.DurationInSecond {
-			s := fmt.Sprintf("nethttp %v requires PerRequestTimeoutInSecond %vs smaller than DurationInSecond %vs ", r.Name, r.Spec.Request.PerRequestTimeoutInSecond, r.Spec.Request.DurationInSecond)
+		if r.Spec.Request.PerRequestTimeoutInSecond > int(r.Spec.Schedule.TimeoutMinute*60) {
+			s := fmt.Sprintf("nethttp %v requires PerRequestTimeoutInSecond %vs smaller than Schedule.TimeoutMinute %vm ", r.Name, r.Spec.Request.PerRequestTimeoutInSecond, r.Spec.Schedule.TimeoutMinute)
 			logger.Error(s)
 			return apierrors.NewBadRequest(s)
 		}
@@ -106,23 +106,32 @@ func (s *PluginNetHttp) WebhookValidateCreate(logger *zap.Logger, ctx context.Co
 
 	// validate target
 	if true {
-		if r.Spec.Target.TargetAgent == nil && r.Spec.Target.TargetUrl == nil {
+		if r.Spec.Target.TargetAgent == nil && r.Spec.Target.TargetUser == nil {
 			s := fmt.Sprintf("nethttp %v, no target specified in the spec", r.Name)
 			logger.Error(s)
 			return apierrors.NewBadRequest(s)
 		}
 
-		// validate target
-		if r.Spec.Target.TargetAgent.TestIPv4 != nil && *(r.Spec.Target.TargetAgent.TestIPv4) && !types.ControllerConfig.Configmap.EnableIPv4 {
-			s := fmt.Sprintf("nethttp %v TestIPv4, but spiderdoctor ipv4 feature is disabled", r.Name)
+		if r.Spec.Target.TargetAgent != nil && r.Spec.Target.TargetUser != nil {
+			s := fmt.Sprintf("nethttp %v, forbid to set TargetUser and TargetAgent at same time", r.Name)
 			logger.Error(s)
 			return apierrors.NewBadRequest(s)
 		}
-		if r.Spec.Target.TargetAgent.TestIPv6 != nil && *(r.Spec.Target.TargetAgent.TestIPv6) && !types.ControllerConfig.Configmap.EnableIPv6 {
-			s := fmt.Sprintf("nethttp %v TestIPv6, but spiderdoctor ipv6 feature is disabled", r.Name)
-			logger.Error(s)
-			return apierrors.NewBadRequest(s)
+
+		if r.Spec.Target.TargetAgent != nil {
+			// validate target
+			if r.Spec.Target.TargetAgent.TestIPv4 != nil && *(r.Spec.Target.TargetAgent.TestIPv4) && !types.ControllerConfig.Configmap.EnableIPv4 {
+				s := fmt.Sprintf("nethttp %v TestIPv4, but spiderdoctor ipv4 feature is disabled", r.Name)
+				logger.Error(s)
+				return apierrors.NewBadRequest(s)
+			}
+			if r.Spec.Target.TargetAgent.TestIPv6 != nil && *(r.Spec.Target.TargetAgent.TestIPv6) && !types.ControllerConfig.Configmap.EnableIPv6 {
+				s := fmt.Sprintf("nethttp %v TestIPv6, but spiderdoctor ipv6 feature is disabled", r.Name)
+				logger.Error(s)
+				return apierrors.NewBadRequest(s)
+			}
 		}
+
 	}
 
 	// validate SuccessCondition

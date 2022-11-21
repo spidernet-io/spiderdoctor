@@ -11,3 +11,11 @@
 
 5. implement the interface pkg/pluginManager/types in pkg/plugins/xxxx
    register your interface in pkg/pluginManager/types/manager.go
+
+the plugin manager will auto help plugins to finish following jobs:
+
+1. schedule task and call plugin to implement each round task
+
+2. collect all report and save to controller disc
+
+3. summarize each round result and update to CRD

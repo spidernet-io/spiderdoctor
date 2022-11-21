@@ -32,14 +32,15 @@ func ParseSucccessCondition(successCondition *crd.NetSuccessCondition, metricRes
 	return
 }
 
-func SendRequestAndReport(logger *zap.Logger, targetName string, TargetUrl string, qps, PerRequestTimeoutInSecond, DurationInSecond int, successCondition *crd.NetSuccessCondition, report map[string]interface{}) (failureReason string) {
+func SendRequestAndReport(logger *zap.Logger, targetName string, method loadRequest.HttpMethod, TargetUrl string, qps, PerRequestTimeoutInSecond, DurationInSecond int, successCondition *crd.NetSuccessCondition, report map[string]interface{}) (failureReason string) {
 	failureReason = ""
 
 	report["TargetName"] = targetName
 	report["TargetUrl"] = TargetUrl
+	report["TargetMethod"] = method
 	report["Succeed"] = "false"
 
-	result := loadRequest.HttpRequest(TargetUrl, qps, PerRequestTimeoutInSecond, DurationInSecond)
+	result := loadRequest.HttpRequest(method, TargetUrl, qps, PerRequestTimeoutInSecond, DurationInSecond)
 	report["MeanDelay"] = result.Latencies.Mean.String()
 	report["SucceedRate"] = fmt.Sprintf("%v", result.Success)
 
@@ -92,11 +93,11 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 	request := instance.Spec.Request
 	successCondition := instance.Spec.SuccessCondition
 
-	if target.TargetUrl != nil && len(*target.TargetUrl) != 0 {
-		logger.Sugar().Infof("load test custom target: TargetUrl=%v , qps=%v, PerRequestTimeout=%vs, Duration=%vs", *target.TargetUrl, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond)
+	if target.TargetUser != nil {
+		logger.Sugar().Infof("load test custom target: Method=%v, Url=%v , qps=%v, PerRequestTimeout=%vs, Duration=%vs", target.TargetUser.Method, target.TargetUser.Url, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond)
 		finalReport["TargetType"] = "custom url"
 		finalReport["TargetNumber"] = "1"
-		SendRequestAndReport(logger, "custom target", *target.TargetUrl, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond, successCondition, finalReport)
+		SendRequestAndReport(logger, "custom target", loadRequest.HttpMethod(target.TargetUser.Method), target.TargetUser.Url, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond, successCondition, finalReport)
 		return
 
 	} else {
@@ -262,7 +263,7 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 				go func(wg *sync.WaitGroup, l *lock.Mutex, t TestTarget) {
 					itemReport := map[string]interface{}{}
 					logger.Sugar().Debugf("implement test %v, target=%v , QPS=%v, PerRequestTimeoutInSecond=%v, DurationInSecond=%v ", t.Name, t.Url, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond)
-					failureReason := SendRequestAndReport(logger, t.Name, t.Url, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond, successCondition, itemReport)
+					failureReason := SendRequestAndReport(logger, t.Name, loadRequest.HttpMethodGet, t.Url, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond, successCondition, itemReport)
 					if len(failureReason) > 0 {
 						finalfailureReason = fmt.Sprintf("test %v: %v", t.Name, failureReason)
 					}
