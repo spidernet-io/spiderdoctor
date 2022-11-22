@@ -114,6 +114,7 @@ func (s *fileManager) runCleanerByAge() {
 }
 
 func GenerateTaskFileName(kindName string, taskName string, roundNumber int, nodeName string, endTime time.Time) string {
+	// file name format: fmt.Sprintf("%s_%s_round%d_%s_%s", kindName, taskName, roundNumber, nodeName, suffix)
 	suffix := endTime.Format(time.RFC3339)
 	return fmt.Sprintf("%s_%s_round%d_%s_%s", kindName, taskName, roundNumber, nodeName, suffix)
 }
