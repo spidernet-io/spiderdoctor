@@ -35,6 +35,7 @@ func HttpRequest(method HttpMethod, URL string, qps int, PerRequestTimeoutSecond
 
 	var metrics vegeta.Metrics
 	for res := range attacker.Attack(targeter, rate, duration, "Big Bang!") {
+		// if Code >= 200 && Code < 400 { m.success++ }
 		metrics.Add(res)
 	}
 	metrics.Close()

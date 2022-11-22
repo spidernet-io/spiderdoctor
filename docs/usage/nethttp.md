@@ -111,7 +111,7 @@ items:
 
     meanAccessDelayInMs: mean access delay in MS, if the actual delay is bigger than this, it results to be failure
 
-    successRate: the success rate of all http requests. if the actual success rate is smalller than this, it results to be failure
+    successRate: the success rate of all http requests. Notice, when a http response code is >=200 and < 400, it's treated as success. if the actual whole success rate is smaller than successRate, the task results to be failure
 
 * status: the status of the task
     doneRound: how many rounds have finished
