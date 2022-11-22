@@ -19,7 +19,7 @@ import (
 	"sync"
 )
 
-func ParseSucccessCondition(successCondition *crd.NetSuccessCondition, metricResult *vegeta.Metrics) (failureReason string, err error) {
+func ParseSuccessCondition(successCondition *crd.NetSuccessCondition, metricResult *vegeta.Metrics) (failureReason string, err error) {
 	switch {
 	case successCondition.SuccessRate != nil && metricResult.Success < *successCondition.SuccessRate:
 		failureReason = fmt.Sprintf("Success Rate %v is lower than request %v", metricResult.Success, successCondition.SuccessRate)
@@ -45,7 +45,7 @@ func SendRequestAndReport(logger *zap.Logger, targetName string, method loadRequ
 	report["SucceedRate"] = fmt.Sprintf("%v", result.Success)
 
 	var err error
-	failureReason, err = ParseSucccessCondition(successCondition, result)
+	failureReason, err = ParseSuccessCondition(successCondition, result)
 	if err != nil {
 		failureReason = fmt.Sprintf("%v", err)
 		logger.Sugar().Errorf("internal error for target %v, error=%v", TargetUrl, err)
@@ -73,7 +73,7 @@ type TestTarget struct {
 	Url  string
 }
 
-func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Context, obj runtime.Object) (finalfailureReason string, finalReport types.PluginRoundDetail, err error) {
+func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context, obj runtime.Object) (finalfailureReason string, finalReport types.PluginRoundDetail, err error) {
 	finalfailureReason = ""
 	finalReport = types.PluginRoundDetail{}
 	err = nil
@@ -97,7 +97,10 @@ func (s *PluginNetHttp) AgentEexecuteTask(logger *zap.Logger, ctx context.Contex
 		logger.Sugar().Infof("load test custom target: Method=%v, Url=%v , qps=%v, PerRequestTimeout=%vs, Duration=%vs", target.TargetUser.Method, target.TargetUser.Url, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond)
 		finalReport["TargetType"] = "custom url"
 		finalReport["TargetNumber"] = "1"
-		SendRequestAndReport(logger, "custom target", loadRequest.HttpMethod(target.TargetUser.Method), target.TargetUser.Url, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond, successCondition, finalReport)
+		failureReason := SendRequestAndReport(logger, "custom target", loadRequest.HttpMethod(target.TargetUser.Method), target.TargetUser.Url, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond, successCondition, finalReport)
+		if len(failureReason) > 0 {
+			finalfailureReason = fmt.Sprintf("test custom target: %v", failureReason)
+		}
 		return
 
 	} else {
