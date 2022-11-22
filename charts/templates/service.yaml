@@ -1,4 +1,4 @@
-{{- if or .Values.spiderdoctorAgent.prometheus.enabled .Values.feature.enableIPv4 }}
+{{- if .Values.feature.enableIPv4 }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -40,7 +40,7 @@ spec:
     {{- include "project.spiderdoctorAgent.selectorLabels" . | nindent 4 }}
 {{- end }}
 ---
-{{- if or .Values.spiderdoctorAgent.prometheus.enabled .Values.feature.enableIPv6 }}
+{{- if .Values.feature.enableIPv6 }}
 apiVersion: v1
 kind: Service
 metadata:
