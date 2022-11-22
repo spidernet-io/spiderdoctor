@@ -12,7 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-func (s *PluginNetDns) AgentEexecuteTask(logger *zap.Logger, ctx context.Context, obj runtime.Object) (failureReason string, report types.PluginRoundDetail, err error) {
+func (s *PluginNetDns) AgentExecuteTask(logger *zap.Logger, ctx context.Context, obj runtime.Object) (failureReason string, report types.PluginRoundDetail, err error) {
 	failureReason = ""
 	report = types.PluginRoundDetail{}
 	err = nil

@@ -14,7 +14,7 @@ import (
 type ChainingPlugin interface {
 	GetApiType() client.Object
 
-	AgentEexecuteTask(logger *zap.Logger, ctx context.Context, obj runtime.Object) (failureReason string, report PluginRoundDetail, err error)
+	AgentExecuteTask(logger *zap.Logger, ctx context.Context, obj runtime.Object) (failureReason string, report PluginRoundDetail, err error)
 
 	// ControllerReconcile(*zap.Logger, client.Client, context.Context, reconcile.Request) (reconcile.Result, error)
 	// AgentReconcile(*zap.Logger, client.Client, context.Context, reconcile.Request) (reconcile.Result, error)
