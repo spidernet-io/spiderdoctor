@@ -41,7 +41,7 @@ jobs:
           elif ${{ inputs.ipfamily == 'dual' }} ; then
               echo "test dual stack"          
           else
-              echo "unknow ipfamily ${{ inputs.ipfamily }} "
+              echo "unknown ipfamily ${{ inputs.ipfamily }} "
               exit
           fi
           echo "===== image "
