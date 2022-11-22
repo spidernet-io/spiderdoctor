@@ -9,7 +9,7 @@ on:
 
 jobs:
   call-ci:
-    uses: ./.github/workflows/auto-ci.yaml
+    uses: ./.github/workflows/auto-pr-ci.yaml
     secrets: inherit
 
   creat_issue:
