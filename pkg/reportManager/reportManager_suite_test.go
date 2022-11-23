@@ -15,5 +15,5 @@ func TestIppoolCR(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
-
+	// nothing to do
 })
