@@ -3,9 +3,9 @@ entries:
   spiderdoctor:
   - apiVersion: v2
     appVersion: 0.2.1
-    created: "2022-11-23T07:02:46.958548484Z"
+    created: "2022-11-23T13:29:09.052819441Z"
     description: spiderdoctor
-    digest: 3f1bdd5916b9cd81c0c8b89d10a41e4d4c39bf1511b9291d5c950970fd37573c
+    digest: 396e3fc8ca31ea1baf679e7604ac692772106ed4462583f4819c99ebf0c6b86e
     home: https://spidernet-io.github.io/agent
     keywords:
     - spiderdoctor
@@ -22,7 +22,7 @@ entries:
     version: 0.2.1
   - apiVersion: v2
     appVersion: 0.2.0
-    created: "2022-11-23T07:02:46.956176874Z"
+    created: "2022-11-23T13:29:09.050948899Z"
     description: spiderdoctor
     digest: b6cd04cd2bec212989214df8bc0fa4040922f46464649789f64471eba3dd3620
     home: https://spidernet-io.github.io/agent
@@ -39,4 +39,4 @@ entries:
     urls:
     - https://spidernet-io.github.io/spiderdoctor/charts/spiderdoctor-0.2.0.tgz
     version: 0.2.0
-generated: "2022-11-23T07:02:46.953633864Z"
+generated: "2022-11-23T13:29:09.048823952Z"
