@@ -26,11 +26,15 @@ type pluginWebhookhander struct {
 
 var _ webhook.CustomValidator = (*pluginWebhookhander)(nil)
 
+const (
+	MsgErrCtx = "miss admission Request in ctx "
+)
+
 // mutating webhook
 func (s *pluginWebhookhander) Default(ctx context.Context, obj runtime.Object) error {
 	req, err := admission.RequestFromContext(ctx)
 	if err != nil {
-		return fmt.Errorf("expected admission.Request in ctx: %w", err)
+		return fmt.Errorf("%s : %w", MsgErrCtx, err)
 	}
 	s.logger.Sugar().Debugf("mutating kind %v", req.Kind.Kind)
 
@@ -64,7 +68,7 @@ func (s *pluginWebhookhander) Default(ctx context.Context, obj runtime.Object) e
 func (s *pluginWebhookhander) ValidateCreate(ctx context.Context, obj runtime.Object) error {
 	req, err := admission.RequestFromContext(ctx)
 	if err != nil {
-		return fmt.Errorf("expected admission.Request in ctx: %w", err)
+		return fmt.Errorf("%s : %w", MsgErrCtx, err)
 	}
 	s.logger.Sugar().Debugf("create kind %v", req.Kind.Kind)
 
@@ -74,7 +78,7 @@ func (s *pluginWebhookhander) ValidateCreate(ctx context.Context, obj runtime.Ob
 func (s *pluginWebhookhander) ValidateUpdate(ctx context.Context, oldObj, newObj runtime.Object) error {
 	req, err := admission.RequestFromContext(ctx)
 	if err != nil {
-		return fmt.Errorf("expected admission.Request in ctx: %w", err)
+		return fmt.Errorf("%s : %w", MsgErrCtx, err)
 	}
 	s.logger.Sugar().Debugf("update kind %v", req.Kind.Kind)
 
