@@ -63,6 +63,7 @@ func getTaskFileEndTime(filePath string) (endTime time.Time, err error) {
 		return time.Time{}, fmt.Errorf("failed to get file name")
 	}
 	v := strings.Split(name, "_")
+
 	if len(v) < 3 {
 		return time.Time{}, fmt.Errorf("file name %v is not agent format to get file name", name)
 	}
