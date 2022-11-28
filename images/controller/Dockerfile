@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 #====modify====
-ARG BASE_IMAGE=ghcr.io/spidernet-io/spiderdoctor/controller-base:a92605cfa38fa69a15439e19e0a762a4bd121481
-ARG GOLANG_IMAGE=docker.io/library/golang:1.19@sha256:dc76ef03e54c34a00dcdca81e55c242d24b34d231637776c4bb5c1a8e8514253
+ARG BASE_IMAGE=ghcr.io/spidernet-io/spiderdoctor/controller-base:799ac6d12e8a05b487f13e6e2fca3b6f998bbe73
+ARG GOLANG_IMAGE=docker.io/library/golang:1.19
 
 #======= build bin ==========
 FROM --platform=${BUILDPLATFORM} ${GOLANG_IMAGE} as builder
