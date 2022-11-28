@@ -6,9 +6,6 @@
 ARG GOLANG_IMAGE=docker.io/library/golang:1.19@sha256:dc76ef03e54c34a00dcdca81e55c242d24b34d231637776c4bb5c1a8e8514253
 ARG UBUNTU_IMAGE=docker.io/library/ubuntu:22.04@sha256:35fb073f9e56eb84041b0745cb714eff0f7b225ea9e024f703cab56aaa5c7720
 
-# report error by github ci
-#ARG BUILDPLATFORM
-
 #========= build gops ===============
 FROM --platform=${BUILDPLATFORM} ${GOLANG_IMAGE} as gops-cni-builder
 COPY /build-gops.sh /build-gops.sh
@@ -29,7 +26,7 @@ WORKDIR /
 RUN chmod +x /build-gops.sh && /build-gops.sh
 
 #========== root image ==============
-FROM ${UBUNTU_IMAGE} as rootfs
+FROM --platform=${BUILDPLATFORM} ${UBUNTU_IMAGE} as rootfs
 ARG TARGETARCH
 COPY /install-others.sh /install-others.sh
 

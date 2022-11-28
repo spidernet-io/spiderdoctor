@@ -18,7 +18,7 @@ spec:
     testIPv6: true
     durationInSecond: 10
     qps: 10
-    perRequestTimeoutInSecond: 5
+    perRequestTimeoutInMS: 500
   success:
     successRate: 1
     meanAccessDelayInMs: 1000

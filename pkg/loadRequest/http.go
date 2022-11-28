@@ -22,17 +22,17 @@ const (
 )
 
 type HttpRequestData struct {
-	Method                  HttpMethod
-	Url                     string
-	Qps                     int
-	PerRequestTimeoutSecond int
-	RequestTimeSecond       int
+	Method              HttpMethod
+	Url                 string
+	Qps                 int
+	PerRequestTimeoutMS int
+	RequestTimeSecond   int
 }
 
 func HttpRequest(req *HttpRequestData) *vegeta.Metrics {
 	rate := vegeta.Rate{
 		Freq: req.Qps,
-		Per:  time.Duration(req.PerRequestTimeoutSecond) * time.Second,
+		Per:  time.Duration(req.PerRequestTimeoutMS) * time.Millisecond,
 	}
 	duration := time.Duration(req.RequestTimeSecond) * time.Second
 	targeter := vegeta.NewStaticTargeter(vegeta.Target{

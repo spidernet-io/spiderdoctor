@@ -51,9 +51,9 @@ func (s *PluginNetHttp) WebhookMutating(logger *zap.Logger, ctx context.Context,
 
 	if req.Spec.Request == nil {
 		m := &crd.NethttpRequest{
-			DurationInSecond:          types.ControllerConfig.Configmap.NethttpDefaultRequestDurationInSecond,
-			QPS:                       types.ControllerConfig.Configmap.NethttpDefaultRequestQps,
-			PerRequestTimeoutInSecond: types.ControllerConfig.Configmap.NethttpDefaultRequestPerRequestTimeoutInSecond,
+			DurationInSecond:      types.ControllerConfig.Configmap.NethttpDefaultRequestDurationInSecond,
+			QPS:                   types.ControllerConfig.Configmap.NethttpDefaultRequestQps,
+			PerRequestTimeoutInMS: types.ControllerConfig.Configmap.NethttpDefaultRequestPerRequestTimeoutInMS,
 		}
 		req.Spec.Request = m
 		logger.Sugar().Debugf("set default Request for nethttp %v", req.Name)
@@ -92,8 +92,8 @@ func (s *PluginNetHttp) WebhookValidateCreate(logger *zap.Logger, ctx context.Co
 			logger.Error(s)
 			return apierrors.NewBadRequest(s)
 		}
-		if r.Spec.Request.PerRequestTimeoutInSecond > int(r.Spec.Schedule.TimeoutMinute*60) {
-			s := fmt.Sprintf("nethttp %v requires PerRequestTimeoutInSecond %vs smaller than Schedule.TimeoutMinute %vm ", r.Name, r.Spec.Request.PerRequestTimeoutInSecond, r.Spec.Schedule.TimeoutMinute)
+		if r.Spec.Request.PerRequestTimeoutInMS > int(r.Spec.Schedule.TimeoutMinute*60*1000) {
+			s := fmt.Sprintf("nethttp %v requires PerRequestTimeoutInMS %v ms smaller than Schedule.TimeoutMinute %vm ", r.Name, r.Spec.Request.PerRequestTimeoutInMS, r.Spec.Schedule.TimeoutMinute)
 			logger.Error(s)
 			return apierrors.NewBadRequest(s)
 		}
