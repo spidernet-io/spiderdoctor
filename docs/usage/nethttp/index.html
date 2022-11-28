@@ -658,7 +658,10 @@ items:
       perRequestTimeoutInSecond: 5
       qps: 10
     target:
-      targetUrl: &quot;http://172.19.0.6&quot;
+      targetUser:
+        targetUser:
+          method: GET
+          url: http://172.80.1.2
       targetAgent:
         testClusterIp: true
         testEndpoint: true
@@ -693,7 +696,7 @@ items:
 <p>intervalMinute:  the time interval in minute, for run each round for this task</p>
 <p>startAfterMinute: when the start the first round</p>
 <p>timeoutMinute: the timeout in minute for each round, when the rask does not finish in time, it results to be failuire</p>
-<p>sourceAgentNodeSelector [optional]: set the node label selector, then, the spiderdoctor agent who locates on these nodes will implement the task</p>
+<p>sourceAgentNodeSelector [optional]: set the node label selector, then, the spiderdoctor agent who locates on these nodes will implement the task. If not set this field, all spiderdoctor agent will execute the task</p>
 </li>
 <li>
 <p>spec.request: how each spiderdoctor agent should send the http request</p>
@@ -703,41 +706,58 @@ items:
 </li>
 <li>
 <p>spec.target: set the target of http request. it could not set targetUser and targetAgent at the same time</p>
-<p>targetUser [optional]: set an user-defined URL for the http request
-    url: the url for http
-    method: http method, must be one of GET POST PUT DELETE CONNECT OPTIONS PATCH HEAD</p>
-<p>targetAgent: [optional]: set the http tareget to spiderdoctor agents
-    testClusterIp: send http request to the cluster ipv4 or ipv6 address of spiderdoctor agnent, according to testIPv4 and testIPv6.
-    testEndpoint: send http request to other spiderdoctor agnent ipv4 or ipv6 address according to testIPv4 and testIPv6.
-    testMultusInterface: whether send http request to all interfaces ip in testEndpoint case.
-    testIPv4: test any IPv4 address. Notice, the 'enableIPv4' in configmap  spiderdocter must be enabled
-    testIPv6: test any IPv6 address. Notice, the 'enableIPv6' in configmap  spiderdocter must be enabled
-    testIngress: send http request to the ingress ipv4 or ipv6 address of spiderdoctor agnent
-    testNodePort: send http request to the nodePort ipv4 or ipv6 address with each local node of spiderdoctor agnent , according to testIPv4 and testIPv6.</p>
-<pre><code>&gt;notice: when test targetAgent case, it will send http request to all targets at the same time with spec.request.qps for each one. That meaning, the actually QPS may be bigger than spec.request.qps
+<p>targetUser [optional]: set an user-defined URL for the http request</p>
+<pre><code>url: the url for http
+
+method: http method, must be one of GET POST PUT DELETE CONNECT OPTIONS PATCH HEAD
+</code></pre>
+<p>targetAgent: [optional]: set the http tareget to spiderdoctor agents</p>
+<pre><code>testClusterIp: send http request to the cluster ipv4 or ipv6 address of spiderdoctor agnent, according to testIPv4 and testIPv6.
+
+testEndpoint: send http request to other spiderdoctor agnent ipv4 or ipv6 address according to testIPv4 and testIPv6.
+
+testMultusInterface: whether send http request to all interfaces ip in testEndpoint case.
+
+testIPv4: test any IPv4 address. Notice, the 'enableIPv4' in configmap  spiderdocter must be enabled
+
+testIPv6: test any IPv6 address. Notice, the 'enableIPv6' in configmap  spiderdocter must be enabled
+
+testIngress: send http request to the ingress ipv4 or ipv6 address of spiderdoctor agnent
+
+testNodePort: send http request to the nodePort ipv4 or ipv6 address with each local node of spiderdoctor agnent , according to testIPv4 and testIPv6.
+
+&gt;notice: when test targetAgent case, it will send http request to all targets at the same time with spec.request.qps for each one. That meaning, the actually QPS may be bigger than spec.request.qps
 </code></pre>
 </li>
 <li>
 <p>spec.success: define the success condition of the task result </p>
-<p>meanAccessDelayInMs: mean access delay in MS, if the actual delay is bigger than this, it results to be failure
-successRate: the success rate of all http requests. if the actual success rate is smalller than this, it results to be failure</p>
+<p>meanAccessDelayInMs: mean access delay in MS, if the actual delay is bigger than this, it results to be failure</p>
+<p>successRate: the success rate of all http requests. Notice, when a http response code is &gt;=200 and &lt; 400, it's treated as success. if the actual whole success rate is smaller than successRate, the task results to be failure</p>
 </li>
 <li>
 <p>status: the status of the task
-    doneRound: how many rounds have finished
-    expectedRound: how many rounds the task expect
-    finish: whether all rounds of this task have finished
-    lastRoundStatus: the result of last round
-    history:
-        roundNumber: the round number
-        status: the status of this round
-        startTimeStamp: when this round begins
-        endTimeStamp: when this round finally finished
-        duration: how long the round spent
-        deadLineTimeStamp: the time deadline of a round 
-        failedAgentNodeList: the node list where failed spiderdoctor agent locate
-        notReportAgentNodeList: the node list where uknown spiderdoctor agent locate. This means these agents have problems.
-        succeedAgentNodeList: the node list where successful spiderdoctor agent locate</p>
+    doneRound: how many rounds have finished</p>
+<p>expectedRound: how many rounds the task expect</p>
+<p>finish: whether all rounds of this task have finished</p>
+<p>lastRoundStatus: the result of last round</p>
+<p>history:
+    roundNumber: the round number</p>
+<pre><code>status: the status of this round
+
+startTimeStamp: when this round begins
+
+endTimeStamp: when this round finally finished
+
+duration: how long the round spent
+
+deadLineTimeStamp: the time deadline of a round
+
+failedAgentNodeList: the node list where failed spiderdoctor agent locate
+
+notReportAgentNodeList: the node list where uknown spiderdoctor agent locate. This means these agents have problems.
+
+succeedAgentNodeList: the node list where successful spiderdoctor agent locate
+</code></pre>
 </li>
 </ul>
 <h2 id="example">example</h2>
@@ -858,9 +878,9 @@ kubectl apply -f source-agent.yaml
 <h2 id="debug">debug</h2>
 <p>when something wrong happen, see the log for your task with following command</p>
 <pre><code class="language-shell">#get log 
-CRD_KIND=&quot;nethtpp&quot;
+CRD_KIND=&quot;nethttp&quot;
 CRD_NAME=&quot;test1&quot;
-kubectl logs -n kube-system  spiderdoctor-agent-v4vzx | grpe -i &quot;${CRD_KIND}.${CRD_NAME}&quot;
+kubectl logs -n kube-system  spiderdoctor-agent-v4vzx | grep -i &quot;${CRD_KIND}.${CRD_NAME}&quot;
 
 </code></pre>
 <h2 id="report">report</h2>
@@ -868,7 +888,7 @@ kubectl logs -n kube-system  spiderdoctor-agent-v4vzx | grpe -i &quot;${CRD_KIND
 Use the following command to get its report</p>
 <pre><code class="language-shell">kubectl logs -n kube-system  spiderdoctor-agent-v4vzx | jq 'select( .TaskName==&quot;nethttp.testhttp1&quot; )'
 </code></pre>
-<p>when the spiderdoctor is enabled to aggerate reports, all reports will be collected in the PVC or hostPath of spiderdoctor controller.</p>
+<p>when the spiderdoctor is enabled to aggregate reports, all reports will be collected in the PVC or hostPath of spiderdoctor controller.</p>
 <p>metric introduction</p>
 <pre><code class="language-shell">
         &quot;Metrics&quot;: {
