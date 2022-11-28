@@ -3,7 +3,7 @@
 
 #====modify====
 ARG BASE_IMAGE=ghcr.io/spidernet-io/spiderdoctor/agent-base:7c9d4950fa3d1b6f944e2d584bb0899441ed99cd
-ARG GOLANG_IMAGE=docker.io/library/golang:1.19@sha256:dc76ef03e54c34a00dcdca81e55c242d24b34d231637776c4bb5c1a8e8514253
+ARG GOLANG_IMAGE=docker.io/library/golang:1.19
 
 #======= build bin ==========
 FROM --platform=${BUILDPLATFORM} ${GOLANG_IMAGE} as builder
