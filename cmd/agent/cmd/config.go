@@ -70,6 +70,7 @@ func init() {
 	// command flags
 	globalFlag := rootCmd.PersistentFlags()
 	globalFlag.StringVarP(&types.AgentConfig.ConfigMapPath, "config-path", "C", "", "configmap file path")
+	globalFlag.BoolVarP(&types.AgentConfig.AppMode, "app-mode", "A", false, "app mode")
 	if e := viper.BindPFlags(globalFlag); e != nil {
 		logger.Sugar().Fatalf("failed to BindPFlags, reason=%v", e)
 	}

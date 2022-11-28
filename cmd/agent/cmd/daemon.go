@@ -24,6 +24,15 @@ func SetupUtility() {
 func DaemonMain() {
 	rootLogger.Sugar().Infof("config: %+v", types.AgentConfig)
 
+	if types.AgentConfig.AppMode {
+		// app mode, just used to debug
+		rootLogger.Info("run in app mode")
+		SetupHttpServer()
+		initGrpcServer()
+		// sleep forever
+		select {}
+	}
+
 	SetupUtility()
 
 	SetupHttpServer()
