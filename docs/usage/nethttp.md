@@ -26,7 +26,7 @@ items:
           - { key: "kubernetes.io/hostname", operator: In, values: ["spiderdoctor-worker"] }
     request:
       durationInSecond: 5
-      perRequestTimeoutInSecond: 5
+      perRequestTimeoutInMS: 1000
       qps: 10
     target:
       targetUser:
@@ -77,7 +77,7 @@ items:
 
     durationInSecond: for each round, the duration in second how long the http request lasts
 
-    perRequestTimeoutInSecond: timeout in second for each http request 
+    perRequestTimeoutInMS: timeout in ms for each http request 
 
     qps: qps
 
@@ -162,7 +162,7 @@ spec:
   request:
     durationInSecond: 2
     qps: 2
-    perRequestTimeoutInSecond: 5
+    perRequestTimeoutInMS: 1000
   success:
     successRate: 1
     meanAccessDelayInMs: 10000
@@ -197,7 +197,7 @@ spec:
   request:
     durationInSecond: 2
     qps: 2
-    perRequestTimeoutInSecond: 5
+    perRequestTimeoutInMS: 1000
   success:
     successRate: 1
     meanAccessDelayInMs: 10000
@@ -227,7 +227,7 @@ spec:
   request:
     durationInSecond: 10
     qps: 10
-    perRequestTimeoutInSecond: 5
+    perRequestTimeoutInMS: 1000
   success:
     successRate: 1
     meanAccessDelayInMs: 5000
@@ -260,7 +260,7 @@ spec:
   request:
     durationInSecond: 10
     qps: 10
-    perRequestTimeoutInSecond: 5
+    perRequestTimeoutInMS: 1000
   success:
     successRate: 1
     meanAccessDelayInMs: 1000

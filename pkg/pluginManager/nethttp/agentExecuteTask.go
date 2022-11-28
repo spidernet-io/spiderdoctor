@@ -21,10 +21,10 @@ import (
 
 func ParseSuccessCondition(successCondition *crd.NetSuccessCondition, metricResult *vegeta.Metrics) (failureReason string, err error) {
 	switch {
-	case successCondition.SuccessRate != nil && metricResult.Success < *successCondition.SuccessRate:
+	case successCondition.SuccessRate != nil && metricResult.Success < *(successCondition.SuccessRate):
 		failureReason = fmt.Sprintf("Success Rate %v is lower than request %v", metricResult.Success, *(successCondition.SuccessRate))
-	case successCondition.MeanAccessDelayInMs != nil && metricResult.Latencies.Mean.Microseconds() > *successCondition.MeanAccessDelayInMs:
-		failureReason = fmt.Sprintf("mean delay %vs is lower than request %v ms", metricResult.Latencies.Mean.Microseconds(), *(successCondition.MeanAccessDelayInMs))
+	case successCondition.MeanAccessDelayInMs != nil && metricResult.Latencies.Mean.Milliseconds() > *(successCondition.MeanAccessDelayInMs):
+		failureReason = fmt.Sprintf("mean delay %v ms is bigger than request %v ms", metricResult.Latencies.Mean.Milliseconds(), *(successCondition.MeanAccessDelayInMs))
 	default:
 		failureReason = ""
 		err = nil
@@ -94,15 +94,15 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 	successCondition := instance.Spec.SuccessCondition
 
 	if target.TargetUser != nil {
-		logger.Sugar().Infof("load test custom target: Method=%v, Url=%v , qps=%v, PerRequestTimeout=%vs, Duration=%vs", target.TargetUser.Method, target.TargetUser.Url, request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond)
+		logger.Sugar().Infof("load test custom target: Method=%v, Url=%v , qps=%v, PerRequestTimeout=%vs, Duration=%vs", target.TargetUser.Method, target.TargetUser.Url, request.QPS, request.PerRequestTimeoutInMS, request.DurationInSecond)
 		finalReport["TargetType"] = "custom url"
 		finalReport["TargetNumber"] = "1"
 		d := &loadRequest.HttpRequestData{
-			Method:                  loadRequest.HttpMethod(target.TargetUser.Method),
-			Url:                     target.TargetUser.Url,
-			Qps:                     request.QPS,
-			PerRequestTimeoutSecond: request.PerRequestTimeoutInSecond,
-			RequestTimeSecond:       request.DurationInSecond,
+			Method:              loadRequest.HttpMethod(target.TargetUser.Method),
+			Url:                 target.TargetUser.Url,
+			Qps:                 request.QPS,
+			PerRequestTimeoutMS: request.PerRequestTimeoutInMS,
+			RequestTimeSecond:   request.DurationInSecond,
 		}
 		failureReason := SendRequestAndReport(logger, "custom target", d, successCondition, finalReport)
 		if len(failureReason) > 0 {
@@ -112,7 +112,7 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 
 	} else {
 		// test spiderdoctor agent
-		logger.Sugar().Infof("load test spiderdoctor Agent pod: qps=%v, PerRequestTimeout=%vs, Duration=%vs", request.QPS, request.PerRequestTimeoutInSecond, request.DurationInSecond)
+		logger.Sugar().Infof("load test spiderdoctor Agent pod: qps=%v, PerRequestTimeout=%vs, Duration=%vs", request.QPS, request.PerRequestTimeoutInMS, request.DurationInSecond)
 		finalfailureReason = ""
 		testTargetList := []*TestTarget{}
 
@@ -273,11 +273,11 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 				go func(wg *sync.WaitGroup, l *lock.Mutex, t TestTarget) {
 					itemReport := map[string]interface{}{}
 					d := &loadRequest.HttpRequestData{
-						Method:                  loadRequest.HttpMethodGet,
-						Url:                     t.Url,
-						Qps:                     request.QPS,
-						PerRequestTimeoutSecond: request.PerRequestTimeoutInSecond,
-						RequestTimeSecond:       request.DurationInSecond,
+						Method:              loadRequest.HttpMethodGet,
+						Url:                 t.Url,
+						Qps:                 request.QPS,
+						PerRequestTimeoutMS: request.PerRequestTimeoutInMS,
+						RequestTimeSecond:   request.DurationInSecond,
 					}
 					logger.Sugar().Debugf("implement test %v, request %v ", t.Name, *d)
 					failureReason := SendRequestAndReport(logger, t.Name, d, successCondition, itemReport)
