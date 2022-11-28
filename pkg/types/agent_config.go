@@ -55,6 +55,8 @@ type AgentConfigStruct struct {
 	TlsServerCertPath string
 	TlsServerKeyPath  string
 
+	AppMode bool
+
 	// from configmap
 	Configmap ConfigmapConfig
 }
