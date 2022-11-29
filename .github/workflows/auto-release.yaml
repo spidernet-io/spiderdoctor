@@ -67,6 +67,7 @@ jobs:
       #    branch: 'release-${{ env.RUN_TAG }}'
       #    sha: '${{ github.sha }}'
 
+      # if branch exists, the action will no fail, and it output created=false
       - name: release Y branch
         uses: peterjgrainger/action-create-branch@v2.3.0
         env:
