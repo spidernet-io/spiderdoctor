@@ -23,14 +23,14 @@ jobs:
       - uses: kceb/pull-request-url-action@v1
         id: pr-url
 
-      - name: Get PR labels
-        id: pr-labels
-        uses: joerick/pr-labels-action@v1.0.6
-
       - name: cherry pick
         run: |
           set -x
-          echo "labels: ${{ steps.pr-labels.outputs.labels }}"
+          #== get labels
+          gh pr view ${{ steps.pr-url.outputs.url }} | grep -i "^labels:"
+          PR_LABLES=` gh pr view ${{ steps.pr-url.outputs.url }} | grep -i "^labels:" | tr ',' ' ' | tr -s ' ' | sed 's/labels://g' `
+          #====
+          echo "labels: ${PR_LABLES}"
           echo "author: ${{ github.event.pull_request.user.login }}"
           #echo "GITHUB_REF: ${GITHUB_REF##*/}"
           echo "url: ${{ steps.pr-url.outputs.url }}"
@@ -43,7 +43,7 @@ jobs:
           echo "pr latest commit, github.event.pull_request.head.sha = ${{ github.event.pull_request.head.sha }}"
           #--
           WATH_MERGE_BRANCH_LIST=""
-          for LABEL in ${{ steps.pr-labels.outputs.labels }} ; do
+          for LABEL in ${PR_LABLES} ; do
               echo "checking lable $LABEL with ${{ matrix.label }} "
               PREFIX="${{ env.LABEL_PREFIX_CHERRYPICK }}"
               grep -E "^${echo}" <<< "${LABEL}" || continue
