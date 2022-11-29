@@ -14,7 +14,6 @@ on:
       - opened
       - closed
 
-
 jobs:
   cherry_pick:
     runs-on: ubuntu-latest
