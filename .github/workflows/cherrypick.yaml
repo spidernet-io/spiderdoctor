@@ -35,7 +35,7 @@ jobs:
           echo "url: ${PR_URL}"
           #echo "url: ${{ steps.pr-url.outputs.url }}"
           #echo "sha: ${{ github.sha }}"
-          #echo "github.base_ref: ${{ github.base_ref }}"
+          echo "pr to branch, github.base_ref: ${{ github.base_ref }}"
           echo "pr branch name, github.head_ref: ${{ github.head_ref }}"
           #echo "github.ref: ${{ github.ref }}"
           #echo "github.ref_name: ${{ github.ref_name }}"
