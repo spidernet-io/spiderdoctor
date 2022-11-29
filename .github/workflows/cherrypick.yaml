@@ -20,18 +20,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: kceb/pull-request-url-action@v1
-        id: pr-url
+#      - uses: kceb/pull-request-url-action@v1
+#        id: pr-url
 
       - name: cherry pick
         run: |
           set -x
           #====
+          PR_URL="https://github.com/${{ github.repository }}/pull/${{ github.event.number }}"
           echo "labels: ${PR_LABLES}"
           echo "number: ${{ github.event.number }}"
           echo "author: ${{ github.event.pull_request.user.login }}"
           #echo "GITHUB_REF: ${GITHUB_REF##*/}"
-          echo "url: ${{ steps.pr-url.outputs.url }}"
+          echo "url: ${PR_URL}"
+          #echo "url: ${{ steps.pr-url.outputs.url }}"
           #echo "sha: ${{ github.sha }}"
           #echo "github.base_ref: ${{ github.base_ref }}"
           echo "pr branch name, github.head_ref: ${{ github.head_ref }}"
@@ -53,9 +55,7 @@ jobs:
               WANT_MERGE_BRANCH_LIST+=" $BRANCH_NAME "
           done
           [ -z "$WANT_MERGE_BRANCH_LIST" ] && echo "no need to cherry pick" && exit 0
-          echo "cherry pick to $WANT_MERGE_BRANCH_LIST "
-          #--- prepare
-          echo "============= it is required to cherry pick to ${{ matrix.releaseName }} ============"
+          echo "============= it is required to cherry pick to $WANT_MERGE_BRANCH_LIST ============"
           chmod +x ./tools/cherry/cherry.sh
           git fetch origin ${{ github.head_ref }}:${{ github.head_ref }}
           git config --global user.email "you@example.com"
@@ -63,9 +63,17 @@ jobs:
           #export GIT_AUTHOR_NAME="weizhou.lan"
           #export GIT_AUTHOR_EMAIL="email@example.com"
           #--- cherry pick
-          for BRANCH in $WATH_MERGE_BRANCH_LIST ; do
+          for BRANCH in $WANT_MERGE_BRANCH_LIST ; do
               echo "---- cherry for ${BRANCH}"
-              git fetch origin ${BRANCH}:${BRANCH}
+              if ! git ls-remote --exit-code --heads origin ${BRANCH} ; then
+                  # todo: create issue
+                  echo "error, branch $BRANCH does not exist"
+                  continue
+              fi
+              if ! ( git fetch origin ${BRANCH}:${BRANCH} && git checkout ${BRANCH} ) ; then
+                  echo "error, failed to checkout to branch $BRANCH"
+                  continue
+              fi
               git branch
           done
           echo "all done"
