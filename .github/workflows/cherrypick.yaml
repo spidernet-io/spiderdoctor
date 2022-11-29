@@ -26,12 +26,9 @@ jobs:
       - name: cherry pick
         run: |
           set -x
-          #== get labels
-          echo ${{ secrets.WELAN_PAT }} | gh auth login --with-token
-          gh pr view ${{ steps.pr-url.outputs.url }} | grep -i "^labels:"
-          PR_LABLES=` gh pr view ${{ steps.pr-url.outputs.url }} | grep -i "^labels:" | tr ',' ' ' | tr -s ' ' | sed 's/labels://g' `
           #====
           echo "labels: ${PR_LABLES}"
+          echo "number: ${{ github.event.number }}"
           echo "author: ${{ github.event.pull_request.user.login }}"
           #echo "GITHUB_REF: ${GITHUB_REF##*/}"
           echo "url: ${{ steps.pr-url.outputs.url }}"
@@ -42,6 +39,10 @@ jobs:
           #echo "github.ref_name: ${{ github.ref_name }}"
           #echo "github.event.pull_request.base.sha = ${{ github.event.pull_request.base.sha }}"
           echo "pr latest commit, github.event.pull_request.head.sha = ${{ github.event.pull_request.head.sha }}"
+          #== get labels
+          echo ${{ secrets.WELAN_PAT }} | gh auth login --with-token
+          gh pr view ${{ github.event.number }} | grep -i "^labels:"
+          PR_LABLES=` gh pr view ${{ github.event.number }} | grep -i "^labels:" | tr ',' ' ' | tr -s ' ' | sed 's/labels://g' `
           #=== loop labels and get merge branchs
           WANT_MERGE_BRANCH_LIST=""
           for LABEL in ${PR_LABLES} ; do
@@ -84,8 +85,6 @@ jobs:
           #--- create pr
           #echo ${{ secrets.WELAN_PAT }} | gh auth login --with-token
           #gh pr  create --title 'test' --body 'sadf'  --base ${{ matrix.releaseName }}
-
-
 
 
 
