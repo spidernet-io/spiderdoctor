@@ -27,10 +27,6 @@ jobs:
         id: pr-labels
         uses: joerick/pr-labels-action@v1.0.6
 
-      - name: Install GH CLI
-        uses: dev-hanz-ops/install-gh-cli-action
-        with:
-
       - name: cherry pick
         run: |
           set -x
