@@ -24,8 +24,10 @@ jobs:
         include:
           - releaseName: release-v0.2
             label: cherrypick-release-v0.2
+
           - releaseName: release-v0.2.5
             label: cherrypick-release-v0.2.5
+
           - releaseName: main
             label: cherrypick-main
 
@@ -45,21 +47,17 @@ jobs:
 
       - name: cherry pick
         run: |
-          if [ ! -f "./tools/cherry/cherry.sh" ] ; then 
-              echo "warning ,there is no /tools/cherry/cherry.sh in branch ${{ matrix.releaseName }}, ignore cherry pick "
-              exit 0
-          fi
           echo "labels: ${{ steps.pr-labels.outputs.labels }}"
           echo "author: ${{ github.event.pull_request.user.login }}"
-          echo "GITHUB_REF: ${GITHUB_REF##*/}"
+          #echo "GITHUB_REF: ${GITHUB_REF##*/}"
           echo "url: ${{ steps.pr-url.outputs.url }}"
-          echo "sha: ${{ github.sha }}"
-          echo "github.base_ref: ${{ github.base_ref }}"
-          echo "github.head_ref: ${{ github.head_ref }}"
-          echo "github.ref: ${{ github.ref }}"
-          echo "github.ref_name: ${{ github.ref_name }}"
-          echo "github.event.pull_request.base.sha = ${{ github.event.pull_request.base.sha }}"
-          echo "github.event.pull_request.head.sha = ${{ github.event.pull_request.head.sha }}"
+          #echo "sha: ${{ github.sha }}"
+          #echo "github.base_ref: ${{ github.base_ref }}"
+          echo "pr branch name, github.head_ref: ${{ github.head_ref }}"
+          #echo "github.ref: ${{ github.ref }}"
+          #echo "github.ref_name: ${{ github.ref_name }}"
+          #echo "github.event.pull_request.base.sha = ${{ github.event.pull_request.base.sha }}"
+          echo "pr latest commit, github.event.pull_request.head.sha = ${{ github.event.pull_request.head.sha }}"
           #--
           BINGO=false
           for LABEL in ${{ steps.pr-labels.outputs.labels }} ; do
@@ -69,13 +67,17 @@ jobs:
           [ "$BINGO" == "false" ] && echo "no need to cherry pick to ${{ matrix.releaseName }}" && exit 0
           #--
           echo "============= it is required to cherry pick to ${{ matrix.releaseName }} ============"
+          if [ ! -f "./tools/cherry/cherry.sh" ] ; then 
+              echo "error ,there is no /tools/cherry/cherry.sh in branch ${{ matrix.releaseName }} "
+              exit 1
+          fi
           chmod +x ./tools/cherry/cherry.sh
-          export CHERRY_FROM_BRANCH=${{ github.head_ref }}
           git fetch origin ${{ github.head_ref }}:${{ github.head_ref }}
-          git config --global user.email "you@example.com"
-          git config --global user.name "weizhou.lan"
+          #git config --global user.email "you@example.com"
+          #git config --global user.name "weizhou.lan"
           export GIT_AUTHOR_NAME="weizhou.lan"
           export GIT_AUTHOR_EMAIL="email@example.com"
+          export CHERRY_FROM_BRANCH=${{ github.head_ref }}
           if ./tools/cherry/cherry.sh "${{ github.event.pull_request.head.sha }}" ; then
               echo "succeed to cherry pick"
           else
