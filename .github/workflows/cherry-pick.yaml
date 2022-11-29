@@ -53,9 +53,11 @@ jobs:
           #--
           chmod +x ./tools/cherry/cherry.sh
           export CHERRY_FROM_BRANCH=${{ github.head_ref }}
+          git fetch
           if ./tools/cherry/cherry.sh "${{ github.sha }}" ; then
               echo "succeed to cherry pick"
           else
               echo "error, failed to cherry pick"
               exit 1
           fi
+
