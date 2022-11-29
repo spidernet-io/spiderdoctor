@@ -53,7 +53,7 @@ jobs:
           #--
           chmod +x ./tools/cherry/cherry.sh
           export CHERRY_FROM_BRANCH=${{ github.head_ref }}
-          git fetch
+          git fetch origin ${{ github.head_ref }}:${{ github.head_ref }}
           if ./tools/cherry/cherry.sh "${{ github.sha }}" ; then
               echo "succeed to cherry pick"
           else
