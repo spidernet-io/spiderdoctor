@@ -27,6 +27,7 @@ jobs:
         run: |
           set -x
           #== get labels
+          echo ${{ secrets.WELAN_PAT }} | gh auth login --with-token
           gh pr view ${{ steps.pr-url.outputs.url }} | grep -i "^labels:"
           PR_LABLES=` gh pr view ${{ steps.pr-url.outputs.url }} | grep -i "^labels:" | tr ',' ' ' | tr -s ' ' | sed 's/labels://g' `
           #====
