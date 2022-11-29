@@ -29,6 +29,7 @@ jobs:
 
       - name: Install GH CLI
         uses: dev-hanz-ops/install-gh-cli-action
+        with:
 
       - name: cherry pick
         run: |
