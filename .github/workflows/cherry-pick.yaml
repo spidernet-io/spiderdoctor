@@ -68,6 +68,7 @@ jobs:
           done
           [ "$BINGO" == "false" ] && echo "no need to cherry pick to ${{ matrix.releaseName }}" && exit 0
           #--
+          echo "============= it is required to cherry pick to ${{ matrix.releaseName }} ============"
           chmod +x ./tools/cherry/cherry.sh
           export CHERRY_FROM_BRANCH=${{ github.head_ref }}
           git fetch origin ${{ github.head_ref }}:${{ github.head_ref }}
@@ -81,5 +82,3 @@ jobs:
               echo "error, failed to cherry pick"
               exit 1
           fi
-
-
