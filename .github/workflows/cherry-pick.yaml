@@ -45,9 +45,6 @@ jobs:
         id: pr-labels
         uses: joerick/pr-labels-action@v1.0.6
 
-      - name: Install GH CLI
-        uses: dev-hanz-ops/install-gh-cli-action
-
       - name: cherry pick
         run: |
           echo "labels: ${{ steps.pr-labels.outputs.labels }}"
@@ -88,7 +85,7 @@ jobs:
               exit 1
           fi
           #--- create pr
-          #echo ${{ secrets.WELAN_PAT }} | gh auth login --with-token
+          echo ${{ secrets.WELAN_PAT }} | gh auth login --with-token
           #gh pr  create --title 'test' --body 'sadf'  --base ${{ matrix.releaseName }}
 
 

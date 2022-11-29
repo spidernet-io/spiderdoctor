@@ -29,6 +29,7 @@ jobs:
 
       - name: Install GH CLI
         uses: dev-hanz-ops/install-gh-cli-action
+        with:
 
       - name: cherry pick
         run: |
@@ -84,7 +85,6 @@ jobs:
           #--- create pr
           #echo ${{ secrets.WELAN_PAT }} | gh auth login --with-token
           #gh pr  create --title 'test' --body 'sadf'  --base ${{ matrix.releaseName }}
-
 
 
 
