@@ -44,6 +44,7 @@ jobs:
           echo "url: ${{ steps.pr-url.outputs.url }}"
           echo "sha: ${{ github.sha }}"
           #--
+          chmod +x ./tools/cherry/cherry.sh
           if ./tools/cherry/cherry.sh "${{ github.sha }}" ; then
               echo "succeed to cherry pick"
           else
