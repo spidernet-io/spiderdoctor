@@ -41,29 +41,26 @@ jobs:
           #echo "github.ref_name: ${{ github.ref_name }}"
           #echo "github.event.pull_request.base.sha = ${{ github.event.pull_request.base.sha }}"
           echo "pr latest commit, github.event.pull_request.head.sha = ${{ github.event.pull_request.head.sha }}"
-          #--
-          WATH_MERGE_BRANCH_LIST=""
+          #=== loop labels and get merge branchs
+          WANT_MERGE_BRANCH_LIST=""
           for LABEL in ${PR_LABLES} ; do
-              echo "checking lable $LABEL with ${{ matrix.label }} "
+              echo "checking lable $LABEL "
               PREFIX="${{ env.LABEL_PREFIX_CHERRYPICK }}"
-              grep -E "^${echo}" <<< "${LABEL}" || continue
+              grep -E "^${PREFIX}" <<< "${LABEL}" &>/dev/null || continue
               BRANCH_NAME=` sed 's?'"${PREFIX}"'??' <<< "$LABEL" `
-              WATH_MERGE_BRANCH_LIST+=" $BRANCH_NAME "
+              WANT_MERGE_BRANCH_LIST+=" $BRANCH_NAME "
           done
-          [ -z "$WATH_MERGE_BRANCH_LIST" ] && echo "no need to cherry pick to ${{ matrix.releaseName }}" && exit 0
-          echo "cherry pick to $WATH_MERGE_BRANCH_LIST "
-          #--
+          [ -z "$WANT_MERGE_BRANCH_LIST" ] && echo "no need to cherry pick" && exit 0
+          echo "cherry pick to $WANT_MERGE_BRANCH_LIST "
+          #--- prepare
           echo "============= it is required to cherry pick to ${{ matrix.releaseName }} ============"
-          if [ ! -f "./tools/cherry/cherry.sh" ] ; then 
-              echo "error ,there is no /tools/cherry/cherry.sh in branch ${{ matrix.releaseName }} "
-              exit 1
-          fi
           chmod +x ./tools/cherry/cherry.sh
           git fetch origin ${{ github.head_ref }}:${{ github.head_ref }}
           git config --global user.email "you@example.com"
           git config --global user.name "weizhou.lan"
           #export GIT_AUTHOR_NAME="weizhou.lan"
           #export GIT_AUTHOR_EMAIL="email@example.com"
+          #--- cherry pick
           for BRANCH in $WATH_MERGE_BRANCH_LIST ; do
               echo "---- cherry for ${BRANCH}"
               git fetch origin ${BRANCH}:${BRANCH}
@@ -72,6 +69,10 @@ jobs:
           echo "all done"
           exit 0
           #
+          if [ ! -f "./tools/cherry/cherry.sh" ] ; then 
+              echo "error ,there is no /tools/cherry/cherry.sh in branch ${{ matrix.releaseName }} "
+              exit 1
+          fi
           export CHERRY_FROM_BRANCH=${{ github.head_ref }}
           if ./tools/cherry/cherry.sh "${{ github.event.pull_request.head.sha }}" ; then
               echo "succeed to cherry pick"
