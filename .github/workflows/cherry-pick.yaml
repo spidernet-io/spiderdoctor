@@ -50,7 +50,6 @@ jobs:
               exit 0
           fi
           echo "labels: ${{ steps.pr-labels.outputs.labels }}"
-          echo "labels: $GITHUB_PR_LABEL_TEST_FLIMBOMBLE"
           echo "author: ${{ github.event.pull_request.user.login }}"
           echo "GITHUB_REF: ${GITHUB_REF##*/}"
           echo "url: ${{ steps.pr-url.outputs.url }}"
@@ -61,6 +60,13 @@ jobs:
           echo "github.ref_name: ${{ github.ref_name }}"
           echo "github.event.pull_request.base.sha = ${{ github.event.pull_request.base.sha }}"
           echo "github.event.pull_request.head.sha = ${{ github.event.pull_request.head.sha }}"
+          #--
+          BINGO=false
+          for LABEL in ${{ steps.pr-labels.outputs.labels }} ; do
+              echo "checking lable $LABEL with ${{ matrix.label }} "
+              [ "$LABEL" == "${{ matrix.label }}" ] && BINGO=true && break
+          done
+          [ "$BINGO" == "false" ] && echo "no need to cherry pick to ${{ matrix.releaseName }}" && exit 0
           #--
           chmod +x ./tools/cherry/cherry.sh
           export CHERRY_FROM_BRANCH=${{ github.head_ref }}
