@@ -1,42 +1,24 @@
-name: Auto CherryPick PR
+name: CherryPick PR
 
 permissions: write-all
 
 env:
-  LABEL_PREFIX_CHERRYPICK: "/cherry-pick"
+  LABEL_PREFIX_CHERRYPICK: "cherrypick-"
 
 on:
-#  pull_request:
-#    types:
-#      - closed
   pull_request_target:
     types:
       - opened
       - closed
 
-
-
 jobs:
   cherry_pick:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - releaseName: release-v0.2
-            label: cherrypick-release-v0.2
-
-          - releaseName: release-v0.2.5
-            label: cherrypick-release-v0.2.5
-
-          - releaseName: main
-            label: cherrypick-main
-
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          ref: ${{ matrix.releaseName }}
 
       - uses: kceb/pull-request-url-action@v1
         id: pr-url
@@ -50,6 +32,7 @@ jobs:
 
       - name: cherry pick
         run: |
+          set -x
           echo "labels: ${{ steps.pr-labels.outputs.labels }}"
           echo "author: ${{ github.event.pull_request.user.login }}"
           #echo "GITHUB_REF: ${GITHUB_REF##*/}"
@@ -62,12 +45,16 @@ jobs:
           #echo "github.event.pull_request.base.sha = ${{ github.event.pull_request.base.sha }}"
           echo "pr latest commit, github.event.pull_request.head.sha = ${{ github.event.pull_request.head.sha }}"
           #--
-          BINGO=false
+          WATH_MERGE_BRANCH_LIST=""
           for LABEL in ${{ steps.pr-labels.outputs.labels }} ; do
               echo "checking lable $LABEL with ${{ matrix.label }} "
-              [ "$LABEL" == "${{ matrix.label }}" ] && BINGO=true && break
+              PREFIX="${{ env.LABEL_PREFIX_CHERRYPICK }}"
+              grep -E "^${echo}" <<< "${LABEL}" || continue
+              BRANCH_NAME=` sed 's?'"${PREFIX}"'??' <<< "$LABEL" `
+              WATH_MERGE_BRANCH_LIST+=" $BRANCH_NAME "
           done
-          [ "$BINGO" == "false" ] && echo "no need to cherry pick to ${{ matrix.releaseName }}" && exit 0
+          [ -z "$WATH_MERGE_BRANCH_LIST" ] && echo "no need to cherry pick to ${{ matrix.releaseName }}" && exit 0
+          echo "cherry pick to $WATH_MERGE_BRANCH_LIST "
           #--
           echo "============= it is required to cherry pick to ${{ matrix.releaseName }} ============"
           if [ ! -f "./tools/cherry/cherry.sh" ] ; then 
@@ -76,10 +63,17 @@ jobs:
           fi
           chmod +x ./tools/cherry/cherry.sh
           git fetch origin ${{ github.head_ref }}:${{ github.head_ref }}
-          #git config --global user.email "you@example.com"
-          #git config --global user.name "weizhou.lan"
-          export GIT_AUTHOR_NAME="weizhou.lan"
-          export GIT_AUTHOR_EMAIL="email@example.com"
+          git config --global user.email "you@example.com"
+          git config --global user.name "weizhou.lan"
+          #export GIT_AUTHOR_NAME="weizhou.lan"
+          #export GIT_AUTHOR_EMAIL="email@example.com"
+          for BRANCH in ${$WATH_MERGE_BRANCH_LIST}; do
+              echo "---- cherry for ${BRANCH}"
+              git fetch origin ${BRANCH}:${BRANCH}
+              git branch
+          done
+          exit 0
+          #
           export CHERRY_FROM_BRANCH=${{ github.head_ref }}
           if ./tools/cherry/cherry.sh "${{ github.event.pull_request.head.sha }}" ; then
               echo "succeed to cherry pick"
