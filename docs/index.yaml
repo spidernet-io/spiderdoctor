@@ -2,8 +2,27 @@ apiVersion: v1
 entries:
   spiderdoctor:
   - apiVersion: v2
+    appVersion: 0.2.6
+    created: "2022-11-29T09:19:21.974216043Z"
+    description: spiderdoctor
+    digest: b1d3fa693e4d0b5d6f3e243b53baa85efc85b48ced69eab683b6ea27c2b39172
+    home: https://spidernet-io.github.io/agent
+    keywords:
+    - spiderdoctor
+    kubeVersion: '>= 1.16.0-0'
+    maintainers:
+    - name: spidernet-io
+      url: https://github.com/spidernet-io
+    name: spiderdoctor
+    sources:
+    - https://github.com/spidernet-io/spiderdoctor
+    type: application
+    urls:
+    - https://spidernet-io.github.io/spiderdoctor/charts/spiderdoctor-0.2.6.tgz
+    version: 0.2.6
+  - apiVersion: v2
     appVersion: 0.2.5
-    created: "2022-11-29T09:06:59.666552448Z"
+    created: "2022-11-29T09:19:21.971507265Z"
     description: spiderdoctor
     digest: 92d960b13f0045c83904331d2dc48621bb984ba27722f4d3ff2223f34bf6fa2c
     home: https://spidernet-io.github.io/agent
@@ -22,7 +41,7 @@ entries:
     version: 0.2.5
   - apiVersion: v2
     appVersion: 0.2.4
-    created: "2022-11-29T09:06:59.664641831Z"
+    created: "2022-11-29T09:19:21.969186083Z"
     description: spiderdoctor
     digest: 14e7ac72ea7bda235b355d308834eb7d8a0d5e81bd851186519814d0acf730e0
     home: https://spidernet-io.github.io/agent
@@ -41,7 +60,7 @@ entries:
     version: 0.2.4
   - apiVersion: v2
     appVersion: 0.2.3
-    created: "2022-11-29T09:06:59.661768806Z"
+    created: "2022-11-29T09:19:21.967334997Z"
     description: spiderdoctor
     digest: c7b45234d837329a9dc76d1e5c94435de32587a53bd22c7156c0c5dfe1aa90c1
     home: https://spidernet-io.github.io/agent
@@ -60,7 +79,7 @@ entries:
     version: 0.2.3
   - apiVersion: v2
     appVersion: 0.2.2
-    created: "2022-11-29T09:06:59.659152183Z"
+    created: "2022-11-29T09:19:21.965118814Z"
     description: spiderdoctor
     digest: 7446048ed24590e9326d639ead3b2404f9d1aee2bfa862552ccb895cdeedb39a
     home: https://spidernet-io.github.io/agent
@@ -79,7 +98,7 @@ entries:
     version: 0.2.2
   - apiVersion: v2
     appVersion: 0.2.1
-    created: "2022-11-29T09:06:59.657327967Z"
+    created: "2022-11-29T09:19:21.963223629Z"
     description: spiderdoctor
     digest: 3f1bdd5916b9cd81c0c8b89d10a41e4d4c39bf1511b9291d5c950970fd37573c
     home: https://spidernet-io.github.io/agent
@@ -98,7 +117,7 @@ entries:
     version: 0.2.1
   - apiVersion: v2
     appVersion: 0.2.0
-    created: "2022-11-29T09:06:59.65531175Z"
+    created: "2022-11-29T09:19:21.961248244Z"
     description: spiderdoctor
     digest: b6cd04cd2bec212989214df8bc0fa4040922f46464649789f64471eba3dd3620
     home: https://spidernet-io.github.io/agent
@@ -115,4 +134,4 @@ entries:
     urls:
     - https://spidernet-io.github.io/spiderdoctor/charts/spiderdoctor-0.2.0.tgz
     version: 0.2.0
-generated: "2022-11-29T09:06:59.65305133Z"
+generated: "2022-11-29T09:19:21.957888571Z"
