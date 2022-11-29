@@ -36,7 +36,11 @@ jobs:
           YBranchName=` grep -Eo "v[0-9]+\.[0-9]+" <<< "$RUN_TAG" `
           if [ -n "$YBranchName" ] ; then
               echo "RUN_YBranchName=${GITHUB_REF##*/}" >> $GITHUB_ENV
+          else
+              echo "error, failed to find y branch"
+              exit 1
           fi
+          
 
       - name: Checkout
         uses: actions/checkout@v3
@@ -63,7 +67,6 @@ jobs:
 
       - name: release Y branch
         uses: peterjgrainger/action-create-branch@v2.3.0
-        if: ${{ env.RUN_YBranchName != '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
