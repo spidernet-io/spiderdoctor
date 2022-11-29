@@ -6,7 +6,7 @@ ARG BASE_IMAGE=ghcr.io/spidernet-io/spiderdoctor/agent-base:7c9d4950fa3d1b6f944e
 ARG GOLANG_IMAGE=docker.io/library/golang:1.19
 
 #======= build bin ==========
-FROM --platform=${BUILDPLATFORM} ${GOLANG_IMAGE} as builder
+FROM --platform=${TARGETPLATFORM} ${GOLANG_IMAGE} as builder
 
 # docker build var
 ARG TARGETOS
@@ -28,7 +28,7 @@ RUN  make GOARCH=${TARGETARCH}   \
 
 #====== release image =======
 
-FROM --platform=${BUILDPLATFORM} ${BASE_IMAGE}
+FROM --platform=${TARGETPLATFORM} ${BASE_IMAGE}
 
 LABEL maintainer="maintainer@spidernet-io"
 
