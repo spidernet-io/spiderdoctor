@@ -37,7 +37,7 @@ jobs:
           fi
           echo "YBranchName=${YBranchName}"
           if [ -n "$YBranchName" ] ; then
-              echo "RUN_YBranchName=${GITHUB_REF##*/}" >> $GITHUB_ENV
+              echo "RUN_YBranchName=${YBranchName}" >> $GITHUB_ENV
           else
               echo "error, failed to find y branch"
               exit 1
