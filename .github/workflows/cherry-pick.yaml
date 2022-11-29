@@ -42,6 +42,10 @@ jobs:
       - name: cherry pick
         if: contains( github.event.pull_request.labels.*.name, ${{ matrix.label }} )
         run: |
+          if [ ! -f "./tools/cherry/cherry.sh" ]  then 
+              echo "warning ,there is no /tools/cherry/cherry.sh in branch ${{ matrix.releaseName }}, ignore cherry pick "
+              exit 0
+          fi
           echo "author: ${{ github.event.pull_request.user.login }}"
           echo "GITHUB_REF: ${GITHUB_REF##*/}"
           echo "url: ${{ steps.pr-url.outputs.url }}"
