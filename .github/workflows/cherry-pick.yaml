@@ -24,8 +24,10 @@ jobs:
         include:
           - releaseName: release-v0.2
             label: cherrypick-release-v0.2
+
           - releaseName: release-v0.2.5
             label: cherrypick-release-v0.2.5
+
           - releaseName: main
             label: cherrypick-main
 
@@ -35,7 +37,6 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ matrix.releaseName }}
-
 
       - uses: kceb/pull-request-url-action@v1
         id: pr-url
@@ -52,11 +53,11 @@ jobs:
           echo "url: ${{ steps.pr-url.outputs.url }}"
           #echo "sha: ${{ github.sha }}"
           #echo "github.base_ref: ${{ github.base_ref }}"
-          echo "github.head_ref: ${{ github.head_ref }}"
+          echo "pr branch name, github.head_ref: ${{ github.head_ref }}"
           #echo "github.ref: ${{ github.ref }}"
           #echo "github.ref_name: ${{ github.ref_name }}"
           #echo "github.event.pull_request.base.sha = ${{ github.event.pull_request.base.sha }}"
-          echo "github.event.pull_request.head.sha = ${{ github.event.pull_request.head.sha }}"
+          echo "pr latest commit, github.event.pull_request.head.sha = ${{ github.event.pull_request.head.sha }}"
           #--
           BINGO=false
           for LABEL in ${{ steps.pr-labels.outputs.labels }} ; do
@@ -71,12 +72,12 @@ jobs:
               exit 1
           fi
           chmod +x ./tools/cherry/cherry.sh
-          export CHERRY_FROM_BRANCH=${{ github.head_ref }}
           git fetch origin ${{ github.head_ref }}:${{ github.head_ref }}
-          git config --global user.email "you@example.com"
-          git config --global user.name "weizhou.lan"
+          #git config --global user.email "you@example.com"
+          #git config --global user.name "weizhou.lan"
           export GIT_AUTHOR_NAME="weizhou.lan"
           export GIT_AUTHOR_EMAIL="email@example.com"
+          export CHERRY_FROM_BRANCH=${{ github.head_ref }}
           if ./tools/cherry/cherry.sh "${{ github.event.pull_request.head.sha }}" ; then
               echo "succeed to cherry pick"
           else
