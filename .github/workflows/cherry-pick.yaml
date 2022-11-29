@@ -15,6 +15,7 @@ on:
       - closed
 
 
+
 jobs:
   cherry_pick:
     runs-on: ubuntu-latest
@@ -45,8 +46,13 @@ jobs:
           echo "GITHUB_REF: ${GITHUB_REF##*/}"
           echo "url: ${{ steps.pr-url.outputs.url }}"
           echo "sha: ${{ github.sha }}"
+          echo "github.base_ref: ${{ github.base_ref }}"
+          echo "github.head_ref: ${{ github.head_ref }}"
+          echo "github.ref: ${{ github.ref }}"
+          echo "github.ref_name: ${{ github.ref_name }}"
           #--
           chmod +x ./tools/cherry/cherry.sh
+          export CHERRY_FROM_BRANCH=$
           if ./tools/cherry/cherry.sh "${{ github.sha }}" ; then
               echo "succeed to cherry pick"
           else

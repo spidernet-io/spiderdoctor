@@ -8,11 +8,11 @@ require_linux
 
 ORG=${ORG:-"spidernet-io"}
 REPO=${REPO:-"spiderdoctor"}
-BRANCH=${BRANCH:-""}
+CHERRY_FROM_BRANCH=${CHERRY_FROM_BRANCH:-""}
 
 [ -z "${ORG}" ] && echo "error, miss ORG" && exit 1
 [ -z "${REPO}" ] && echo "error, miss REPO" && exit 1
-[ -z "${BRANCH}" ] && echo "error, miss BRANCH" && exit 1
+[ -z "${CHERRY_FROM_BRANCH}" ] && echo "error, miss CHERRY_FROM_BRANCH" && exit 1
 
 
 
@@ -27,8 +27,8 @@ trap cleanup EXIT
 
 cherry_pick () {
   CID=$1
-  if ! commit_in_upstream "$CID" "$BRANCH" "${ORG}" "${REPO}"; then
-    echo "Commit $CID not in $REM/$BRANCH!"
+  if ! commit_in_upstream "$CID" "$CHERRY_FROM_BRANCH" "${ORG}" "${REPO}"; then
+    echo "Commit $CID not in $REM/$CHERRY_FROM_BRANCH!"
     exit 1
   fi
   TMPF=`mktemp cp.XXXXXX`
