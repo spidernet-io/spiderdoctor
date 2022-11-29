@@ -26,14 +26,16 @@ jobs:
           if ${{ github.event_name == 'workflow_dispatch' }} ; then
             echo "call by self workflow_dispatch"
             echo "RUN_TAG=${{ github.event.inputs.tag }}" >> $GITHUB_ENV
+            YBranchName=` grep -Eo "v[0-9]+\.[0-9]+" <<< "${{ github.event.inputs.tag }}" `
           elif ${{ github.event_name == 'push' }} ; then
             echo "call by push tag"
             echo "RUN_TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
+            YBranchName=` grep -Eo "v[0-9]+\.[0-9]+" <<< "${GITHUB_REF##*/}" `
           else
             echo "unexpected event: ${{ github.event_name }}"
             exit 1
           fi
-          YBranchName=` grep -Eo "v[0-9]+\.[0-9]+" <<< "$RUN_TAG" `
+          echo "YBranchName=${YBranchName}"
           if [ -n "$YBranchName" ] ; then
               echo "RUN_YBranchName=${GITHUB_REF##*/}" >> $GITHUB_ENV
           else
