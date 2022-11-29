@@ -6,29 +6,48 @@ env:
   LABEL_PREFIX_CHERRYPICK: "/cherry-pick"
 
 on:
-  pull_request:
-    types:
-      - opened
-      - closed
+#  pull_request:
+#    types:
+#      - closed
   pull_request_target:
     types:
-      - opened
       - closed
 
 jobs:
   cherry_pick:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - releaseName: release-v0.2
+            label: cherrypick-release-v0.2
+          - releaseName: release-v0.2.5
+            label: cherrypick-release-v0.2.5
+
     steps:
-      - name: prepare
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - uses: kceb/pull-request-url-action@v1
+        id: pr-url
+
+      - name: get
         run: |
-          ALL_LABEL="${{ github.event.pull_request.labels.*.name }}"
-          echo "ALL_LABEL=${ALL_LABEL}"
-          ALL_COMMIT="${{ github.event.pull_request.commits }}"
-          echo "ALL_COMMIT=${ALL_COMMIT}"
-          
-          
+          echo "author: {{ github.event.pull_request.user.login }}"
+          echo "GITHUB_REF: ${GITHUB_REF##*/}"
+          echo "url: ${{ steps.pr-url.outputs.url }}"
 
-
-
-
-
+      - name: Cherry pick
+        if: contains( github.event.pull_request.labels.*.name, '${{ matrix.label }}' )
+        uses: carloscastrojumo/github-cherry-pick-action@v1.0.1
+        with:
+          token: ${{ secrets.WELAN_PAT }}
+          branch: ${{ matrix.releaseName }}
+          labels: |
+            cherry-pick
+          reviewers: |
+            aReviewerUser
+          title: 'cherry pick from branch ${GITHUB_REF##*/} '
+          body: 'Cherry picking #{old_pull_request_id} onto this branch'
