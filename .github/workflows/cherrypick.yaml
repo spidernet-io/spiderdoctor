@@ -64,11 +64,12 @@ jobs:
           git config --global user.name "weizhou.lan"
           #export GIT_AUTHOR_NAME="weizhou.lan"
           #export GIT_AUTHOR_EMAIL="email@example.com"
-          for BRANCH in ${$WATH_MERGE_BRANCH_LIST}; do
+          for BRANCH in $WATH_MERGE_BRANCH_LIST ; do
               echo "---- cherry for ${BRANCH}"
               git fetch origin ${BRANCH}:${BRANCH}
               git branch
           done
+          echo "all done"
           exit 0
           #
           export CHERRY_FROM_BRANCH=${{ github.head_ref }}
