@@ -52,7 +52,7 @@ jobs:
           echo "github.ref_name: ${{ github.ref_name }}"
           #--
           chmod +x ./tools/cherry/cherry.sh
-          export CHERRY_FROM_BRANCH=$
+          export CHERRY_FROM_BRANCH=${{ github.head_ref }}
           if ./tools/cherry/cherry.sh "${{ github.sha }}" ; then
               echo "succeed to cherry pick"
           else
