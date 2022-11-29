@@ -27,28 +27,27 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          ref: ${{ matrix.releaseName }}
 
       - uses: kceb/pull-request-url-action@v1
         id: pr-url
 
-      - name: get
+      - name: cherry pick
+        if: contains( github.event.pull_request.labels.*.name, '${{ matrix.label }}' )
         run: |
-          echo "author: {{ github.event.pull_request.user.login }}"
+          echo "author: ${{ github.event.pull_request.user.login }}"
           echo "GITHUB_REF: ${GITHUB_REF##*/}"
           echo "url: ${{ steps.pr-url.outputs.url }}"
+          echo "sha: ${{ github.sha }}"
+          #--
+          chmod +x ./tools/cherry/cherry.sh
+          if ./tools/cherry/cherry.sh "${{ github.sha }}" ; then
+              echo "succeed to cherry pick"
+          else
+              echo "error, failed to cherry pick"
+              exit 1
+          fi
 
-      - name: Cherry pick
-        if: contains( github.event.pull_request.labels.*.name, '${{ matrix.label }}' )
-        uses: carloscastrojumo/github-cherry-pick-action@v1.0.1
-        with:
-          token: ${{ secrets.WELAN_PAT }}
-          branch: ${{ matrix.releaseName }}
-          labels: |
-            cherry-pick
-          reviewers: |
-            aReviewerUser
-          title: 'cherry pick from branch ${GITHUB_REF##*/} '
-          body: 'Cherry picking #{old_pull_request_id} onto this branch'
