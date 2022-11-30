@@ -118,9 +118,9 @@ jobs:
               else
                   echo "succeeded to cherry pick to branch $BRANCH "
                   # create a pr
-                  gh pr create --title "auto cherry pick PR ${{ github.event.number }} to branch ${BRANCH}" \
-                      --reviewer "${{ github.event.pull_request.user.login }},${{ env.DEFAULT_REVIEWER }}" \
-                      --label ${{ env.CHERRYPICK_LABEL }},pr-${{ github.event.number }}
+                  gh pr create --title "auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH}" \
+                      --reviewer "${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }}" \
+                      --label ${{ env.CHERRYPICK_LABEL }},pr-${PR_NUMBER}
                       --base ${BRANCH}
                   if (($?!=0)) ; then
                       echo "!!!! error, failed to create pr"
