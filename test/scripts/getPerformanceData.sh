@@ -9,6 +9,6 @@ PROJECT_ROOT_PATH=$(cd ${CURRENT_DIR_PATH}/../.. ; pwd)
 
 E2E_REPORT_PATH="$1"
 if [ ! -f "$E2E_REPORT_PATH" ] ; then
-    echo "error, no file $E2E_REPORT_PATH " >&2
+    echo "error! no file $E2E_REPORT_PATH " >&2
     exit 1
 fi
