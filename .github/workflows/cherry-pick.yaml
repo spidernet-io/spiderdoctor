@@ -115,7 +115,6 @@ jobs:
                         echo "error, failed to cherry pick $PR_COMMITS " 
                         git cherry-pick --abort || true
                         git reset --hard HEAD || true
-                        break               
                     fi
               fi
               if [ "$FAIL" == "true" ] ; then
