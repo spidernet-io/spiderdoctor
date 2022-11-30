@@ -78,7 +78,7 @@ jobs:
                   # todo: create issue
                   echo "error, branch $BRANCH does not exist"
                   gh issue create  \
-                      --body "reason: the branch $BRANCH does not exist. [ pr ${PR_URL} ] [ action ${ACTION_URL} ] " \
+                      --body "reason: the branch $BRANCH does not exist. PR <${PR_URL}> ,  action <${ACTION_URL}> " \
                       --title "failed to auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH}" \
                       --label "${{ env.CHERRYPICK_LABEL }}" \
                       --assignee "${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }}"
@@ -92,7 +92,7 @@ jobs:
               if ! git checkout ${BRANCH} ; then
                   echo "error, failed to checkout to branch $BRANCH"
                   gh issue create  \
-                      --body "reason: failed to get the branch $BRANCH. [ pr ${PR_URL} ] [ action ${ACTION_URL} ] " \
+                      --body "reason: failed to get the branch $BRANCH. PR <${PR_URL}> ,  action <${ACTION_URL}> " \
                       --title "failed to auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH}" \
                       --label "${{ env.CHERRYPICK_LABEL }}" \
                       --assignee "${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }}"
@@ -102,7 +102,7 @@ jobs:
                   fi
                   continue
               fi
-              PR_BRANCH=robot/cherrypick/pr${PR_NUMBER}
+              PR_BRANCH=robot/cherrypick/pr${PR_NUMBER}/${BRANCH}
               git checkout -b ${PR_BRANCH}
               git branch --show-current
               FAIL=false 
@@ -133,7 +133,7 @@ jobs:
               if [ "$FAIL" == "true" ] ; then
                   echo "failed to cherry pick to branch $BRANCH "
                   gh issue create  \
-                        --body "reason: commits $PR_COMMITS conflict when merging to branch $BRANCH, please manually cherry pick it by yourself. [ pr ${PR_URL} ] [ action ${ACTION_URL} ] " \
+                        --body "reason: commits $PR_COMMITS conflict when merging to branch $BRANCH, please manually cherry pick it by yourself. PR <${PR_URL}> ,  action <${ACTION_URL}> " \
                         --title "failed to auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH}" \
                         --label "${{ env.CHERRYPICK_LABEL }}" \
                         --assignee "${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }}"
@@ -149,7 +149,7 @@ jobs:
                   gh pr create --title "auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH}" \
                       --reviewer "${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }}" \
                       --label ${{ env.CHERRYPICK_LABEL }} \
-                      --body "robot cherry pick pr ${PR_URL},  action ${ACTION_URL}  , commits $PR_COMMITS " \
+                      --body "robot cherry pick pr <${PR_URL}>,  action <${ACTION_URL}>  , commits $PR_COMMITS " \
                       --base ${BRANCH}
                   if (($?!=0)) ; then
                       echo "!!!! error, failed to create pr"
