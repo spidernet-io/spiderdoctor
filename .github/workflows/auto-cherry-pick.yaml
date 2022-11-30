@@ -107,12 +107,15 @@ jobs:
               git branch --show-current
               FAIL=false 
               UPDATE=false
+              ERROR_MESSAGE=""
               for COMMIT in $PR_COMMITS; do
-                    if ! git cherry-pick $COMMIT ; then
+                    if ! ERROR_MESSAGE=`git cherry-pick $COMMIT 2>&1` ; then
+                          echo ">>>>>>>>>>>> fail when cherry pick $COMMIT to branch $BRANCH "
+                          echo "$ERROR_MESSAGE"
                           echo "---- failuire detail"
                           git status
                           git diff
-                          echo "---- "
+                          echo "<<<<<<<<<<<<<"
                           if git diff --exit-code --quiet ; then
                               echo "no changes happen, ignore cherry pick $COMMIT "
                               git cherry-pick --abort || true
@@ -132,15 +135,12 @@ jobs:
               done
               if [ "$FAIL" == "true" ] ; then
                   echo "failed to cherry pick to branch $BRANCH "
-                  gh issue create  \
-                        --body "reason: commits $PR_COMMITS conflict when merging to branch $BRANCH, please manually cherry pick it by yourself. PR <${PR_URL}> ,  action <${ACTION_URL}> " \
+                  ((FAILURE_COUNTER++))
+                  echo "commits $PR_COMMITS conflict when merging to branch $BRANCH, please manually cherry pick it by yourself. \n PR <${PR_URL}> ,  action <${ACTION_URL}> \n\n $ERROR_MESSAGE " |  gh issue create  \
                         --title "failed to auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH}" \
                         --label "${{ env.CHERRYPICK_LABEL }}" \
-                        --assignee "${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }}"
-                  if (($?!=0)) ; then
-                      echo "!!!! error, failed to create issue"
-                      ((FAILURE_COUNTER++))
-                  fi
+                        --assignee "${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }}" \
+                        --body-file -
               fi
               if [ "$UPDATE" == "true" ] ; then
                   echo "succeeded to cherry pick to branch $BRANCH "
@@ -160,7 +160,7 @@ jobs:
               fi
           done
           echo "=========== check result ============"
-          if ((FAILURE_COUNTER>0)) ; then
+          if (( FAILURE_COUNTER > 0 )) ; then
               # if failed to create issue or pr, fails
               echo "error, $FAILURE_COUNTER failuire happened"
               exit 1
