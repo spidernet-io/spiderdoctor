@@ -153,7 +153,7 @@ jobs:
                       --base ${BRANCH}
                   if (($?!=0)) ; then
                       echo "!!!! error, failed to create pr"
-                      ((FAILURE_COUNTER++))
+                      ((FAILURE_COUNTER++)) 
                   fi
               else
                   echo "no changes happened for commits $PR_COMMITS, ignore create pr"
