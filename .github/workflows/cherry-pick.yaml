@@ -81,7 +81,7 @@ jobs:
                       --body "reason: the branch $BRANCH does not exist. [ pr ${PR_URL} ] [ action ${ACTION_URL} ] " \
                       --title "failed to auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH}" \
                       --label "${{ env.CHERRYPICK_LABEL }},cherrypick-pr${PR_NUMBER}" \
-                      --assignee ${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }} "
+                      --assignee "${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }}"
                   if (($?!=0)) ; then
                       echo "!!!! error, failed to create issue"
                       ((FAILURE_COUNTER++))
@@ -95,7 +95,7 @@ jobs:
                       --body "reason: failed to get the branch $BRANCH. [ pr ${PR_URL} ] [ action ${ACTION_URL} ] " \
                       --title "failed to auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH}" \
                       --label "${{ env.CHERRYPICK_LABEL }},cherrypick-pr${PR_NUMBER}" \
-                      --assignee ${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }} "
+                      --assignee "${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }}"
                   if (($?!=0)) ; then
                       echo "!!!! error, failed to create issue"
                       ((FAILURE_COUNTER++))
@@ -124,7 +124,7 @@ jobs:
                         --body "reason: commits $PR_COMMITS conflict when merging to branch $BRANCH, please manually cherry pick it by yourself. [ pr ${PR_URL} ] [ action ${ACTION_URL} ] " \
                         --title "failed to auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH}" \
                         --label "${{ env.CHERRYPICK_LABEL }},cherrypick-pr${PR_NUMBER}" \
-                        --assignee ${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }} "
+                        --assignee "${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }}"
                   if (($?!=0)) ; then
                       echo "!!!! error, failed to create issue"
                       ((FAILURE_COUNTER++))
