@@ -22,6 +22,7 @@ var (
 	//
 	leaseRenewDeadline = time.Duration(10) * time.Second
 	//
+	//
 	leaseRetryPeriod = time.Duration(2) * time.Second
 )
 
