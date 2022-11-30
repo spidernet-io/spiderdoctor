@@ -1,4 +1,4 @@
-name: CherryPick PR
+name: Auto CherryPick PR
 
 permissions: write-all
 
@@ -6,7 +6,6 @@ env:
   LABEL_PREFIX_CHERRYPICK: "cherrypick-"
   CHERRYPICK_LABEL: "robot-cherrypick"
   DEFAULT_REVIEWER: "weizhoublue"
-
 
 on:
   push:
@@ -111,7 +110,7 @@ jobs:
                         git reset --hard HEAD || true
                         continue
                     else
-                        FAIL=true 
+                        FAIL=true
                         echo "error, failed to cherry pick $PR_COMMITS " 
                         git cherry-pick --abort || true
                         git reset --hard HEAD || true
