@@ -105,7 +105,7 @@ jobs:
               FAIL=false 
               UPDATE=false
               for COMMIT in $PR_COMMITS; do
-                    if ! git cherry-pick COMMIT ; then 
+                    if ! git cherry-pick $COMMIT ; then 
                           if git diff --exit-code --quiet ; then
                               echo "no changes happen, ignore cherry pick $COMMIT "
                               git cherry-pick --abort || true
