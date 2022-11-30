@@ -160,8 +160,6 @@ jobs:
           if [ "$FINAL_FAILURE" == "true" ] ; then
               # if failed to create issue or pr, fails
               echo "error, failuire happened"
-              exit 1
           else
               echo "all done"
-              exit 0
           fi
