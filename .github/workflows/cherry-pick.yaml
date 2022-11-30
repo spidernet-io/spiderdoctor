@@ -70,6 +70,8 @@ jobs:
           echo "============ begin to cherry pick ============ "
           FAILURE_COUNTER=0
           git branch
+          git config  user.email "robot@example.com"
+          git config  user.name "robot"
           for BRANCH in $WANT_MERGE_BRANCH_LIST ; do
               GH_FAILED_OPTION=" --title \"failed to auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH} \"  "
               GH_FAILED_OPTION+=" --label \"${{ env.CHERRYPICK_LABEL }},pr-${PR_NUMBER}\" "
@@ -78,7 +80,7 @@ jobs:
               if ! git ls-remote --exit-code --heads origin ${BRANCH} ; then
                   # todo: create issue
                   echo "error, branch $BRANCH does not exist"
-                  gh issue create ${GH_FAILED_OPTION} \
+                  gh issue create "${GH_FAILED_OPTION}" \
                       --body "reason: the branch $BRANCH does not exist. [ pr ${PR_URL} ] [ action ${ACTION_URL} ] "
                   if (($?!=0)) ; then
                       echo "!!!! error, failed to create issue"
@@ -89,7 +91,7 @@ jobs:
               git fetch origin ${BRANCH}:${BRANCH} || true
               if ! git checkout ${BRANCH} ; then
                   echo "error, failed to checkout to branch $BRANCH"
-                  gh issue create ${GH_FAILED_OPTION} \
+                  gh issue create "${GH_FAILED_OPTION}" \
                       --body "reason: failed to get the branch $BRANCH. [ pr ${PR_URL} ] [ action ${ACTION_URL} ] "
                   if (($?!=0)) ; then
                       echo "!!!! error, failed to create issue"
@@ -110,7 +112,7 @@ jobs:
               done
               if [ "$FAIL" == "true" ] ; then
                   echo "failed to cherry pick to branch $BRANCH "
-                  gh issue create ${GH_FAILED_OPTION} \
+                  gh issue create "${GH_FAILED_OPTION}" \
                         --body "reason: commits conflict when merging to branch $BRANCH, please manually cherry pick it by yourself. [ pr ${PR_URL} ] [ action ${ACTION_URL} ] "
                   if (($?!=0)) ; then
                       echo "!!!! error, failed to create issue"
