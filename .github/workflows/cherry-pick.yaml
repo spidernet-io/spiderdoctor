@@ -43,8 +43,9 @@ jobs:
               [ -n "${PR_AUTHOR}" ] || { echo "no PR_LABEL, ignore" ; }
           #
               cat ${DATA_FILE} | grep -Ei "https://github.com/.*/commit"
-          PR_COMMITS= ` cat ${DATA_FILE} | grep -Ei "https://github.com/.*/commit" | awk -F'"' '{print $4}' | uniq -c | awk '{ if ($1 == 1 ) print $2}' | awk -F'/' '{print $NF}' | tr '\n' ' '  `
+          PR_COMMITS=` cat ${DATA_FILE} | grep -Ei "https://github.com/.*/commit" | awk -F'"' '{print $4}' | uniq -c | awk '{ if ($1 == 1 ) print $2}' | awk -F'/' '{print $NF}' | tr '\n' ' '  `
               [ -n "${PR_COMMITS}" ] || { echo "no PR_COMMITS, ignore" ; }
+          #
           echo "number: ${PR_NUMBER}"
           echo "action url: ${ACTION_URL}"
           echo "PR_COMMITS: ${PR_COMMITS}"
