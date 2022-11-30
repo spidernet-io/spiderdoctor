@@ -12,7 +12,7 @@ E2E_KUBECONFIG="$1"
 TYPE="$2"
 E2E_LOG_FILE_NAME="$3"
 
-[ -z "$E2E_KUBECONFIG" ] && echo "error, miss E2E_KUBECONFIG " && exit 1
+[ -z "$E2E_KUBECONFIG" ] && echo "error! miss E2E_KUBECONFIG " && exit 1
 [ ! -f "$E2E_KUBECONFIG" ] && echo "error, could not find file $E2E_KUBECONFIG " && exit 1
 echo "$CURRENT_FILENAME : E2E_KUBECONFIG $E2E_KUBECONFIG "
 
