@@ -104,15 +104,22 @@ jobs:
               fi
               git branch --show-current
               FAIL=false
-              for COMMIT in $PR_COMMITS  ; do
-                  if ! git cherry-pick $COMMIT ; then 
-                    FAIL=true 
-                    echo "error, failed to cherry pick $COMMIT" 
-                    git cherry-pick --abort || true
-                    git reset --hard HEAD || true
-                    break
-                  fi
-              done
+              if ! git cherry-pick $PR_COMMITS ; then 
+                FAIL=true 
+                echo "error, failed to cherry pick $COMMIT" 
+                git cherry-pick --abort || true
+                git reset --hard HEAD || true
+                break
+              fi
+#              for COMMIT in $PR_COMMITS  ; do
+#                  if ! git cherry-pick $COMMIT ; then
+#                    FAIL=true
+#                    echo "error, failed to cherry pick $COMMIT"
+#                    git cherry-pick --abort || true
+#                    git reset --hard HEAD || true
+#                    break
+#                  fi
+#              done
               if [ "$FAIL" == "true" ] ; then
                   echo "failed to cherry pick to branch $BRANCH "
                   gh issue create  \
