@@ -71,7 +71,7 @@ jobs:
           git branch
           git config  user.email "robot@example.com"
           git config  user.name "robot"
-          gh label create ${{ env.CHERRYPICK_LABEL }} --force
+          gh label create ${{ env.CHERRYPICK_LABEL }} || true
           for BRANCH in $WANT_MERGE_BRANCH_LIST ; do
               echo "************** cherry for branch ${BRANCH}"
               if ! git ls-remote --exit-code --heads origin ${BRANCH} ; then
