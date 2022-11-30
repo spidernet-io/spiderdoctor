@@ -27,7 +27,7 @@ AGENT_LABEL="app.kubernetes.io/component=spiderdoctor-agent"
 CONTROLLER_POD_LIST=$( kubectl get pods --no-headers --kubeconfig ${E2E_KUBECONFIG}  --namespace ${COMPONENT_NAMESPACE} --selector ${CONTROLLER_LABEL} --output jsonpath={.items[*].metadata.name} )
 AGENT_POD_LIST=$( kubectl get pods --no-headers --kubeconfig ${E2E_KUBECONFIG}  --namespace ${COMPONENT_NAMESPACE} --selector ${AGENT_LABEL} --output jsonpath={.items[*].metadata.name} )
 [ -z "$CONTROLLER_POD_LIST" ] && echo "error, failed to find any spider controller pod" && exit 1
-[ -z "$AGENT_POD_LIST" ] && echo "error, failed to find any spider agent pod" && exit 1
+[ -z "$AGENT_POD_LIST" ] && echo "error! failed to find any spider agent pod" && exit 1
 
 
 if [ -n "$E2E_LOG_FILE_NAME" ] ; then
