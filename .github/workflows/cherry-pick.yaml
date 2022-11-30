@@ -27,9 +27,17 @@ jobs:
         run: |
           set -x
           echo "============ print var ======== "
-          PR_URL="https://github.com/${{ github.repository }}/pull/${{ github.event.number }}"
+          #PR_NUMBER=${{ github.event.number }}
+          PR_NUMBER=` echo "${{ toJSON(github) }}" | grep -Eio "Merge pull request #[0-9]+ " | grep -Eo "[0-9]+" | uniq `
+          [ -n "${PR_NUMBER}"] || { echo "no PR number, ignore" ; }
+          #
+          PR_URL="https://github.com/${{ github.repository }}/pull/${PR_NUMBER}"
           ACTION_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          echo "number: ${{ github.event.number }}"
+          
+          PR_AUTHOR=${{ github.event.pull_request.user.login }}
+          PR_AUTHOR=
+          #
+          echo "number: ${PR_NUMBER}"
           echo "action url: ${ACTION_URL}"
           echo "author: ${{ github.event.pull_request.user.login }}"
           echo "url: ${PR_URL}"
@@ -40,10 +48,17 @@ jobs:
           #
           echo '${{ toJSON(github) }}'
           echo '${{ toJSON(job) }}'
+          
+          #==========
+          
+          
+          
+          
+          
           echo "============ get labels ======== "
           echo ${{ secrets.WELAN_PAT }} | gh auth login --with-token
-          gh pr view ${{ github.event.number }} | grep -i "^labels:"
-          PR_LABEL=` gh pr view ${{ github.event.number }} | grep -i "^labels:" | tr ',' ' ' | tr -s ' ' | sed 's/labels://g' `
+          gh pr view ${PR_NUMBER} | grep -i "^labels:"
+          PR_LABEL=` gh pr view ${PR_NUMBER} | grep -i "^labels:" | tr ',' ' ' | tr -s ' ' | sed 's/labels://g' `
           echo "PR_LABEL: ${PR_LABEL}"
           #
           #
