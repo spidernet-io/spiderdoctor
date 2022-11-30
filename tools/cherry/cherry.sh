@@ -1,10 +1,7 @@
 #!/bin/bash
 set -e
 
-SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
-source ${SCRIPT_DIR}/common.sh
-
-require_linux
+#require_linux
 
 ORG=${ORG:-"spidernet-io"}
 REPO=${REPO:-"spiderdoctor"}
@@ -14,17 +11,31 @@ CHERRY_FROM_BRANCH=${CHERRY_FROM_BRANCH:-""}
 [ -z "${REPO}" ] && echo "error, miss REPO" && exit 1
 [ -z "${CHERRY_FROM_BRANCH}" ] && echo "error, miss CHERRY_FROM_BRANCH" && exit 1
 
+#==============================================
 
-
-
-cleanup () {
-  if [ -n "$TMPF" ]; then
-    rm $TMPF
+get_remote () {
+  local remote
+  local org=${1:-cilium}
+  local repo=${2:-cilium}
+  remote=$(git remote -v | \
+    grep "github.com[/:]${org}/${repo}" | \
+    head -n1 | cut -f1)
+  if [ -z "$remote" ]; then
+      echo "No remote git@github.com:${org}/${repo}.git or https://github.com/${org}/${repo} found" 1>&2
+      return 1
   fi
+  echo "$remote"
 }
 
-trap cleanup EXIT
-
+commit_in_upstream() {
+    local commit="$1"
+    local branch="$2"
+    local org="${3:-""}"
+    local repo="${4:-""}"
+    local remote="$(get_remote ${org} ${repo})"
+    local branches="$(git branch -q -r --contains $commit $remote/$branch 2> /dev/null)"
+    echo "$branches" | grep -q ".*$remote/$branch"
+}
 cherry_pick () {
   CID=$1
   if ! commit_in_upstream "$CID" "$CHERRY_FROM_BRANCH" "${ORG}" "${REPO}"; then
