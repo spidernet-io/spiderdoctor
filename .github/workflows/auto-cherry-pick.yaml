@@ -140,7 +140,7 @@ jobs:
                         --title "failed to auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH}" \
                         --label "${{ env.CHERRYPICK_LABEL }}" \
                         --assignee "${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }}" \
-                        --body "commits $PR_COMMITS conflict when merging to branch $BRANCH, please manually cherry pick it by yourself. \n PR <${PR_URL}> ,  action <${ACTION_URL}> \n\n $ERROR_MESSAGE "
+                        --body "commits $PR_COMMITS conflict when merging to branch $BRANCH, please manually cherry pick it by yourself. PR <${PR_URL}> ,  action <${ACTION_URL}>  "
               fi
               if [ "$UPDATE" == "true" ] ; then
                   echo "succeeded to cherry pick to branch $BRANCH "
