@@ -67,7 +67,7 @@ jobs:
           #
           #
           echo "============ begin to cherry pick ============ "
-          FAILURE_COUNTER=0
+          FINAL_FAILURE=false
           git branch
           git config  user.email "robot@example.com"
           git config  user.name "robot"
@@ -84,7 +84,7 @@ jobs:
                       --assignee "${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }}"
                   if (($?!=0)) ; then
                       echo "!!!! error, failed to create issue"
-                      ((FAILURE_COUNTER++))
+                      FINAL_FAILURE=true
                   fi
                   continue
               fi
@@ -98,7 +98,7 @@ jobs:
                       --assignee "${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }}"
                   if (($?!=0)) ; then
                       echo "!!!! error, failed to create issue"
-                      ((FAILURE_COUNTER++))
+                      FINAL_FAILURE=true
                   fi
                   continue
               fi
@@ -135,12 +135,13 @@ jobs:
               done
               if [ "$FAIL" == "true" ] ; then
                   echo "failed to cherry pick to branch $BRANCH "
-                  ((FAILURE_COUNTER++))
-                  gh issue create  \
+                  FINAL_FAILURE=true
+                  echo "commits $PR_COMMITS conflict when merging to branch $BRANCH, please manually cherry pick it by yourself. PR <${PR_URL}> ,  action <${ACTION_URL}>  \n\n ${ERROR_MESSAGE} " | \
+                       gh issue create  \
                         --title "failed to auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH}" \
                         --label "${{ env.CHERRYPICK_LABEL }}" \
                         --assignee "${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }}" \
-                        --body "commits $PR_COMMITS conflict when merging to branch $BRANCH, please manually cherry pick it by yourself. PR <${PR_URL}> ,  action <${ACTION_URL}>  "
+                        --body-file -
               fi
               if [ "$UPDATE" == "true" ] ; then
                   echo "succeeded to cherry pick to branch $BRANCH "
@@ -151,18 +152,14 @@ jobs:
                       --label ${{ env.CHERRYPICK_LABEL }} \
                       --body "robot cherry pick pr <${PR_URL}>,  action <${ACTION_URL}>  , commits $PR_COMMITS " \
                       --base ${BRANCH}
-                  if (($?!=0)) ; then
-                      echo "!!!! error, failed to create pr"
-                      ((FAILURE_COUNTER++))
-                  fi
               else
                   echo "no changes happened for commits $PR_COMMITS, ignore create pr"
               fi
           done
           echo "=========== check result ============"
-          if (( FAILURE_COUNTER > 0 )) ; then
+          if [ "$FINAL_FAILURE" == "true" ] ; then
               # if failed to create issue or pr, fails
-              echo "error, $FAILURE_COUNTER failuire happened"
+              echo "error, failuire happened"
               exit 1
           else
               echo "all done"
