@@ -58,13 +58,14 @@ jobs:
           echo "============= it is required to cherry pick to $WANT_MERGE_BRANCH_LIST ============"
           chmod +x ./tools/cherry/cherry.sh
           git branch
-          #git fetch origin ${{ github.base_ref }}:${{ github.base_ref }}
-          git fetch origin ${{ github.head_ref }}:${{ github.head_ref }}
+          git fetch origin ${{ github.base_ref }}:${{ github.base_ref }} || true
+          git fetch origin ${{ github.head_ref }}:${{ github.head_ref }} || true
           git config --global user.email "you@example.com"
           git config --global user.name "weizhou.lan"
           #export GIT_AUTHOR_NAME="weizhou.lan"
           #export GIT_AUTHOR_EMAIL="email@example.com"
           #=------------------ get the commits
+          git log  --left-right  ${{ github.head_ref }} ...${{ github.base_ref }} 
           ALL_COMMITS=` git log  --left-right  ${{ github.head_ref }} ...${{ github.base_ref }} | grep "commit <" | awk '{print $3}' | tr '\n' ' ' `
           [ -z "$ALL_COMMITS" ] && echo "error, failed to get any commits" && exit 1
           echo "============ commits: ${ALL_COMMITS} "
@@ -114,6 +115,7 @@ jobs:
           #--- create pr
           #echo ${{ secrets.WELAN_PAT }} | gh auth login --with-token
           #gh pr  create --title 'test' --body 'sadf'  --base ${{ matrix.releaseName }}
+
 
 
 
