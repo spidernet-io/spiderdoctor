@@ -3,7 +3,7 @@ name: Auto CherryPick PR
 permissions: write-all
 
 env:
-  LABEL_PREFIX_CHERRYPICK: "cherrypick-"
+  PR_LABEL_PREFIX_CHERRYPICK: "cherrypick-"
   CHERRYPICK_LABEL: "robot-cherrypick"
   DEFAULT_REVIEWER: "weizhoublue"
 
@@ -57,7 +57,7 @@ jobs:
           WANT_MERGE_BRANCH_LIST=""
           for LABEL in ${PR_LABEL} ; do
               echo "checking label $LABEL "
-              PREFIX="${{ env.LABEL_PREFIX_CHERRYPICK }}"
+              PREFIX="${{ env.PR_LABEL_PREFIX_CHERRYPICK }}"
               grep -E "^${PREFIX}" <<< "${LABEL}" &>/dev/null || continue
               BRANCH_NAME=` sed 's?'"${PREFIX}"'??' <<< "$LABEL" `
               WANT_MERGE_BRANCH_LIST+=" $BRANCH_NAME "
