@@ -103,13 +103,20 @@ jobs:
                   continue
               fi
               git branch --show-current
-              FAIL=false
+              FAIL=false 
               if ! git cherry-pick $PR_COMMITS ; then 
-                FAIL=true 
-                echo "error, failed to cherry pick $COMMIT" 
-                git cherry-pick --abort || true
-                git reset --hard HEAD || true
-                break
+                    if git diff --exit-code --quiet ; then
+                        echo "no changes happen, ignore cherry pick"
+                        git cherry-pick --abort || true
+                        git reset --hard HEAD || true
+                        continue
+                    else
+                        FAIL=true 
+                        echo "error, failed to cherry pick $PR_COMMITS " 
+                        git cherry-pick --abort || true
+                        git reset --hard HEAD || true
+                        break               
+                    fi
               fi
 #              for COMMIT in $PR_COMMITS  ; do
 #                  if ! git cherry-pick $COMMIT ; then
