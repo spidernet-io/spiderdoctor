@@ -102,6 +102,7 @@ jobs:
                   fi
                   continue
               fi
+              git checkout -b robot/cherrypick/pr${PR_NUMBER}
               git branch --show-current
               FAIL=false 
               UPDATE=false
