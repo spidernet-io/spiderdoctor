@@ -148,6 +148,7 @@ jobs:
                   git push origin ${PR_BRANCH}:${PR_BRANCH} -f 
                   gh pr create --title "auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH}" \
                       --reviewer "${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }}" \
+                      --assignee "${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }}" \
                       --label ${{ env.CHERRYPICK_LABEL }} \
                       --body "robot cherry pick pr <${PR_URL}>,  action <${ACTION_URL}>  , commits $PR_COMMITS " \
                       --base ${BRANCH}
