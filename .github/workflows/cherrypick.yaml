@@ -65,6 +65,7 @@ jobs:
           #export GIT_AUTHOR_NAME="weizhou.lan"
           #export GIT_AUTHOR_EMAIL="email@example.com"
           #=------------------ get the commits
+          git checkout ${{ github.head_ref }}
           git log  --left-right  ${{ github.head_ref }} ...${{ github.base_ref }} 
           ALL_COMMITS=` git log  --left-right  ${{ github.head_ref }} ...${{ github.base_ref }} | grep "commit <" | awk '{print $3}' | tr '\n' ' ' `
           [ -z "$ALL_COMMITS" ] && echo "error, failed to get any commits" && exit 1
@@ -115,6 +116,7 @@ jobs:
           #--- create pr
           #echo ${{ secrets.WELAN_PAT }} | gh auth login --with-token
           #gh pr  create --title 'test' --body 'sadf'  --base ${{ matrix.releaseName }}
+
 
 
 
