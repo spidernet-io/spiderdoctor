@@ -103,19 +103,26 @@ jobs:
               fi
               git branch --show-current
               FAIL=false 
-              if ! git cherry-pick $PR_COMMITS ; then 
-                    if git diff --exit-code --quiet ; then
-                        echo "no changes happen, ignore cherry pick"
-                        git cherry-pick --abort || true
-                        git reset --hard HEAD || true
-                        continue
+              UPDATE=false
+              for COMMIT in $PR_COMMITS; do
+                    if ! git cherry-pick COMMIT ; then 
+                          if git diff --exit-code --quiet ; then
+                              echo "no changes happen, ignore cherry pick $COMMIT "
+                              git cherry-pick --abort || true
+                              git reset --hard HEAD || true
+                              continue
+                          else
+                              FAIL=true
+                              echo "error, failed to cherry pick $COMMIT " 
+                              git cherry-pick --abort || true
+                              git reset --hard HEAD || true
+                              break
+                          fi
                     else
-                        FAIL=true
-                        echo "error, failed to cherry pick $PR_COMMITS " 
-                        git cherry-pick --abort || true
-                        git reset --hard HEAD || true
+                        UPDATE=true
+                        echo "succeed to cherry pick $COMMIT to branch $BRANCH " 
                     fi
-              fi
+              done
               if [ "$FAIL" == "true" ] ; then
                   echo "failed to cherry pick to branch $BRANCH "
                   gh issue create  \
@@ -127,7 +134,8 @@ jobs:
                       echo "!!!! error, failed to create issue"
                       ((FAILURE_COUNTER++))
                   fi
-              else
+              fi
+              if [ "$UPDATE" == "true" ] ; then
                   echo "succeeded to cherry pick to branch $BRANCH "
                   # create a pr
                   gh pr create --title "auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH}" \
@@ -139,6 +147,8 @@ jobs:
                       echo "!!!! error, failed to create pr"
                       ((FAILURE_COUNTER++))
                   fi
+              else
+                  echo "no changes happened for commits $PR_COMMITS, ignore create pr"
               fi
           done
           echo "=========== check result ============"
