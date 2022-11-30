@@ -73,15 +73,15 @@ jobs:
           git config  user.email "robot@example.com"
           git config  user.name "robot"
           for BRANCH in $WANT_MERGE_BRANCH_LIST ; do
-              GH_FAILED_OPTION=" --title \"failed to auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH} \"  "
-              GH_FAILED_OPTION+=" --label \"${{ env.CHERRYPICK_LABEL }},cherrypick-pr${PR_NUMBER}\" "
-              GH_FAILED_OPTION+=" --assignee ${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }} "
               echo "************** cherry for branch ${BRANCH}"
               if ! git ls-remote --exit-code --heads origin ${BRANCH} ; then
                   # todo: create issue
                   echo "error, branch $BRANCH does not exist"
-                  gh issue create "${GH_FAILED_OPTION}" \
-                      --body "reason: the branch $BRANCH does not exist. [ pr ${PR_URL} ] [ action ${ACTION_URL} ] "
+                  gh issue create  \
+                      --body "reason: the branch $BRANCH does not exist. [ pr ${PR_URL} ] [ action ${ACTION_URL} ] " \
+                      --title "failed to auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH}" \
+                      --label "${{ env.CHERRYPICK_LABEL }},cherrypick-pr${PR_NUMBER}" \
+                      --assignee ${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }} "
                   if (($?!=0)) ; then
                       echo "!!!! error, failed to create issue"
                       ((FAILURE_COUNTER++))
@@ -91,8 +91,11 @@ jobs:
               git fetch origin ${BRANCH}:${BRANCH} || true
               if ! git checkout ${BRANCH} ; then
                   echo "error, failed to checkout to branch $BRANCH"
-                  gh issue create "${GH_FAILED_OPTION}" \
-                      --body "reason: failed to get the branch $BRANCH. [ pr ${PR_URL} ] [ action ${ACTION_URL} ] "
+                  gh issue create  \
+                      --body "reason: failed to get the branch $BRANCH. [ pr ${PR_URL} ] [ action ${ACTION_URL} ] " \
+                      --title "failed to auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH}" \
+                      --label "${{ env.CHERRYPICK_LABEL }},cherrypick-pr${PR_NUMBER}" \
+                      --assignee ${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }} "
                   if (($?!=0)) ; then
                       echo "!!!! error, failed to create issue"
                       ((FAILURE_COUNTER++))
@@ -100,20 +103,37 @@ jobs:
                   continue
               fi
               git branch --show-current
-              FAIL=false
-              for COMMIT in $PR_COMMITS  ; do
-                  if ! git cherry-pick $COMMIT ; then 
-                    FAIL=true 
-                    echo "error, failed to cherry pick $COMMIT" 
-                    git cherry-pick --abort || true
-                    git reset --hard HEAD || true
-                    break
-                  fi
-              done
+              FAIL=false 
+              if ! git cherry-pick $PR_COMMITS ; then 
+                    if git diff --exit-code --quiet ; then
+                        echo "no changes happen, ignore cherry pick"
+                        git cherry-pick --abort || true
+                        git reset --hard HEAD || true
+                        continue
+                    else
+                        FAIL=true 
+                        echo "error, failed to cherry pick $PR_COMMITS " 
+                        git cherry-pick --abort || true
+                        git reset --hard HEAD || true
+                        break               
+                    fi
+              fi
+#              for COMMIT in $PR_COMMITS  ; do
+#                  if ! git cherry-pick $COMMIT ; then
+#                    FAIL=true
+#                    echo "error, failed to cherry pick $COMMIT"
+#                    git cherry-pick --abort || true
+#                    git reset --hard HEAD || true
+#                    break
+#                  fi
+#              done
               if [ "$FAIL" == "true" ] ; then
                   echo "failed to cherry pick to branch $BRANCH "
-                  gh issue create "${GH_FAILED_OPTION}" \
-                        --body "reason: commits $PR_COMMITS conflict when merging to branch $BRANCH, please manually cherry pick it by yourself. [ pr ${PR_URL} ] [ action ${ACTION_URL} ] "
+                  gh issue create  \
+                        --body "reason: commits $PR_COMMITS conflict when merging to branch $BRANCH, please manually cherry pick it by yourself. [ pr ${PR_URL} ] [ action ${ACTION_URL} ] " \
+                        --title "failed to auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH}" \
+                        --label "${{ env.CHERRYPICK_LABEL }},cherrypick-pr${PR_NUMBER}" \
+                        --assignee ${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }} "
                   if (($?!=0)) ; then
                       echo "!!!! error, failed to create issue"
                       ((FAILURE_COUNTER++))
