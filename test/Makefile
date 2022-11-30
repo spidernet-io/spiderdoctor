@@ -112,7 +112,7 @@ deploy_project: KIND_KUBECONFIG ?= $(E2E_KIND_KUBECONFIG_PATH)
 deploy_project: KIND_CLUSTER_NAME ?= $(E2E_KIND_CLUSTER_NAME)
 deploy_project:
 	echo "try to load local image tag $(PROJECT_IMAGE_VERSION) " ; \
-	IMAGE_LIST=` helm template test $(ROOT_DIR)/charts --set global.imageTagOverride=$(PROJECT_IMAGE_VERSION)  | grep " image: " | tr -d '"'| awk '{print $$2}' ` ; \
+	IMAGE_LIST=` helm template test $(ROOT_DIR)/charts --set global.imageTagOverride=$(PROJECT_IMAGE_VERSION)  | grep ' image: ' | tr -d '"' | awk '{print $$2}'  | sort | uniq | tr '\n' ' '  ` ; \
 	if [ -z "$${IMAGE_LIST}" ] ; then \
 		echo "warning, failed to find image from chart " ; \
 	else \
@@ -146,6 +146,16 @@ deploy_project:
 		    HELM_OPTION+=" --set spiderdoctorAgent.podAnnotations.v1\.multus-cni\.io/default-network=kube-system/k8s-pod-network " ; \
 		    HELM_OPTION+=" --set spiderdoctorAgent.podAnnotations.k8s\.v1\.cni\.cncf\.io/networks=kube-system/ptp " ; \
 		fi ; \
+		if [ "$(E2E_ENABLE_METALLB)" == "true" ] ; then \
+		    HELM_OPTION+=" --set spiderdoctorAgent.service.type=LoadBalancer " ; \
+		else \
+		    HELM_OPTION+=" --set spiderdoctorAgent.service.type=ClusterIP " ; \
+		fi ; \
+		if ( [ "$(E2E_ENABLE_CONTOUR)" == "true" ] || "$(E2E_ENABLE_NGINX)" == "true" ] ) && [ "$(E2E_IP_FAMILY)" != "ipv6" ]  ; then \
+		    HELM_OPTION+=" --set spiderdoctorAgent.ingress.enable=true " ; \
+		else \
+		    HELM_OPTION+=" --set spiderdoctorAgent.ingress.enable=false " ; \
+		fi ; \
 		HELM_OPTION+=" --set feature.aggregateReport.enabled=true " ; \
 		HELM_OPTION+=" --set feature.aggregateReport.controller.reportHostPath=/var/run/spiderdoctor/controller " ; \
 		HELM_OPTION+=" --set spiderdoctorAgent.debug.logLevel=debug --set spiderdoctorController.debug.logLevel=debug " ; \
@@ -157,6 +167,8 @@ deploy_project:
 				|| { KIND_CLUSTER_NAME=$(KIND_CLUSTER_NAME) ./scripts/debugCluster.sh $(KIND_KUBECONFIG) "detail"   ; exit 1 ; } ; \
 		exit 0
 
+
+#=========================
 
 .PHONY: deploy_multus
 deploy_multus: KIND_KUBECONFIG ?= $(E2E_KIND_KUBECONFIG_PATH)
@@ -178,7 +190,7 @@ install_multus:
 	helm repo add $(MULTUS_REPO_NAME) $(MULTUS_CHART_REPO) ; \
 		helm repo update $(MULTUS_REPO_NAME) ; \
 		echo "try to load local image for multus $(MULTUS_CHART_VERSION) " ; \
-		IMAGE_LIST=` helm template --version=$(MULTUS_CHART_VERSION)  $(MULTUS_REPO_NAME)/$(MULTUS_CHART_NAME) | grep " image: " | tr -d '"'| awk '{print $$2}' ` ; \
+		IMAGE_LIST=` helm template --version=$(MULTUS_CHART_VERSION)  $(MULTUS_REPO_NAME)/$(MULTUS_CHART_NAME) | grep ' image: ' | tr -d '"' | awk '{print $$2}'  | sort | uniq | tr '\n' ' '  ` ; \
 		if [ -z "$${IMAGE_LIST}" ] ; then \
 			echo "warning, failed to find image from chart template" ; \
 		else \
@@ -194,7 +206,7 @@ install_multus:
 			done ; \
 		fi
 	- helm --kubeconfig=$(KIND_KUBECONFIG) uninstall -n kube-system multus || true
-	helm install multus $(MULTUS_REPO_NAME)/$(MULTUS_CHART_NAME)  \
+	helm install $(MULTUS_CHART_NAME)  $(MULTUS_REPO_NAME)/$(MULTUS_CHART_NAME)  \
 			-n kube-system --kubeconfig=$(KIND_KUBECONFIG)  \
 			--version=$(MULTUS_CHART_VERSION) --wait \
 			--set sriov.manifests.enable=false \
@@ -269,6 +281,225 @@ install_multus:
 			  docker exec $(E2E_KIND_WORKER_NODE_NAME) ip -6 r add fd90:1::/64 via $${MASTER_IPV6_ADDR} ; \
   		fi
 
+#=========================
+
+.PHONY: deploy_metallb
+deploy_metallb: KIND_KUBECONFIG ?= $(E2E_KIND_KUBECONFIG_PATH)
+deploy_metallb: KIND_CLUSTER_NAME ?= $(E2E_KIND_CLUSTER_NAME)
+deploy_metallb:
+	[ "$(E2E_ENABLE_METALLB)" == "true" ] || { echo "ignore metallb" ; exit 0 ; } ; \
+		make install_metallb -e KIND_KUBECONFIG=$(KIND_KUBECONFIG) -e KIND_CLUSTER_NAME=$(KIND_CLUSTER_NAME)
+
+
+.PHONY: install_metallb
+install_metallb: KIND_KUBECONFIG ?= $(E2E_KIND_KUBECONFIG_PATH)
+install_metallb: KIND_CLUSTER_NAME ?= $(E2E_KIND_CLUSTER_NAME)
+install_metallb:
+	@echo "beign to install metallb"
+	- helm repo remove $(METALLB_REPO_NAME)
+	- helm --kubeconfig=$(KIND_KUBECONFIG) uninstall -n kube-system $(METALLB_CHART_NAME) || true
+	helm repo add $(METALLB_REPO_NAME) $(METALLB_CHART_REPO) ; \
+		helm repo update $(METALLB_REPO_NAME) ; \
+		HELM_OPTIONS="	--set controller.image.repository=quay.$(E2E_PROXY_REGISTER)io/metallb/controller \
+                      	--set speaker.image.repository=quay.$(E2E_PROXY_REGISTER)io/metallb/speaker \
+                      	--set speaker.frr.image.repository=docker.$(E2E_PROXY_REGISTER)io/frrouting/frr  --set speaker.frr.enabled=true " ; \
+		IMAGE_LIST=` helm template --version=$(METALLB_CHART_VERSION)  $(METALLB_REPO_NAME)/$(METALLB_CHART_NAME) $${HELM_OPTIONS} | grep ' image: ' | tr -d '"' | awk '{print $$2}'  | sort | uniq | tr '\n' ' '  ` ; \
+		if [ -z "$${IMAGE_LIST}" ] ; then \
+			echo "warning, failed to find image from chart template" ; \
+		else \
+			echo "found image from chart template: $${IMAGE_LIST} " ; \
+			for IMAGE in $${IMAGE_LIST} ; do \
+				EXIST=` docker images | awk '{printf("%s:%s\n",$$1,$$2)}' | grep "$${IMAGE}" ` || true ; \
+				if [ -z "$${EXIST}" ] ; then \
+				  echo "docker pull $${IMAGE} to local" ; \
+				  docker pull $${IMAGE} ;\
+				fi ;\
+				echo "load local image $${IMAGE} " ; \
+				kind load docker-image $${IMAGE}  --name $(KIND_CLUSTER_NAME)  ; \
+			done ; \
+		fi ; \
+		helm install -n kube-system $(METALLB_CHART_NAME)  $(METALLB_REPO_NAME)/$(METALLB_CHART_NAME) \
+			-n kube-system --kubeconfig=$(KIND_KUBECONFIG) \
+			--version=$(METALLB_CHART_VERSION) --wait  --timeout 5m \
+			$${HELM_OPTIONS}
+	echo "apply ippool" ; \
+		docker network inspect kind ; \
+		if [ "$(E2E_IP_FAMILY)" == "ipv4" ] ; then  \
+			Subnet1=$$(docker network inspect kind -f {{\(index\ $$.IPAM.Config\ 0\).Subnet}}) ; \
+			Subnet1=$${Subnet1%%/*} ; \
+			if ! grep -iE "[a-f]" <<< "$${Subnet1}" ; then \
+			  	IPPOO1="$${Subnet1%0}" ; \
+			 	IPPOO1="$${IPPOO1}50-$${IPPOO1}90" ; \
+			else \
+				Subnet2=$$(docker network inspect kind -f {{\(index\ $$.IPAM.Config\ 1\).Subnet}}) ; \
+				Subnet2=$${Subnet2%%/*} ; \
+				if ! grep -iE "[a-f]" <<< "$${Subnet2}" ; then \
+				  	IPPOO1="$${Subnet2%0}" ; \
+					IPPOO1="$${IPPOO1}50-$${IPPOO1}90" ; \
+				else \
+					echo "failed to find node ipv4 subnet" ; \
+					exit 1 ; \
+				fi ; \
+  			fi ; \
+			echo "IPPOO1: $${IPPOO1}" ; \
+		  	cat ./yaml/metallb.yaml \
+		  		| sed '/addresses:/ a\    - '"$${IPPOO1}"''  \
+		  		| kubectl --kubeconfig=$(KIND_KUBECONFIG) apply -f - ; \
+		elif [ "$(E2E_IP_FAMILY)" == "ipv6" ] ; then  \
+			Subnet1=$$(docker network inspect kind -f {{\(index\ $$.IPAM.Config\ 0\).Subnet}}) ; \
+			Subnet1=$${Subnet1%%/*} ; \
+			if grep -iE "[a-f]" <<< "$${Subnet1}" ; then \
+			 	IPPOO1="$${Subnet1}50-$${Subnet1}90" ; \
+			else \
+				Subnet2=$$(docker network inspect kind -f {{\(index\ $$.IPAM.Config\ 1\).Subnet}}) ; \
+				Subnet2=$${Subnet2%%/*} ; \
+				if grep -iE "[a-f]" <<< "$${Subnet2}" ; then \
+					IPPOO1="$${Subnet2}50-$${Subnet2}90" ; \
+				else \
+					echo "failed to find node ipv6 subnet" ; \
+					exit 1 ; \
+				fi ; \
+  			fi ; \
+			echo "IPPOO1: $${IPPOO1}" ; \
+		  	cat ./yaml/metallb.yaml \
+		  		| sed '/addresses:/ a\    - '"$${IPPOO1}"''  \
+		  		| kubectl --kubeconfig=$(KIND_KUBECONFIG) apply -f - ; \
+		else  \
+			Subnet1=$$(docker network inspect kind -f {{\(index\ $$.IPAM.Config\ 0\).Subnet}}) ; \
+			Subnet1=$${Subnet1%%/*} ; \
+			if grep -iE "[a-f]" <<< "$${Subnet1}" ; then \
+			 	IPPOO1="$${Subnet1}50-$${Subnet1}90" ; \
+			else \
+			 	IPPOO1="$${Subnet1%0}" ; \
+			 	IPPOO1="$${IPPOO1}50-$${IPPOO1}90" ; \
+  			fi ; \
+			Subnet2=$$(docker network inspect kind -f {{\(index\ $$.IPAM.Config\ 1\).Subnet}}) ; \
+			Subnet2=$${Subnet2%%/*} ; \
+			if grep -iE "[a-f]" <<< "$${Subnet2}" ; then \
+			 	IPPOO2="$${Subnet2}50-$${Subnet2}90" ; \
+			else \
+			 	IPPOO2="$${Subnet2%0}" ; \
+			 	IPPOO2="$${IPPOO2}50-$${IPPOO2}90" ; \
+  			fi ; \
+			echo "IPPOO1: $${IPPOO1}" ; \
+			echo "IPPOO2: $${IPPOO2}" ; \
+		  	cat ./yaml/metallb.yaml \
+		  		| sed '/addresses:/ a\    - '"$${IPPOO1}"''  \
+		  		| sed '/addresses:/ a\    - '"$${IPPOO2}"'' ; \
+		  	cat ./yaml/metallb.yaml \
+		  		| sed '/addresses:/ a\    - '"$${IPPOO1}"''  \
+		  		| sed '/addresses:/ a\    - '"$${IPPOO2}"''  \
+		  		| kubectl --kubeconfig=$(KIND_KUBECONFIG) apply -f - ; \
+		fi
+
+#=============================
+
+# contour does not support ipv6-only
+.PHONY: deploy_contour
+deploy_contour: KIND_KUBECONFIG ?= $(E2E_KIND_KUBECONFIG_PATH)
+deploy_contour: KIND_CLUSTER_NAME ?= $(E2E_KIND_CLUSTER_NAME)
+deploy_contour:
+	[ "$(E2E_ENABLE_CONTOUR)" == "true" ] || { echo "ignore contour" ; exit 0 ; } ; \
+		if [ "$(E2E_IP_FAMILY)" == "ipv6" ]  ; then \
+				echo "contour does not support ipv6 only " ;  \
+				exit 0 ; \
+		fi ; \
+		make install_contour -e KIND_KUBECONFIG=$(KIND_KUBECONFIG) -e KIND_CLUSTER_NAME=$(KIND_CLUSTER_NAME)
+
+
+.PHONY: install_contour
+install_contour: KIND_KUBECONFIG ?= $(E2E_KIND_KUBECONFIG_PATH)
+install_contour: KIND_CLUSTER_NAME ?= $(E2E_KIND_CLUSTER_NAME)
+install_contour:
+	@echo "beign to install contour"
+	- helm repo remove $(CONTOUR_REPO_NAME)
+	- helm --kubeconfig=$(KIND_KUBECONFIG) uninstall -n kube-system $(CONTOUR_CHART_NAME) || true
+	helm repo add $(CONTOUR_REPO_NAME) $(CONTOUR_CHART_REPO) ; \
+		helm repo update $(CONTOUR_REPO_NAME) ; \
+		IMAGE_LIST=` helm template --version=$(CONTOUR_CHART_VERSION)  $(CONTOUR_REPO_NAME)/$(CONTOUR_CHART_NAME) | grep ' image: ' | tr -d '"' | awk '{print $$2}'  | sort | uniq | tr '\n' ' '  ` ; \
+		if [ -z "$${IMAGE_LIST}" ] ; then \
+			echo "warning, failed to find image from chart template" ; \
+		else \
+			echo "found image from chart template: $${IMAGE_LIST} " ; \
+			for IMAGE in $${IMAGE_LIST} ; do \
+				EXIST=` docker images | awk '{printf("%s:%s\n",$$1,$$2)}' | grep "$${IMAGE}" ` || true ; \
+				if [ -z "$${EXIST}" ] ; then \
+				  echo "docker pull $${IMAGE} to local" ; \
+				  docker pull $${IMAGE} ;\
+				fi ;\
+				echo "load local image $${IMAGE} " ; \
+				kind load docker-image $${IMAGE}  --name $(KIND_CLUSTER_NAME)  ; \
+			done ; \
+		fi
+	helm install -n kube-system $(CONTOUR_CHART_NAME)  $(CONTOUR_REPO_NAME)/$(CONTOUR_CHART_NAME) \
+			-n kube-system --kubeconfig=$(KIND_KUBECONFIG) \
+			--version=$(CONTOUR_CHART_VERSION) --wait  --timeout 5m \
+			  --set global.imageRegistry="docker.$(E2E_PROXY_REGISTER)io" \
+			  --set envoy.kind=daemonset \
+			  --set envoy.service.type=LoadBalancer \
+			  --set envoy.service.externalTrafficPolicy=Local \
+			  --set envoy.hostNetwork=false \
+			  --set envoy.dnsPolicy=ClusterFirst \
+			  --set ingress.enabled=true
+
+
+# contour does not support ipv6-only
+.PHONY: deploy_nginx
+deploy_nginx: KIND_KUBECONFIG ?= $(E2E_KIND_KUBECONFIG_PATH)
+deploy_nginx: KIND_CLUSTER_NAME ?= $(E2E_KIND_CLUSTER_NAME)
+deploy_nginx:
+	[ "$(E2E_ENABLE_NGINX)" == "true" ] || { echo "ignore nginx" ; exit 0 ; } ; \
+	if [ "$(E2E_IP_FAMILY)" == "ipv6" ]  ; then \
+  			echo "nginx does not support ipv6 only " ; \
+  			exit 0 ; \
+  	  fi ; \
+	  make install_nginx -e KIND_KUBECONFIG=$(KIND_KUBECONFIG) -e KIND_CLUSTER_NAME=$(KIND_CLUSTER_NAME)
+
+
+.PHONY: install_nginx
+install_nginx: KIND_KUBECONFIG ?= $(E2E_KIND_KUBECONFIG_PATH)
+install_nginx: KIND_CLUSTER_NAME ?= $(E2E_KIND_CLUSTER_NAME)
+install_nginx:
+	@echo "beign to install nginx"
+	- helm repo remove $(NGINX_REPO_NAME)
+	- helm --kubeconfig=$(KIND_KUBECONFIG) uninstall -n kube-system $(NGINX_CHART_NAME) || true
+	helm repo add $(NGINX_REPO_NAME) $(NGINX_CHART_REPO) ; \
+		helm repo update $(NGINX_REPO_NAME) ; \
+		HELM_OPTION="  --set controller.image.registry=k8s.$(E2E_PROXY_REGISTER)io \
+                       --set defaultBackend.image.registry=k8s.$(E2E_PROXY_REGISTER)io \
+                       --set controller.admissionWebhooks.enabled=false \
+                       --set controller.admissionWebhooks.patch.image.registry=k8s.$(E2E_PROXY_REGISTER)io \
+                       --set controller.admissionWebhooks.patch.image.digest='' "; \
+		IMAGE_LIST=` helm template --version=$(NGINX_CHART_VERSION)  $(NGINX_REPO_NAME)/$(NGINX_CHART_NAME) $${HELM_OPTION} | grep ' image: ' | tr -d '"' | awk '{print $$2}'  | sort | uniq | tr '\n' ' '  ` ; \
+		if [ -z "$${IMAGE_LIST}" ] ; then \
+			echo "warning, failed to find image from chart template" ; \
+		else \
+			echo "found image from chart template: $${IMAGE_LIST} " ; \
+			for IMAGE in $${IMAGE_LIST} ; do \
+				EXIST=` docker images | awk '{printf("%s:%s\n",$$1,$$2)}' | grep "$${IMAGE}" ` || true ; \
+				if [ -z "$${EXIST}" ] ; then \
+				  echo "docker pull $${IMAGE} to local" ; \
+				  docker pull $${IMAGE} ;\
+				fi ;\
+				echo "load local image $${IMAGE} " ; \
+				kind load docker-image $${IMAGE}  --name $(KIND_CLUSTER_NAME)  ; \
+			done ; \
+		fi ; \
+		helm install -n kube-system $(NGINX_CHART_NAME)  $(NGINX_REPO_NAME)/$(NGINX_CHART_NAME) \
+			-n kube-system --kubeconfig=$(KIND_KUBECONFIG) \
+			--version=$(NGINX_CHART_VERSION) --wait  --timeout 5m \
+			  --set controller.kind=DaemonSet \
+			  --set controller.nodeSelector."kubernetes\.io/hostname"=spiderdoctor-control-plane \
+			  --set controller.admissionWebhooks.patch.enabled=true \
+			  --set controller.hostNetwork=false \
+			  --set controller.service.type=LoadBalancer \
+			  --set controller.service.internal.externalTrafficPolicy=Local \
+			  --set controller.ingressClassResource.default=true \
+			  $${HELM_OPTION}
+
+
+
+#==========================
 
 # test kind is ok
 .PHONY: install_example_app

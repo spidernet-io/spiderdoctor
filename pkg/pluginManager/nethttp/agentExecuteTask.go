@@ -14,7 +14,7 @@ import (
 	config "github.com/spidernet-io/spiderdoctor/pkg/types"
 	vegeta "github.com/tsenart/vegeta/v12/lib"
 	"go.uber.org/zap"
-	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sync"
 )
@@ -121,7 +121,7 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 			var PodIps k8sObjManager.PodIps
 
 			if target.TargetAgent.TestMultusInterface {
-				PodIps, e = k8sObjManager.GetK8sObjManager().ListDaemonsetPodMultusIPs(ctx, config.AgentConfig.SpiderDoctorAgentDaemonsetName, config.AgentConfig.PodNamespace)
+				PodIps, e = k8sObjManager.GetK8sObjManager().ListDaemonsetPodMultusIPs(ctx, config.AgentConfig.Configmap.SpiderDoctorAgentDaemonsetName, config.AgentConfig.PodNamespace)
 				logger.Sugar().Debugf("test agent multus pod ip: %v", PodIps)
 				if e != nil {
 					logger.Sugar().Errorf("failed to ListDaemonsetPodMultusIPs, error=%v", e)
@@ -129,7 +129,7 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 				}
 
 			} else {
-				PodIps, e = k8sObjManager.GetK8sObjManager().ListDaemonsetPodIPs(ctx, config.AgentConfig.SpiderDoctorAgentDaemonsetName, config.AgentConfig.PodNamespace)
+				PodIps, e = k8sObjManager.GetK8sObjManager().ListDaemonsetPodIPs(ctx, config.AgentConfig.Configmap.SpiderDoctorAgentDaemonsetName, config.AgentConfig.PodNamespace)
 				logger.Sugar().Debugf("test agent single pod ip: %v", PodIps)
 				if e != nil {
 					logger.Sugar().Errorf("failed to ListDaemonsetPodIPs, error=%v", e)
@@ -159,43 +159,22 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 			}
 
 			// ----------------------- get service
-			var serviceNodePortV4, serviceNodePortV6 int32
-			var agentV4Service *corev1.Service
-			var agentV6Service *corev1.Service
-			var localNodeIpv4, localNodeIpv6 string
-
+			var agentV4Url, agentV6Url *k8sObjManager.ServiceAccessUrl
+			serviceAccessPortName := "http"
 			if config.AgentConfig.Configmap.EnableIPv4 {
-				agentV4Service, e = k8sObjManager.GetK8sObjManager().GetService(ctx, config.AgentConfig.AgentSerivceIpv4Name, config.AgentConfig.PodNamespace)
+				agentV4Url, e = k8sObjManager.GetK8sObjManager().GetServiceAccessUrl(ctx, config.AgentConfig.Configmap.AgentSerivceIpv4Name, config.AgentConfig.PodNamespace, serviceAccessPortName)
 				if e != nil {
-					logger.Sugar().Errorf("failed to get agent ipv4 service, error=%v", e)
-				} else {
-					logger.Sugar().Debugf("agent ipv4 service: %v", agentV4Service.Spec)
-					// find nodePort
-					for _, v := range agentV4Service.Spec.Ports {
-						if v.Name == "http" && v.NodePort != 0 {
-							serviceNodePortV4 = v.NodePort
-							logger.Sugar().Debugf("agent ipv4 service nodePort: %v", serviceNodePortV4)
-							break
-						}
-					}
+					logger.Sugar().Errorf("failed to get agent ipv4 service url , error=%v", e)
 				}
 			}
 			if config.AgentConfig.Configmap.EnableIPv6 {
-				agentV6Service, e = k8sObjManager.GetK8sObjManager().GetService(ctx, config.AgentConfig.AgentSerivceIpv6Name, config.AgentConfig.PodNamespace)
+				agentV6Url, e = k8sObjManager.GetK8sObjManager().GetServiceAccessUrl(ctx, config.AgentConfig.Configmap.AgentSerivceIpv6Name, config.AgentConfig.PodNamespace, serviceAccessPortName)
 				if e != nil {
-					logger.Sugar().Errorf("failed to get agent ipv6 service, error=%v", e)
-				} else {
-					logger.Sugar().Debugf("agent ipv6 service: %v", agentV6Service.Spec)
-					// find nodePort
-					for _, v := range agentV6Service.Spec.Ports {
-						if v.Name == "http" && v.NodePort != 0 {
-							serviceNodePortV6 = v.NodePort
-							logger.Sugar().Debugf("agent ipv6 service nodePort: %v", serviceNodePortV6)
-							break
-						}
-					}
+					logger.Sugar().Errorf("failed to get agent ipv6 service url , error=%v", e)
 				}
 			}
+
+			var localNodeIpv4, localNodeIpv6 string
 			if true {
 				localNodeIpv4, localNodeIpv6, e = k8sObjManager.GetK8sObjManager().GetNodeIP(ctx, config.AgentConfig.LocalNodeName)
 				if e != nil {
@@ -205,12 +184,19 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 				}
 			}
 
+			// ----------------------- get ingress
+			var agentIngress *networkingv1.Ingress
+			agentIngress, e = k8sObjManager.GetK8sObjManager().GetIngress(ctx, config.AgentConfig.Configmap.AgentIngressName, config.AgentConfig.PodNamespace)
+			if e != nil {
+				logger.Sugar().Errorf("failed to get ingress , error=%v", e)
+			}
+
 			// ----------------------- test clusterIP ipv4
 			if target.TargetAgent.TestClusterIp && target.TargetAgent.TestIPv4 != nil && *(target.TargetAgent.TestIPv4) {
-				if agentV4Service != nil && len(agentV4Service.Spec.ClusterIP) != 0 {
+				if agentV4Url != nil && len(agentV4Url.ClusterIPUrl) > 0 {
 					testTargetList = append(testTargetList, &TestTarget{
-						Name: "AgentClusterV4IP_" + agentV4Service.Spec.ClusterIP,
-						Url:  fmt.Sprintf("http://%s:%d", agentV4Service.Spec.ClusterIP, config.AgentConfig.HttpPort),
+						Name: "AgentClusterV4IP_" + agentV4Url.ClusterIPUrl[0],
+						Url:  fmt.Sprintf("http://%s", agentV4Url.ClusterIPUrl[0]),
 					})
 				} else {
 					finalfailureReason = "failed to get cluster IPv4 IP"
@@ -221,10 +207,10 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 
 			// ----------------------- test clusterIP ipv6
 			if target.TargetAgent.TestClusterIp && target.TargetAgent.TestIPv6 != nil && *(target.TargetAgent.TestIPv6) {
-				if agentV6Service != nil && len(agentV6Service.Spec.ClusterIP) != 0 {
+				if agentV6Url != nil && len(agentV6Url.ClusterIPUrl) > 0 {
 					testTargetList = append(testTargetList, &TestTarget{
-						Name: "AgentClusterV6IP_" + agentV6Service.Spec.ClusterIP,
-						Url:  fmt.Sprintf("http://%s:%d", agentV6Service.Spec.ClusterIP, config.AgentConfig.HttpPort),
+						Name: "AgentClusterV6IP_" + agentV6Url.ClusterIPUrl[0],
+						Url:  fmt.Sprintf("http://%s", agentV6Url.ClusterIPUrl[0]),
 					})
 				} else {
 					finalfailureReason = "failed to get cluster IPv6 IP"
@@ -235,10 +221,10 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 
 			// ----------------------- test node port
 			if target.TargetAgent.TestNodePort && target.TargetAgent.TestIPv4 != nil && *(target.TargetAgent.TestIPv4) {
-				if agentV4Service != nil && len(localNodeIpv4) != 0 && serviceNodePortV4 != 0 {
+				if agentV4Url != nil && agentV4Url.NodePort != 0 && len(localNodeIpv4) != 0 {
 					testTargetList = append(testTargetList, &TestTarget{
-						Name: "AgentNodePortV4IP_" + localNodeIpv4 + "_" + fmt.Sprintf("%v", serviceNodePortV4),
-						Url:  fmt.Sprintf("http://%s:%d", localNodeIpv4, serviceNodePortV4),
+						Name: "AgentNodePortV4IP_" + localNodeIpv4 + "_" + fmt.Sprintf("%v", agentV4Url.NodePort),
+						Url:  fmt.Sprintf("http://%s:%d", localNodeIpv4, agentV4Url.NodePort),
 					})
 				} else {
 					finalfailureReason = "failed to get nodePort IPv4 address"
@@ -246,11 +232,12 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 			} else {
 				logger.Sugar().Debugf("ignore test agent nodePort ipv4")
 			}
+
 			if target.TargetAgent.TestNodePort && target.TargetAgent.TestIPv6 != nil && *(target.TargetAgent.TestIPv6) {
-				if agentV6Service != nil && len(localNodeIpv6) != 0 && serviceNodePortV6 != 0 {
+				if agentV6Url != nil && agentV6Url.NodePort != 0 && len(localNodeIpv6) != 0 {
 					testTargetList = append(testTargetList, &TestTarget{
-						Name: "AgentNodePortV6IP_" + localNodeIpv6 + "_" + fmt.Sprintf("%v", serviceNodePortV6),
-						Url:  fmt.Sprintf("http://%s:%d", localNodeIpv6, serviceNodePortV6),
+						Name: "AgentNodePortV6IP_" + localNodeIpv6 + "_" + fmt.Sprintf("%v", agentV6Url.NodePort),
+						Url:  fmt.Sprintf("http://%s:%d", localNodeIpv6, agentV6Url.NodePort),
 					})
 				} else {
 					finalfailureReason = "failed to get nodePort IPv6 address"
@@ -259,9 +246,51 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 				logger.Sugar().Debugf("ignore test agent nodePort ipv6")
 			}
 
-			// TODO: ----------------------- test loadbalancer IP
+			// ----------------------- test loadbalancer IP
+			if target.TargetAgent.TestLoadBalancer && target.TargetAgent.TestIPv4 != nil && *(target.TargetAgent.TestIPv4) {
+				if agentV4Url != nil && len(agentV4Url.LoadBalancerUrl) > 0 {
+					testTargetList = append(testTargetList, &TestTarget{
+						Name: "AgentLoadbalancerV4IP_" + agentV4Url.LoadBalancerUrl[0],
+						Url:  fmt.Sprintf("http://%s", agentV4Url.LoadBalancerUrl[0]),
+					})
+				} else {
+					finalfailureReason = "failed to get loadbalancer IPv4 address"
+				}
+			} else {
+				logger.Sugar().Debugf("ignore test agent loadbalancer ipv4")
+			}
 
-			// TODO: ----------------------- test ingress
+			if target.TargetAgent.TestLoadBalancer && target.TargetAgent.TestIPv6 != nil && *(target.TargetAgent.TestIPv6) {
+				if agentV6Url != nil && len(agentV6Url.LoadBalancerUrl) > 0 {
+					testTargetList = append(testTargetList, &TestTarget{
+						Name: "AgentLoadbalancerV6IP_" + agentV6Url.LoadBalancerUrl[0],
+						Url:  fmt.Sprintf("http://%s", agentV6Url.LoadBalancerUrl[0]),
+					})
+				} else {
+					finalfailureReason = "failed to get loadbalancer IPv6 address"
+				}
+			} else {
+				logger.Sugar().Debugf("ignore test agent loadbalancer ipv6")
+			}
+
+			// ----------------------- test ingress
+			if target.TargetAgent.TestIngress {
+				if agentIngress != nil && len(agentIngress.Status.LoadBalancer.Ingress) > 0 {
+					http := "http"
+					if len(agentIngress.Spec.TLS) > 0 {
+						http = "https"
+					}
+					url := fmt.Sprintf("%s://%s/%s", http, agentIngress.Status.LoadBalancer.Ingress[0].IP, agentIngress.Spec.Rules[0].HTTP.Paths[0].Path)
+					testTargetList = append(testTargetList, &TestTarget{
+						Name: "AgentIngress_" + url,
+						Url:  url,
+					})
+				} else {
+					finalfailureReason = "failed to get agent ingress address"
+				}
+			} else {
+				logger.Sugar().Debugf("ignore test agent ingress ipv6")
+			}
 
 			// ------------------------ implement it
 			reportList := []interface{}{}

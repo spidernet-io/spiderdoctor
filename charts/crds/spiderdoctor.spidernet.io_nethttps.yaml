@@ -180,6 +180,9 @@ spec:
                       testIngress:
                         default: false
                         type: boolean
+                      testLoadBalancer:
+                        default: false
+                        type: boolean
                       testMultusInterface:
                         default: false
                         type: boolean
@@ -231,6 +234,9 @@ spec:
                     endTimeStamp:
                       format: date-time
                       type: string
+                    expectedActorNumber:
+                      description: expected how many agents should involve
+                      type: integer
                     failedAgentNodeList:
                       items:
                         type: string

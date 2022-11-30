@@ -18,11 +18,8 @@ var AgentEnvMapping = []EnvMapping{
 	{"ENV_AGENT_REPORT_STORAGE_PATH", "", &AgentConfig.DirPathAgentReport},
 	{"ENV_CLEAN_AGED_REPORT_INTERVAL_IN_MINUTE", "10", &AgentConfig.CleanAgedReportInMinute},
 	{"ENV_CLUSTER_DNS_DOMAIN", "cluster.local", &AgentConfig.ClusterDnsDomain},
-	{"ENV_AGENT_IPV4_SERVICE_NAME", "", &AgentConfig.AgentSerivceIpv4Name},
-	{"ENV_AGENT_IPV6_SERVICE_NAME", "", &AgentConfig.AgentSerivceIpv6Name},
 	{"ENV_LOCAL_NODE_IP", "", &AgentConfig.LocalNodeIP},
 	{"ENV_LOCAL_NODE_NAME", "", &AgentConfig.LocalNodeName},
-	{"ENV_AGENT_DAEMONSET_NAME", "spiderdoctor-agent", &AgentConfig.SpiderDoctorAgentDaemonsetName},
 }
 
 type AgentConfigStruct struct {
@@ -36,14 +33,11 @@ type AgentConfigStruct struct {
 	PyroscopeServerAddress string
 	GolangMaxProcs         int32
 
-	PodName                        string
-	PodNamespace                   string
-	ClusterDnsDomain               string
-	AgentSerivceIpv4Name           string
-	AgentSerivceIpv6Name           string
-	LocalNodeIP                    string
-	LocalNodeName                  string
-	SpiderDoctorAgentDaemonsetName string
+	PodName          string
+	PodNamespace     string
+	ClusterDnsDomain string
+	LocalNodeIP      string
+	LocalNodeName    string
 
 	EnableAggregateAgentReport bool
 	DirPathAgentReport         string

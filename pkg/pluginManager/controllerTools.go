@@ -24,7 +24,7 @@ func (s *pluginControllerReconciler) GetSpiderAgentNodeNotInRecord(ctx context.C
 	var allNodeList []string
 	var e error
 	if agentNodeSelector == nil {
-		allNodeList, e = k8sObjManager.GetK8sObjManager().ListDaemonsetPodNodes(ctx, types.ControllerConfig.SpiderDoctorAgentDaemonsetName, types.ControllerConfig.PodNamespace)
+		allNodeList, e = k8sObjManager.GetK8sObjManager().ListDaemonsetPodNodes(ctx, types.ControllerConfig.Configmap.SpiderDoctorAgentDaemonsetName, types.ControllerConfig.PodNamespace)
 		if e != nil {
 			return nil, e
 		}
@@ -105,6 +105,8 @@ func (s *pluginControllerReconciler) UpdateRoundFinalStatus(logger *zap.Logger, 
 			newStatus.LastRoundStatus = &n
 			logger.Sugar().Infof("round %v succeeded ", latestRecord.RoundNumber)
 		}
+		cnt := len(reportNode) + len(unknowReportNodeList)
+		latestRecord.ExpectedActorNumber = &cnt
 		latestRecord.EndTimeStamp = &metav1.Time{
 			Time: time.Now(),
 		}

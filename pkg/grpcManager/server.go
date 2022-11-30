@@ -72,6 +72,8 @@ func NewGrpcServer(logger *zap.Logger, tlsCertPath, tlskeyPath string) GrpcServe
 	// https://godoc.org/google.golang.org/grpc#WithUnaryInterceptor
 	// 添加 unary call 前的回调
 	opts = append(opts, grpc.UnaryInterceptor(m.unaryInterceptor))
+	// 对于 streaming RPCs , 注册 Interceptor  https://godoc.org/google.golang.org/grpc#StreamInterceptor
+	opts = append(opts, grpc.StreamInterceptor(m.streamInterceptor))
 
 	opts = append(opts, grpc.MaxRecvMsgSize(DefaultMaxRecvMsgSize))
 	opts = append(opts, grpc.MaxSendMsgSize(DefaultMaxSendMsgSize))
@@ -137,4 +139,15 @@ func (t *grpcServer) unaryInterceptor(ctx context.Context, req interface{}, info
 	t.logger.Sugar().Debugf("grpc server: rpc=%s , start_time=%s, end_time=%s, err=%v \n", info.FullMethod, start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano), e)
 
 	return i, e
+}
+
+// 插入 每个 stream call 的回调
+func (t *grpcServer) streamInterceptor(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (e error) {
+
+	start := time.Now()
+	e = handler(srv, ss)
+	end := time.Now()
+	t.logger.Sugar().Debugf("grpc server: rpc=%s , start_time=%s, end_time=%s, err=%v \n", info.FullMethod, start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano), e)
+
+	return e
 }

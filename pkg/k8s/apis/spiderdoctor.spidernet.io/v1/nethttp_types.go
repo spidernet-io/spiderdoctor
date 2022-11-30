@@ -62,6 +62,9 @@ type TargetAgentSepc struct {
 	TestNodePort bool `json:"testNodePort,omitempty"`
 
 	// +kubebuilder:default=false
+	TestLoadBalancer bool `json:"testLoadBalancer,omitempty"`
+
+	// +kubebuilder:default=false
 	TestIngress bool `json:"testIngress,omitempty"`
 }
 

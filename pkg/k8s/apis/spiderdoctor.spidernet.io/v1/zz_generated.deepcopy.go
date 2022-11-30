@@ -347,6 +347,11 @@ func (in *StatusHistoryRecord) DeepCopyInto(out *StatusHistoryRecord) {
 		**out = **in
 	}
 	in.DeadLineTimeStamp.DeepCopyInto(&out.DeadLineTimeStamp)
+	if in.ExpectedActorNumber != nil {
+		in, out := &in.ExpectedActorNumber, &out.ExpectedActorNumber
+		*out = new(int)
+		**out = **in
+	}
 	if in.FailedAgentNodeList != nil {
 		in, out := &in.FailedAgentNodeList, &out.FailedAgentNodeList
 		*out = make([]string, len(*in))

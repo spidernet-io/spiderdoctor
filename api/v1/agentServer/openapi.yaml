@@ -45,6 +45,17 @@ paths:
           description: Success
         "500":
           description: Failed
+  "/spiderdoctoragent":
+    get:
+      summary: echo http request
+      description: echo http request
+      tags:
+        - echo
+      responses:
+        "200":
+          description: Success
+          schema:
+            "$ref": "#/definitions/EchoRes"
   "/":
     get:
       summary: echo http request
@@ -73,6 +84,11 @@ definitions:
         type: string
       requestHeader:
         description: request header
+        type: object
+        additionalProperties:
+          type: string
+      otherDetail:
+        description: other  information
         type: object
         additionalProperties:
           type: string

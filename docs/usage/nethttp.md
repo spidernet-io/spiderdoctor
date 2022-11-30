@@ -194,6 +194,8 @@ spec:
       testMultusInterface: true
       testClusterIp: true
       testNodePort: true
+      testLoadBalancer: true
+      testIngress: true
   request:
     durationInSecond: 2
     qps: 2

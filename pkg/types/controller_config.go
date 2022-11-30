@@ -18,7 +18,6 @@ var ControllerEnvMapping = []EnvMapping{
 	{"ENV_CONTROLLER_REPORT_STORAGE_PATH", "/report", &ControllerConfig.DirPathControllerReport},
 	{"ENV_AGENT_REPORT_STORAGE_PATH", "", &ControllerConfig.DirPathAgentReport},
 	{"ENV_CLEAN_AGED_REPORT_INTERVAL_IN_MINUTE", "10", &ControllerConfig.CleanAgedReportInMinute},
-	{"ENV_AGENT_DAEMONSET_NAME", "spiderdoctor-agent", &ControllerConfig.SpiderDoctorAgentDaemonsetName},
 	{"ENV_CONTROLLER_REPORT_AGE_IN_DAY", "30", &ControllerConfig.ReportAgeInDay},
 	{"ENV_COLLECT_AGENT_REPORT_INTERVAL_IN_SECOND", "600", &ControllerConfig.CollectAgentReportIntervalInSecond},
 }
@@ -34,9 +33,8 @@ type ControllerConfigStruct struct {
 	PyroscopeServerAddress string
 	GolangMaxProcs         int32
 
-	PodName                        string
-	PodNamespace                   string
-	SpiderDoctorAgentDaemonsetName string
+	PodName      string
+	PodNamespace string
 
 	EnableAggregateAgentReport         bool
 	CleanAgedReportInMinute            int32
