@@ -78,7 +78,8 @@ jobs:
                   echo "error, branch $BRANCH does not exist"
                   continue
               fi
-              if ! ( git fetch origin ${BRANCH}:${BRANCH} && git checkout ${BRANCH} ) ; then
+              git fetch origin ${BRANCH}:${BRANCH} || true
+              if ! git checkout ${BRANCH} ; then
                   echo "error, failed to checkout to branch $BRANCH"
                   continue
               fi
@@ -88,6 +89,8 @@ jobs:
                   if ! git cherry-pick $COMMIT ; then 
                     FALIED=true 
                     echo "error, failed to cherry pick $COMMIT" 
+                    git cherry-pick --abort
+                    git reset --hard HEAD 
                     break 
                   fi
               done
@@ -116,6 +119,7 @@ jobs:
           #--- create pr
           #echo ${{ secrets.WELAN_PAT }} | gh auth login --with-token
           #gh pr  create --title 'test' --body 'sadf'  --base ${{ matrix.releaseName }}
+
 
 
 
