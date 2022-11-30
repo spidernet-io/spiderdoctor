@@ -26,43 +26,30 @@ jobs:
       - name: cherry pick
         run: |
           set -x
+          echo ${{ secrets.WELAN_PAT }} | gh auth login --with-token
+          echo "${{ toJSON(github) }}"
           echo "============ print var ======== "
-          #PR_NUMBER=${{ github.event.number }}
+              echo "${{ toJSON(github) }}" | grep -Eio "Merge pull request #[0-9]+ "
           PR_NUMBER=` echo "${{ toJSON(github) }}" | grep -Eio "Merge pull request #[0-9]+ " | grep -Eo "[0-9]+" | uniq `
-          [ -n "${PR_NUMBER}"] || { echo "no PR number, ignore" ; }
-          #
+              [ -n "${PR_NUMBER}"] || { echo "no PR number, ignore" ; }
           PR_URL="https://github.com/${{ github.repository }}/pull/${PR_NUMBER}"
           ACTION_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          
-          PR_AUTHOR=${{ github.event.pull_request.user.login }}
-          PR_AUTHOR=
+              echo "${{ toJSON(github) }}" | grep '"username":' 
+          PR_AUTHOR=` echo "${{ toJSON(github) }}" | grep '"username":'  | awk -F'"' '{print $4}' | sort | uniq  | grep -v "web-flow"  | head -1 | tr -d '\n' `
+              [ -n "${PR_AUTHOR}"] || { echo "no PR_AUTHOR, ignore" ; }
+          CHERRY_PICK_COMMIT=${{ github.sha }}
+          gh pr view ${PR_NUMBER}
+          PR_LABEL=` gh pr view ${PR_NUMBER} | grep -i "^labels:" | tr ',' ' ' | tr -s ' ' | sed 's/labels://g' `
           #
           echo "number: ${PR_NUMBER}"
           echo "action url: ${ACTION_URL}"
-          echo "author: ${{ github.event.pull_request.user.login }}"
+          echo "CHERRY_PICK_COMMIT: ${CHERRY_PICK_COMMIT}"
+          echo "author: ${PR_AUTHOR}"
           echo "url: ${PR_URL}"
-          echo "pr to branch, github.base_ref: ${{ github.base_ref }}"
-          echo "pr branch name, github.head_ref: ${{ github.head_ref }}"
-          echo "pr latest commit, github.event.pull_request.head.sha = ${{ github.event.pull_request.head.sha }}"
-          #
-          #
-          echo '${{ toJSON(github) }}'
-          echo '${{ toJSON(job) }}'
-          
-          #==========
-          
-          
-          
-          
-          
-          echo "============ get labels ======== "
-          echo ${{ secrets.WELAN_PAT }} | gh auth login --with-token
-          gh pr view ${PR_NUMBER} | grep -i "^labels:"
-          PR_LABEL=` gh pr view ${PR_NUMBER} | grep -i "^labels:" | tr ',' ' ' | tr -s ' ' | sed 's/labels://g' `
           echo "PR_LABEL: ${PR_LABEL}"
           #
           #
-          echo "============ get dest branch from labels ======== "
+          echo "=============================== get dest branch from labels ======== "
           WANT_MERGE_BRANCH_LIST=""
           for LABEL in ${PR_LABEL} ; do
               echo "checking label $LABEL "
@@ -75,17 +62,66 @@ jobs:
           echo "cherry pick to $WANT_MERGE_BRANCH_LIST "
           #
           #
-          echo "============= get new commits from ${{ github.head_ref }} to ${{ github.base_ref }} ============"
-          git branch
-          git fetch origin ${{ github.base_ref }}:${{ github.base_ref }} || true
-          git fetch origin ${{ github.head_ref }}:${{ github.head_ref }} || true
-          git config --global user.email "robot@example.com"
-          git config --global user.name "robot"
-          git checkout ${{ github.head_ref }}
-          git log  --left-right  ${{ github.head_ref }} ...${{ github.base_ref }} 
-          ALL_COMMITS=` git log  --left-right  ${{ github.head_ref }} ...${{ github.base_ref }} | grep "commit <" | awk '{print $3}' | tr '\n' ' ' `
-          [ -z "$ALL_COMMITS" ] && echo "error, failed to get any commits" && exit 1
-          echo "commits for cherry pick: ${ALL_COMMITS} "
-          #
-          #
           echo "============ begin to cherry pick ============ "
+          FAILURE_COUNTER=0
+          git branch
+          for BRANCH in $WANT_MERGE_BRANCH_LIST ; do
+              GH_FAILED_OPTION=" --title \"failed to auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH} \"  "
+              GH_FAILED_OPTION+=" --label \"${{ env.CHERRYPICK_LABEL }},pr-${PR_NUMBER}\" "
+              GH_FAILED_OPTION+=" --assignee ${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }} "
+              echo "************** cherry for branch ${BRANCH}"
+              if ! git ls-remote --exit-code --heads origin ${BRANCH} ; then
+                  # todo: create issue
+                  echo "error, branch $BRANCH does not exist"
+                  gh issue create ${GH_FAILED_OPTION} \
+                      --body "reason: the branch $BRANCH does not exist. [ pr ${PR_URL} ] [ action ${ACTION_URL} ] "
+                  if (($?!=0)) ; then
+                      echo "!!!! error, failed to create issue"
+                      ((FAILURE_COUNTER++))
+                  fi
+                  continue
+              fi
+              git fetch origin ${BRANCH}:${BRANCH} || true
+              if ! git checkout ${BRANCH} ; then
+                  echo "error, failed to checkout to branch $BRANCH"
+                  gh issue create ${GH_FAILED_OPTION} \
+                      --body "reason: failed to get the branch $BRANCH. [ pr ${PR_URL} ] [ action ${ACTION_URL} ] "
+                  if (($?!=0)) ; then
+                      echo "!!!! error, failed to create issue"
+                      ((FAILURE_COUNTER++))
+                  fi
+                  continue
+              fi
+              git branch --show-current
+              if ! git cherry-pick $CHERRY_PICK_COMMIT ; then 
+                  echo "error, failed to cherry pick $CHERRY_PICK_COMMIT to branch $BRANCH "
+                  git cherry-pick --abort
+                  git reset --hard HEAD 
+                  gh issue create ${GH_FAILED_OPTION} \
+                        --body "reason: commits conflict when merging to branch $BRANCH, please manually cherry pick it by yourself. [ pr ${PR_URL} ] [ action ${ACTION_URL} ] "
+                  if (($?!=0)) ; then
+                      echo "!!!! error, failed to create issue"
+                      ((FAILURE_COUNTER++))
+                  fi
+              else
+                  echo "succeeded to cherry pick $CHERRY_PICK_COMMIT to branch $BRANCH "
+                  # create a pr
+                  gh pr create --title "auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH}" \
+                      --reviewer "${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }}" \
+                      --label ${{ env.CHERRYPICK_LABEL }},pr-${PR_NUMBER}
+                      --base ${BRANCH}
+                  if (($?!=0)) ; then
+                      echo "!!!! error, failed to create pr"
+                      ((FAILURE_COUNTER++))
+                  fi
+              fi
+          done
+          echo "=========== check result ============"
+          if ((FAILURE_COUNTER>0)) ; then
+              # if failed to create issue or pr, fails
+              echo "error, $FAILURE_COUNTER failuire happened"
+              exit 1
+          else
+              echo "all done"
+              exit 0
+          fi
