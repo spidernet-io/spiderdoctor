@@ -71,6 +71,7 @@ jobs:
           git branch
           git config  user.email "robot@example.com"
           git config  user.name "robot"
+          gh label create ${{ env.CHERRYPICK_LABEL }} --force
           for BRANCH in $WANT_MERGE_BRANCH_LIST ; do
               echo "************** cherry for branch ${BRANCH}"
               if ! git ls-remote --exit-code --heads origin ${BRANCH} ; then
@@ -79,7 +80,7 @@ jobs:
                   gh issue create  \
                       --body "reason: the branch $BRANCH does not exist. [ pr ${PR_URL} ] [ action ${ACTION_URL} ] " \
                       --title "failed to auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH}" \
-                      --label "${{ env.CHERRYPICK_LABEL }},cherrypick-pr${PR_NUMBER}" \
+                      --label "${{ env.CHERRYPICK_LABEL }}" \
                       --assignee "${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }}"
                   if (($?!=0)) ; then
                       echo "!!!! error, failed to create issue"
@@ -93,7 +94,7 @@ jobs:
                   gh issue create  \
                       --body "reason: failed to get the branch $BRANCH. [ pr ${PR_URL} ] [ action ${ACTION_URL} ] " \
                       --title "failed to auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH}" \
-                      --label "${{ env.CHERRYPICK_LABEL }},cherrypick-pr${PR_NUMBER}" \
+                      --label "${{ env.CHERRYPICK_LABEL }}" \
                       --assignee "${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }}"
                   if (($?!=0)) ; then
                       echo "!!!! error, failed to create issue"
@@ -105,7 +106,11 @@ jobs:
               FAIL=false 
               UPDATE=false
               for COMMIT in $PR_COMMITS; do
-                    if ! git cherry-pick $COMMIT ; then 
+                    if ! git cherry-pick $COMMIT ; then
+                          echo "---- failuire detail"
+                          git status
+                          git diff
+                          echo "---- "
                           if git diff --exit-code --quiet ; then
                               echo "no changes happen, ignore cherry pick $COMMIT "
                               git cherry-pick --abort || true
@@ -128,7 +133,7 @@ jobs:
                   gh issue create  \
                         --body "reason: commits $PR_COMMITS conflict when merging to branch $BRANCH, please manually cherry pick it by yourself. [ pr ${PR_URL} ] [ action ${ACTION_URL} ] " \
                         --title "failed to auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH}" \
-                        --label "${{ env.CHERRYPICK_LABEL }},cherrypick-pr${PR_NUMBER}" \
+                        --label "${{ env.CHERRYPICK_LABEL }}" \
                         --assignee "${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }}"
                   if (($?!=0)) ; then
                       echo "!!!! error, failed to create issue"
@@ -140,7 +145,7 @@ jobs:
                   # create a pr
                   gh pr create --title "auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH}" \
                       --reviewer "${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }}" \
-                      --label ${{ env.CHERRYPICK_LABEL }},cherrypick-pr${PR_NUMBER} \
+                      --label ${{ env.CHERRYPICK_LABEL }} \
                       --body "robot cherry pick pr ${PR_URL},  action ${ACTION_URL}  , commits $PR_COMMITS " \
                       --base ${BRANCH}
                   if (($?!=0)) ; then
