@@ -136,7 +136,7 @@ jobs:
               if [ "$FAIL" == "true" ] ; then
                   echo "failed to cherry pick to branch $BRANCH "
                   FINAL_FAILURE=true
-                  echo "commits $PR_COMMITS conflict when merging to branch $BRANCH, please manually cherry pick it by yourself. PR <${PR_URL}> ,  action <${ACTION_URL}>  \n\n ${ERROR_MESSAGE} " | \
+                  echo "commits $PR_COMMITS conflict when merging to branch $BRANCH, please manually cherry pick it by yourself. PR <${PR_URL}> ,  action <${ACTION_URL}>  \n\n \`${ERROR_MESSAGE}\` " | \
                        gh issue create  \
                         --title "failed to auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH}" \
                         --label "${{ env.CHERRYPICK_LABEL }}" \
@@ -160,8 +160,6 @@ jobs:
           if [ "$FINAL_FAILURE" == "true" ] ; then
               # if failed to create issue or pr, fails
               echo "error, failuire happened"
-              exit 1
           else
               echo "all done"
-              exit 0
           fi
