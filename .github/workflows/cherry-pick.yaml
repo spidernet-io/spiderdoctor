@@ -113,7 +113,7 @@ jobs:
               if [ "$FAIL" == "true" ] ; then
                   echo "failed to cherry pick to branch $BRANCH "
                   gh issue create "${GH_FAILED_OPTION}" \
-                        --body "reason: commits conflict when merging to branch $BRANCH, please manually cherry pick it by yourself. [ pr ${PR_URL} ] [ action ${ACTION_URL} ] "
+                        --body "reason: commits $PR_COMMITS conflict when merging to branch $BRANCH, please manually cherry pick it by yourself. [ pr ${PR_URL} ] [ action ${ACTION_URL} ] "
                   if (($?!=0)) ; then
                       echo "!!!! error, failed to create issue"
                       ((FAILURE_COUNTER++))
@@ -124,7 +124,7 @@ jobs:
                   gh pr create --title "auto cherry pick PR ${PR_NUMBER} to branch ${BRANCH}" \
                       --reviewer "${PR_AUTHOR},${{ env.DEFAULT_REVIEWER }}" \
                       --label ${{ env.CHERRYPICK_LABEL }},cherrypick-pr${PR_NUMBER} \
-                      --body "robot cherry pick pr , [ pr ${PR_URL} ] [ action ${ACTION_URL} ]  " \
+                      --body "robot cherry pick pr ${PR_URL},  action ${ACTION_URL}  , commits $PR_COMMITS " \
                       --base ${BRANCH}
                   if (($?!=0)) ; then
                       echo "!!!! error, failed to create pr"
