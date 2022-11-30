@@ -27,19 +27,21 @@ jobs:
         run: |
           set -x
           echo ${{ secrets.WELAN_PAT }} | gh auth login --with-token
-          echo "${{ toJSON(github) }}"
+          DATA_FILE="/tmp/`date +%Y%m%d%H%M%S%N`"
+          echo '${{ toJSON(github) }}' > ${DATA_FILE}
           echo "============ print var ======== "
-              echo "${{ toJSON(github) }}" | grep -Eio "Merge pull request #[0-9]+ "
-          PR_NUMBER=` echo "${{ toJSON(github) }}" | grep -Eio "Merge pull request #[0-9]+ " | grep -Eo "[0-9]+" | uniq `
+              grep -Eio "Merge pull request #[0-9]+ " < ${DATA_FILE}
+          PR_NUMBER=` cat ${DATA_FILE} | grep -Eio "Merge pull request #[0-9]+ " | grep -Eo "[0-9]+" | uniq `
               [ -n "${PR_NUMBER}"] || { echo "no PR number, ignore" ; }
           PR_URL="https://github.com/${{ github.repository }}/pull/${PR_NUMBER}"
           ACTION_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-              echo "${{ toJSON(github) }}" | grep '"username":' 
-          PR_AUTHOR=` echo "${{ toJSON(github) }}" | grep '"username":'  | awk -F'"' '{print $4}' | sort | uniq  | grep -v "web-flow"  | head -1 | tr -d '\n' `
+              grep '"username":'  < ${DATA_FILE}
+          PR_AUTHOR=` echo ${DATA_FILE} | grep '"username":'  | awk -F'"' '{print $4}' | sort | uniq  | grep -v "web-flow"  | head -1 | tr -d '\n' `
               [ -n "${PR_AUTHOR}"] || { echo "no PR_AUTHOR, ignore" ; }
           CHERRY_PICK_COMMIT=${{ github.sha }}
           gh pr view ${PR_NUMBER}
           PR_LABEL=` gh pr view ${PR_NUMBER} | grep -i "^labels:" | tr ',' ' ' | tr -s ' ' | sed 's/labels://g' `
+              [ -n "${PR_AUTHOR}"] || { echo "no PR_LABEL, ignore" ; }
           #
           echo "number: ${PR_NUMBER}"
           echo "action url: ${ACTION_URL}"
