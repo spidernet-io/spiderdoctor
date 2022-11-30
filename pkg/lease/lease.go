@@ -17,13 +17,9 @@ import (
 )
 
 var (
-	leaseDuration = time.Duration(15) * time.Second
-	//
-	//
+	leaseDuration      = time.Duration(15) * time.Second
 	leaseRenewDeadline = time.Duration(10) * time.Second
-	//
-	//
-	leaseRetryPeriod = time.Duration(2) * time.Second
+	leaseRetryPeriod   = time.Duration(2) * time.Second
 )
 
 // NewLeaseElector will return a SpiderLeaseElector object
