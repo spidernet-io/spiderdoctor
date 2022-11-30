@@ -11,7 +11,7 @@ set -o pipefail
 set -o nounset
 
 if [ "$#" -ne 1 ] ; then
-  echo "$0 supports exactly 1 argument"
+  echo "$0 supports exactly 1 argument "
   exit 1
 fi
 
