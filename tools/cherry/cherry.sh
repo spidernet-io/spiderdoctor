@@ -11,6 +11,7 @@ CHERRY_FROM_BRANCH=${CHERRY_FROM_BRANCH:-""}
 [ -z "${REPO}" ] && echo "error, miss REPO" && exit 1
 [ -z "${CHERRY_FROM_BRANCH}" ] && echo "error, miss CHERRY_FROM_BRANCH" && exit 1
 
+
 #==============================================
 
 get_remote () {
