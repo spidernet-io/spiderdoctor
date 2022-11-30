@@ -57,7 +57,8 @@ jobs:
           [ -z "$WANT_MERGE_BRANCH_LIST" ] && echo "no need to cherry pick" && exit 0
           echo "============= it is required to cherry pick to $WANT_MERGE_BRANCH_LIST ============"
           chmod +x ./tools/cherry/cherry.sh
-          git fetch origin ${{ github.base_ref }}:${{ github.base_ref }}
+          git branch
+          #git fetch origin ${{ github.base_ref }}:${{ github.base_ref }}
           git fetch origin ${{ github.head_ref }}:${{ github.head_ref }}
           git config --global user.email "you@example.com"
           git config --global user.name "weizhou.lan"
