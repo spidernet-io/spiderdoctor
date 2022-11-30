@@ -148,7 +148,7 @@ jobs:
                       ((FAILURE_COUNTER++))
                   fi
               else
-                  echo "no changes happend for commits $PR_COMMITS, ingore create pr"
+                  echo "no changes happened for commits $PR_COMMITS, ignore create pr"
               fi
           done
           echo "=========== check result ============"
