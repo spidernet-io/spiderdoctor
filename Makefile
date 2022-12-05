@@ -351,8 +351,12 @@ e2e_init:
 	make -C test check_images_ready
 	make -C test init_kind_env
 	make -C test deploy_multus
+	make -C test deploy_metallb
+	make -C test deploy_contour
 	make -C test deploy_project
 	make -C test install_example_app
+
+
 
 .PHONY: e2e_run
 e2e_run:

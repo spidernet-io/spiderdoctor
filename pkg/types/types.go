@@ -13,6 +13,11 @@ type ConfigmapConfig struct {
 	NethttpDefaultRequestPerRequestTimeoutInMS int    `yaml:"nethttp_defaultRequest_PerRequestTimeoutInMS"`
 	MultusPodAnnotationKey                     string `yaml:"multusPodAnnotationKey"`
 	CrdMaxHistory                              int    `yaml:"crdMaxHistory"`
+
+	AgentSerivceIpv4Name           string `yaml:"agentSerivceIpv4Name"`
+	AgentSerivceIpv6Name           string `yaml:"agentSerivceIpv6Name"`
+	AgentIngressName               string `yaml:"agentIngressName"`
+	SpiderDoctorAgentDaemonsetName string `yaml:"agentDaemonsetName"`
 }
 
 type EnvMapping struct {

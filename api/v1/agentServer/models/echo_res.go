@@ -23,6 +23,9 @@ type EchoRes struct {
 	// client source ip
 	ClientIP string `json:"clientIp,omitempty"`
 
+	// other  information
+	OtherDetail map[string]string `json:"otherDetail,omitempty"`
+
 	// request header
 	RequestHeader map[string]string `json:"requestHeader,omitempty"`
 

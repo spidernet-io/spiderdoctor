@@ -18,6 +18,14 @@ import (
 )
 
 // ---------- test request Handler
+
+var (
+	DefaultInformation = map[string]string{
+		"/spiderdoctoragent": "route to print request",
+	}
+)
+
+// ---------- "/" route
 type echoHandler struct {
 	logger *zap.Logger
 }
@@ -44,8 +52,22 @@ func (s *echoHandler) Handle(r echo.GetParams) middleware.Responder {
 		RequestHeader: head,
 		RequestURL:    r.HTTPRequest.RequestURI,
 		ServerName:    hostname,
+		OtherDetail:   DefaultInformation,
 	}
 	return t
+}
+
+// ---------- route "/spiderdoctoragent"
+
+type echoAgentHandler struct {
+	logger *zap.Logger
+}
+
+func (s *echoAgentHandler) Handle(r echo.GetSpiderdoctoragentParams) middleware.Responder {
+	m := r.HTTPRequest
+	return (&echoHandler{logger: s.logger}).Handle(echo.GetParams{
+		HTTPRequest: m,
+	})
 }
 
 // ---------- readiness Healthy Handler
@@ -103,6 +125,7 @@ func SetupHttpServer() {
 	api.HealthyGetHealthyLivenessHandler = &livenessHealthyHandler{logger: logger.Named("route: liveness health")}
 	api.HealthyGetHealthyStartupHandler = &startupHealthyHandler{logger: logger.Named("route: startup health")}
 	api.EchoGetHandler = &echoHandler{logger: logger.Named("route: request")}
+	api.EchoGetSpiderdoctoragentHandler = &echoAgentHandler{logger: logger.Named("route: request")}
 
 	//
 	srv := server.NewServer(api)
@@ -110,7 +133,7 @@ func SetupHttpServer() {
 	// srv.EnabledListeners = []string{"unix"}
 	// srv.SocketPath = "/var/run/http-server-api.sock"
 
-	// dfault to listen on "0.0.0.0" and "::1"
+	// default to listen on "0.0.0.0" and "::1"
 	// srv.Host = "0.0.0.0"
 	srv.Port = int(types.AgentConfig.HttpPort)
 	srv.ConfigureAPI()

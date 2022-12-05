@@ -9,6 +9,7 @@ import (
 	"github.com/spidernet-io/spiderdoctor/pkg/lock"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -32,6 +33,9 @@ type K8sObjManager interface {
 
 	// service
 	GetService(ctx context.Context, name, namespace string) (*corev1.Service, error)
+	GetServiceAccessUrl(ctx context.Context, name, namespace string, portName string) (*ServiceAccessUrl, error)
+
+	GetIngress(ctx context.Context, name, namespace string) (*networkingv1.Ingress, error)
 }
 
 type k8sObjManager struct {

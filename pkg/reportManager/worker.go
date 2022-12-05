@@ -94,7 +94,7 @@ func (s *reportManager) runControllerAggregateReportOnce(ctx context.Context, lo
 	logger.Sugar().Debugf("before sync, local report files: %v", localFileList)
 
 	// get all agent ip
-	allPodIp, e := k8sObjManager.GetK8sObjManager().ListDaemonsetPodIPs(context.Background(), types.ControllerConfig.SpiderDoctorAgentDaemonsetName, types.ControllerConfig.PodNamespace)
+	allPodIp, e := k8sObjManager.GetK8sObjManager().ListDaemonsetPodIPs(context.Background(), types.ControllerConfig.Configmap.SpiderDoctorAgentDaemonsetName, types.ControllerConfig.PodNamespace)
 	if e != nil {
 		m := fmt.Sprintf("failed to get agent ip, error=%v", e)
 		logger.Error(m)

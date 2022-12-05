@@ -6,10 +6,12 @@ package nethttp
 import (
 	"context"
 	"fmt"
+	k8sObjManager "github.com/spidernet-io/spiderdoctor/pkg/k8ObjManager"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
 	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager/tools"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.uber.org/zap"
+	networkingv1 "k8s.io/api/networking/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -27,16 +29,51 @@ func (s *PluginNetHttp) WebhookMutating(logger *zap.Logger, ctx context.Context,
 	}
 
 	if req.Spec.Target == nil {
+		var agentV4Url, agentV6Url *k8sObjManager.ServiceAccessUrl
+		var e error
+
+		testIngress := false
+		var agentIngress *networkingv1.Ingress
+		agentIngress, e = k8sObjManager.GetK8sObjManager().GetIngress(ctx, types.ControllerConfig.Configmap.AgentIngressName, types.ControllerConfig.PodNamespace)
+		if e != nil {
+			logger.Sugar().Errorf("failed to get ingress , error=%v", e)
+		}
+		if agentIngress != nil && len(agentIngress.Status.LoadBalancer.Ingress) > 0 {
+			testIngress = true
+		}
+
+		serviceAccessPortName := "http"
+		testLoadBalancer := false
+		if types.ControllerConfig.Configmap.EnableIPv4 {
+			agentV4Url, e = k8sObjManager.GetK8sObjManager().GetServiceAccessUrl(ctx, types.ControllerConfig.Configmap.AgentSerivceIpv4Name, types.ControllerConfig.PodNamespace, serviceAccessPortName)
+			if e != nil {
+				logger.Sugar().Errorf("failed to get agent ipv4 service url , error=%v", e)
+			}
+			if len(agentV4Url.LoadBalancerUrl) > 0 {
+				testLoadBalancer = true
+			}
+		}
+		if types.ControllerConfig.Configmap.EnableIPv6 {
+			agentV6Url, e = k8sObjManager.GetK8sObjManager().GetServiceAccessUrl(ctx, types.ControllerConfig.Configmap.AgentSerivceIpv4Name, types.ControllerConfig.PodNamespace, serviceAccessPortName)
+			if e != nil {
+				logger.Sugar().Errorf("failed to get agent ipv6 service url , error=%v", e)
+			}
+			if len(agentV6Url.LoadBalancerUrl) > 0 {
+				testLoadBalancer = true
+			}
+		}
+
 		enableIpv4 := types.ControllerConfig.Configmap.EnableIPv4
 		enableIpv6 := types.ControllerConfig.Configmap.EnableIPv6
 		m := &crd.TargetAgentSepc{
 			TestEndpoint:        true,
 			TestMultusInterface: false,
 			TestClusterIp:       true,
-			TestIngress:         false,
+			TestNodePort:        true,
+			TestLoadBalancer:    testLoadBalancer,
+			TestIngress:         testIngress,
 			TestIPv6:            &enableIpv6,
 			TestIPv4:            &enableIpv4,
-			TestNodePort:        true,
 		}
 		req.Spec.Target = &crd.NethttpTarget{
 			TargetAgent: m,

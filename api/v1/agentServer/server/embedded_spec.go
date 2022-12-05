@@ -102,6 +102,23 @@ func init() {
           }
         }
       }
+    },
+    "/spiderdoctoragent": {
+      "get": {
+        "description": "echo http request",
+        "tags": [
+          "echo"
+        ],
+        "summary": "echo http request",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/EchoRes"
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {
@@ -112,6 +129,13 @@ func init() {
         "clientIp": {
           "description": "client source ip",
           "type": "string"
+        },
+        "otherDetail": {
+          "description": "other  information",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "requestHeader": {
           "description": "request header",
@@ -217,6 +241,23 @@ func init() {
           }
         }
       }
+    },
+    "/spiderdoctoragent": {
+      "get": {
+        "description": "echo http request",
+        "tags": [
+          "echo"
+        ],
+        "summary": "echo http request",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/EchoRes"
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {
@@ -227,6 +268,13 @@ func init() {
         "clientIp": {
           "description": "client source ip",
           "type": "string"
+        },
+        "otherDetail": {
+          "description": "other  information",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "requestHeader": {
           "description": "request header",
