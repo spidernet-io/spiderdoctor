@@ -9,24 +9,50 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/spidernet-io/spiderdoctor/api/v1/agentGrpc"
+	"go.uber.org/zap"
 	"os"
 	"strings"
 )
 
-func (s *grpcClientManager) SendRequestForExecRequest(ctx context.Context, serverAddress []string, request *agentGrpc.ExecRequestMsg) (*agentGrpc.ExecResponseMsg, error) {
+func (s *grpcClientManager) SendRequestForExecRequest(ctx context.Context, serverAddress []string, requestList []*agentGrpc.ExecRequestMsg) ([]*agentGrpc.ExecResponseMsg, error) {
+
+	logger := s.logger.With(
+		zap.String("server", fmt.Sprintf("%v", serverAddress)),
+	)
 
 	if e := s.clientDial(ctx, serverAddress); e != nil {
 		return nil, errors.Errorf("failed to dial, error=%v", e)
 	}
 	defer s.client.Close()
 
-	c := agentGrpc.NewCmdServiceClient(s.client)
+	response := []*agentGrpc.ExecResponseMsg{}
 
-	if r, err := c.ExecRemoteCmd(ctx, request); err != nil {
+	c := agentGrpc.NewCmdServiceClient(s.client)
+	stream, err := c.ExecRemoteCmd(ctx)
+	if err != nil {
 		return nil, err
-	} else {
-		return r, nil
 	}
+
+	for n, request := range requestList {
+		logger.Sugar().Debugf("send %v request ", n)
+		if err := stream.Send(request); err != nil {
+			return nil, err
+		}
+
+		if r, err := stream.Recv(); err != nil {
+			return nil, err
+		} else {
+			logger.Sugar().Debugf("recv %v response ", n)
+			response = append(response, r)
+		}
+	}
+
+	logger.Debug("finish")
+	if e := stream.CloseSend(); e != nil {
+		logger.Sugar().Errorf("grpc failed to CloseSend error=%v ", e)
+	}
+	return response, nil
+
 }
 
 func (s *grpcClientManager) GetFileList(ctx context.Context, serverAddress, directory string) ([]string, error) {
@@ -35,15 +61,15 @@ func (s *grpcClientManager) GetFileList(ctx context.Context, serverAddress, dire
 		Timeoutsecond: 10,
 		Command:       fmt.Sprintf("ls %v", directory),
 	}
-	response, e := s.SendRequestForExecRequest(ctx, []string{serverAddress}, request)
-	if e != nil {
+	responseList, e := s.SendRequestForExecRequest(ctx, []string{serverAddress}, []*agentGrpc.ExecRequestMsg{request})
+	if e != nil || len(responseList) == 0 {
 		return nil, fmt.Errorf("failed to get file list under directory %v of %v, error=%v", directory, serverAddress, e)
 	}
-	if response.Code != 0 {
-		return nil, fmt.Errorf("failed to get file list under directory %v of %v, exit code=%v, stderr=%v", directory, serverAddress, response.Code, response.Stderr)
+	if responseList[0].Code != 0 {
+		return nil, fmt.Errorf("failed to get file list under directory %v of %v, exit code=%v, stderr=%v", directory, serverAddress, responseList[0].Code, responseList[0].Stderr)
 	}
 
-	return strings.Fields(response.Stdmsg), nil
+	return strings.Fields(responseList[0].Stdmsg), nil
 }
 
 func (s *grpcClientManager) SaveRemoteFileToLocal(ctx context.Context, serverAddress, remoteFilePath, localFilePath string) error {
@@ -53,15 +79,15 @@ func (s *grpcClientManager) SaveRemoteFileToLocal(ctx context.Context, serverAdd
 		Timeoutsecond: 10,
 		Command:       fmt.Sprintf("cat %v", remoteFilePath),
 	}
-	response, e := s.SendRequestForExecRequest(ctx, []string{serverAddress}, request)
-	if e != nil {
+	responseList, e := s.SendRequestForExecRequest(ctx, []string{serverAddress}, []*agentGrpc.ExecRequestMsg{request})
+	if e != nil || len(responseList) == 0 {
 		return fmt.Errorf("failed to get remote file %v of %v, error=%v", remoteFilePath, serverAddress, e)
 	}
-	if response.Code != 0 {
-		return fmt.Errorf("failed to get remote file %v of %v, exit code=%v, stderr=%v", remoteFilePath, serverAddress, response.Code, response.Stderr)
+	if responseList[0].Code != 0 {
+		return fmt.Errorf("failed to get remote file %v of %v, exit code=%v, stderr=%v", remoteFilePath, serverAddress, responseList[0].Code, responseList[0].Stderr)
 	}
 
-	if len(response.Stdmsg) == 0 {
+	if len(responseList[0].Stdmsg) == 0 {
 		return fmt.Errorf("got empty remote file %v of %v ", remoteFilePath, serverAddress)
 	}
 
@@ -76,7 +102,7 @@ func (s *grpcClientManager) SaveRemoteFileToLocal(ctx context.Context, serverAdd
 	// }
 
 	writer := bufio.NewWriter(f)
-	_, e = writer.WriteString(response.Stdmsg)
+	_, e = writer.WriteString(responseList[0].Stdmsg)
 	if e != nil {
 		return fmt.Errorf("failed to write file %v, error=%v", localFilePath, e)
 	}

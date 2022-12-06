@@ -23,7 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CmdServiceClient interface {
 	// execute a remote command
-	ExecRemoteCmd(ctx context.Context, in *ExecRequestMsg, opts ...grpc.CallOption) (*ExecResponseMsg, error)
+	ExecRemoteCmd(ctx context.Context, opts ...grpc.CallOption) (CmdService_ExecRemoteCmdClient, error)
 }
 
 type cmdServiceClient struct {
@@ -34,13 +34,35 @@ func NewCmdServiceClient(cc grpc.ClientConnInterface) CmdServiceClient {
 	return &cmdServiceClient{cc}
 }
 
-func (c *cmdServiceClient) ExecRemoteCmd(ctx context.Context, in *ExecRequestMsg, opts ...grpc.CallOption) (*ExecResponseMsg, error) {
-	out := new(ExecResponseMsg)
-	err := c.cc.Invoke(ctx, "/proto.CmdService/ExecRemoteCmd", in, out, opts...)
+func (c *cmdServiceClient) ExecRemoteCmd(ctx context.Context, opts ...grpc.CallOption) (CmdService_ExecRemoteCmdClient, error) {
+	stream, err := c.cc.NewStream(ctx, &CmdService_ServiceDesc.Streams[0], "/proto.CmdService/ExecRemoteCmd", opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &cmdServiceExecRemoteCmdClient{stream}
+	return x, nil
+}
+
+type CmdService_ExecRemoteCmdClient interface {
+	Send(*ExecRequestMsg) error
+	Recv() (*ExecResponseMsg, error)
+	grpc.ClientStream
+}
+
+type cmdServiceExecRemoteCmdClient struct {
+	grpc.ClientStream
+}
+
+func (x *cmdServiceExecRemoteCmdClient) Send(m *ExecRequestMsg) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *cmdServiceExecRemoteCmdClient) Recv() (*ExecResponseMsg, error) {
+	m := new(ExecResponseMsg)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 // CmdServiceServer is the server API for CmdService service.
@@ -48,7 +70,7 @@ func (c *cmdServiceClient) ExecRemoteCmd(ctx context.Context, in *ExecRequestMsg
 // for forward compatibility
 type CmdServiceServer interface {
 	// execute a remote command
-	ExecRemoteCmd(context.Context, *ExecRequestMsg) (*ExecResponseMsg, error)
+	ExecRemoteCmd(CmdService_ExecRemoteCmdServer) error
 	mustEmbedUnimplementedCmdServiceServer()
 }
 
@@ -56,8 +78,8 @@ type CmdServiceServer interface {
 type UnimplementedCmdServiceServer struct {
 }
 
-func (UnimplementedCmdServiceServer) ExecRemoteCmd(context.Context, *ExecRequestMsg) (*ExecResponseMsg, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ExecRemoteCmd not implemented")
+func (UnimplementedCmdServiceServer) ExecRemoteCmd(CmdService_ExecRemoteCmdServer) error {
+	return status.Errorf(codes.Unimplemented, "method ExecRemoteCmd not implemented")
 }
 func (UnimplementedCmdServiceServer) mustEmbedUnimplementedCmdServiceServer() {}
 
@@ -72,22 +94,30 @@ func RegisterCmdServiceServer(s grpc.ServiceRegistrar, srv CmdServiceServer) {
 	s.RegisterService(&CmdService_ServiceDesc, srv)
 }
 
-func _CmdService_ExecRemoteCmd_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ExecRequestMsg)
-	if err := dec(in); err != nil {
+func _CmdService_ExecRemoteCmd_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(CmdServiceServer).ExecRemoteCmd(&cmdServiceExecRemoteCmdServer{stream})
+}
+
+type CmdService_ExecRemoteCmdServer interface {
+	Send(*ExecResponseMsg) error
+	Recv() (*ExecRequestMsg, error)
+	grpc.ServerStream
+}
+
+type cmdServiceExecRemoteCmdServer struct {
+	grpc.ServerStream
+}
+
+func (x *cmdServiceExecRemoteCmdServer) Send(m *ExecResponseMsg) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *cmdServiceExecRemoteCmdServer) Recv() (*ExecRequestMsg, error) {
+	m := new(ExecRequestMsg)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
-	if interceptor == nil {
-		return srv.(CmdServiceServer).ExecRemoteCmd(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/proto.CmdService/ExecRemoteCmd",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CmdServiceServer).ExecRemoteCmd(ctx, req.(*ExecRequestMsg))
-	}
-	return interceptor(ctx, in, info, handler)
+	return m, nil
 }
 
 // CmdService_ServiceDesc is the grpc.ServiceDesc for CmdService service.
@@ -96,12 +126,14 @@ func _CmdService_ExecRemoteCmd_Handler(srv interface{}, ctx context.Context, dec
 var CmdService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "proto.CmdService",
 	HandlerType: (*CmdServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
+	Methods:     []grpc.MethodDesc{},
+	Streams: []grpc.StreamDesc{
 		{
-			MethodName: "ExecRemoteCmd",
-			Handler:    _CmdService_ExecRemoteCmd_Handler,
+			StreamName:    "ExecRemoteCmd",
+			Handler:       _CmdService_ExecRemoteCmd_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
 	Metadata: "agent_grpc.proto",
 }
