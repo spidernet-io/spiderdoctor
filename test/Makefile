@@ -321,6 +321,7 @@ install_metallb:
 		helm install -n kube-system $(METALLB_CHART_NAME)  $(METALLB_REPO_NAME)/$(METALLB_CHART_NAME) \
 			-n kube-system --kubeconfig=$(KIND_KUBECONFIG) \
 			--version=$(METALLB_CHART_VERSION) --wait  --timeout 5m \
+			--set speaker.nodeSelector."kubernetes\.io/hostname"=$(E2E_KIND_CLUSTER_NAME)-control-plane \
 			$${HELM_OPTIONS}
 	echo "apply ippool" ; \
 		docker network inspect kind ; \
@@ -440,7 +441,8 @@ install_contour:
 			  --set envoy.service.externalTrafficPolicy=Local \
 			  --set envoy.hostNetwork=false \
 			  --set envoy.dnsPolicy=ClusterFirst \
-			  --set ingress.enabled=true
+			  --set ingress.enabled=true \
+			  --set envoy.nodeSelector."kubernetes\.io/hostname"=$(E2E_KIND_CLUSTER_NAME)-control-plane
 
 
 # contour does not support ipv6-only
@@ -507,8 +509,18 @@ install_example_app: KIND_KUBECONFIG ?= $(E2E_KIND_KUBECONFIG_PATH)
 install_example_app: KIND_CLUSTER_NAME ?= $(E2E_KIND_CLUSTER_NAME)
 install_example_app:
 	@echo "---------- install example app"
-	kubectl --kubeconfig=$(KIND_KUBECONFIG) apply -f yaml/testpod.yaml
-	@ if ! kubectl rollout status  deployment/test --kubeconfig $(KIND_KUBECONFIG) -w --timeout=120s ; then \
+	IMAGE_LIST=" ghcr.m.daocloud.io/spidernet-io/spiderdoctor/agent:$(EXAMPLE_APP_IMAGE_TAG) " ; \
+			for IMAGE in $${IMAGE_LIST} ; do \
+				EXIST=` docker images | awk '{printf("%s:%s\n",$$1,$$2)}' | grep "$${IMAGE}" ` || true ; \
+				if [ -z "$${EXIST}" ] ; then \
+				  echo "docker pull $${IMAGE} to local" ; \
+				  docker pull $${IMAGE} ;\
+				fi ;\
+				echo "load local image $${IMAGE} " ; \
+				kind load docker-image $${IMAGE}  --name $(KIND_CLUSTER_NAME)  ; \
+			done
+	sed 's/<<EXAMPLE_APP_IMAGE_TAG>>/'"$(EXAMPLE_APP_IMAGE_TAG)"'/' yaml/testpod.yaml | kubectl --kubeconfig=$(KIND_KUBECONFIG) apply -f -
+	@ if ! kubectl rollout status  daemonset/test --kubeconfig $(KIND_KUBECONFIG) -w --timeout=120s ; then \
 			echo "error, failed to create a test pod" ; \
 			exit 1 ; \
 		fi ; \

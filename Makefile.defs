@@ -203,3 +203,5 @@ NGINX_REPO_NAME = ingress-nginx
 NGINX_CHART_NAME = ingress-nginx
 
 
+EXAMPLE_APP_IMAGE_TAG = v0.2.2
+
