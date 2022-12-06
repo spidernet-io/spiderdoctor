@@ -50,10 +50,10 @@ func (s *myGrpcServer) ExecRemoteCmd(ctx context.Context, req *agentGrpc.ExecReq
 
 	StdoutMsg, StderrMsg, exitedCode, e := utils.RunFrondendCmd(clientctx, req.Command, nil, "")
 
-	logger.Sugar().Infof("stderrMsg = %v", StderrMsg)
-	logger.Sugar().Infof("StdoutMsg = %v", StdoutMsg)
-	logger.Sugar().Infof("exitedCode = %v", exitedCode)
-	logger.Sugar().Infof("error = %v", e)
+	logger.Sugar().Debugf("stderrMsg = %v", StderrMsg)
+	logger.Sugar().Debugf("StdoutMsg = %v", StdoutMsg)
+	logger.Sugar().Debugf("exitedCode = %v", exitedCode)
+	logger.Sugar().Debugf("error = %v", e)
 
 	b := agentGrpc.ExecResponseMsg{
 		Stdmsg: StdoutMsg,

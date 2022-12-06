@@ -60,6 +60,9 @@ func NewHTTPServerAPIAPI(spec *loads.Document) *HTTPServerAPIAPI {
 		HealthyGetHealthyStartupHandler: healthy.GetHealthyStartupHandlerFunc(func(params healthy.GetHealthyStartupParams) middleware.Responder {
 			return middleware.NotImplemented("operation healthy.GetHealthyStartup has not yet been implemented")
 		}),
+		EchoGetSpiderdoctoragentHandler: echo.GetSpiderdoctoragentHandlerFunc(func(params echo.GetSpiderdoctoragentParams) middleware.Responder {
+			return middleware.NotImplemented("operation echo.GetSpiderdoctoragent has not yet been implemented")
+		}),
 	}
 }
 
@@ -104,6 +107,8 @@ type HTTPServerAPIAPI struct {
 	HealthyGetHealthyReadinessHandler healthy.GetHealthyReadinessHandler
 	// HealthyGetHealthyStartupHandler sets the operation handler for the get healthy startup operation
 	HealthyGetHealthyStartupHandler healthy.GetHealthyStartupHandler
+	// EchoGetSpiderdoctoragentHandler sets the operation handler for the get spiderdoctoragent operation
+	EchoGetSpiderdoctoragentHandler echo.GetSpiderdoctoragentHandler
 
 	// ServeError is called when an error is received, there is a default handler
 	// but you can set your own with this
@@ -192,6 +197,9 @@ func (o *HTTPServerAPIAPI) Validate() error {
 	}
 	if o.HealthyGetHealthyStartupHandler == nil {
 		unregistered = append(unregistered, "healthy.GetHealthyStartupHandler")
+	}
+	if o.EchoGetSpiderdoctoragentHandler == nil {
+		unregistered = append(unregistered, "echo.GetSpiderdoctoragentHandler")
 	}
 
 	if len(unregistered) > 0 {
@@ -297,6 +305,10 @@ func (o *HTTPServerAPIAPI) initHandlerCache() {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
 	o.handlers["GET"]["/healthy/startup"] = healthy.NewGetHealthyStartup(o.context, o.HealthyGetHealthyStartupHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/spiderdoctoragent"] = echo.NewGetSpiderdoctoragent(o.context, o.EchoGetSpiderdoctoragentHandler)
 }
 
 // Serve creates a http handler to serve the API over HTTP

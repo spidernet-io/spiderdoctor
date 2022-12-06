@@ -24,27 +24,28 @@ func SetupUtility() {
 func DaemonMain() {
 	rootLogger.Sugar().Infof("config: %+v", types.AgentConfig)
 
+	SetupHttpServer()
+	initGrpcServer()
+	// TODO: udp server, tcp server, websocket server
+
 	if types.AgentConfig.AppMode {
 		// app mode, just used to debug
 		rootLogger.Info("run in app mode")
-		SetupHttpServer()
-		initGrpcServer()
+		// sleep forever
+		select {}
+	} else {
+		rootLogger.Info("run in agent mode")
+
+		SetupUtility()
+
+		RunMetricsServer(types.AgentConfig.PodName)
+
+		s := pluginManager.InitPluginManager(rootLogger.Named("agentContorller"))
+		s.RunAgentController()
+
+		rootLogger.Info("finish initialization")
 		// sleep forever
 		select {}
 	}
 
-	SetupUtility()
-
-	SetupHttpServer()
-
-	RunMetricsServer(types.AgentConfig.PodName)
-
-	initGrpcServer()
-
-	s := pluginManager.InitPluginManager(rootLogger.Named("agentContorller"))
-	s.RunAgentController()
-
-	rootLogger.Info("finish initialization")
-	// sleep forever
-	select {}
 }
