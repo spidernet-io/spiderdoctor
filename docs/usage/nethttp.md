@@ -30,9 +30,17 @@ items:
       qps: 10
     target:
       targetUser:
-        targetUser:
-          method: GET
-          url: http://172.80.1.2
+        method: GET
+        url: http://172.80.1.2
+      targetPod:
+        podLabelSelector:
+          matchExpressions:
+            - { key: "app", operator: In, values: ["http-server"] }
+        httpPort: 80
+        method: GET
+        testIPv4: true
+        testIPv6: true
+        testMultusInterface: false
       targetAgent:
         testClusterIp: true
         testEndpoint: true
@@ -88,6 +96,20 @@ items:
         url: the url for http
 
         method: http method, must be one of GET POST PUT DELETE CONNECT OPTIONS PATCH HEAD
+
+      targetPod: [optional]: set pods for the http request
+
+        podLabelSelector: select the target pods
+
+        httpPort: http port
+
+        method: http method
+
+        testIPv4: test any IPv4 address. Notice, the 'enableIPv4' in configmap  spiderdocter must be enabled
+
+        testIPv6: test any IPv6 address. Notice, the 'enableIPv6' in configmap  spiderdocter must be enabled
+
+        testMultusInterface: whether send http request to all interfaces ip.
 
       targetAgent: [optional]: set the http tareget to spiderdoctor agents
 
@@ -271,6 +293,42 @@ kubectl apply -f source-agent.yaml
 
 ```
 
+
+test pod
+
+```shell
+cat <<EOF > test-pod.yaml
+apiVersion: spiderdoctor.spidernet.io/v1
+kind: Nethttp
+metadata:
+  name: test-pod
+spec:
+  schedule:
+    startAfterMinute: 0
+    roundNumber: 2
+    intervalMinute: 2
+    timeoutMinute: 1
+  target:
+    targetPod:
+      podLabelSelector:
+          matchExpressions:
+            - { key: "app", operator: In, values: ["test"] }
+      method: "GET"
+      httpPort: 80
+      testIPv4: true
+      testIPv6: true
+      testMultusInterface: true
+  request:
+    durationInSecond: 2
+    qps: 2
+    perRequestTimeoutInMS: 1000
+  success:
+    successRate: 1
+    meanAccessDelayInMs: 10000
+EOF
+kubectl apply -f test-pod.yaml
+
+```
 
 
 

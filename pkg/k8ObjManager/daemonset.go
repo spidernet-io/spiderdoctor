@@ -62,14 +62,7 @@ func (nm *k8sObjManager) ListDaemonsetPodNodes(ctx context.Context, daemonsetNam
 
 // --------------
 
-func (nm *k8sObjManager) ListDaemonsetPodMultusIPs(ctx context.Context, daemonsetName, daemonsetNameSpace string) (PodIps, error) {
-	podlist, e := nm.ListDaemonsetPod(ctx, daemonsetName, daemonsetNameSpace)
-	if e != nil {
-		return nil, e
-	}
-	if len(podlist) == 0 {
-		return nil, fmt.Errorf("failed to get any pods")
-	}
+func parseMultusIP(podlist []corev1.Pod) (PodIps, error) {
 
 	result := PodIps{}
 
@@ -120,6 +113,17 @@ func (nm *k8sObjManager) ListDaemonsetPodMultusIPs(ctx context.Context, daemonse
 
 	}
 	return result, nil
+}
+
+func (nm *k8sObjManager) ListDaemonsetPodMultusIPs(ctx context.Context, daemonsetName, daemonsetNameSpace string) (PodIps, error) {
+	podlist, e := nm.ListDaemonsetPod(ctx, daemonsetName, daemonsetNameSpace)
+	if e != nil {
+		return nil, e
+	}
+	if len(podlist) == 0 {
+		return nil, fmt.Errorf("failed to get any pods")
+	}
+	return parseMultusIP(podlist)
 }
 
 func (nm *k8sObjManager) ListDaemonsetPodIPs(ctx context.Context, daemonsetName, daemonsetNameSpace string) (PodIps, error) {

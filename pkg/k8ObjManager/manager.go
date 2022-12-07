@@ -30,6 +30,9 @@ type K8sObjManager interface {
 
 	// pod
 	GetPodList(ctx context.Context, opts ...client.ListOption) ([]corev1.Pod, error)
+	ListSelectedPodMultusIPs(ctx context.Context, labelSelector *metav1.LabelSelector) (PodIps, error)
+	ListSelectedPodIPs(ctx context.Context, labelSelector *metav1.LabelSelector) (PodIps, error)
+	ListSelectedPod(ctx context.Context, labelSelector *metav1.LabelSelector) ([]corev1.Pod, error)
 
 	// service
 	GetService(ctx context.Context, name, namespace string) (*corev1.Service, error)

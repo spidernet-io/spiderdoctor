@@ -26,7 +26,7 @@ build_all_bin:
 
 
 .PHONY: build_controller_bin
-build_controller_bin: CMD_BIN_DIR := $(ROOT_DIR)/cmd/controller $(ROOT_DIR)/cmd/netdoctor
+build_controller_bin: CMD_BIN_DIR := $(ROOT_DIR)/cmd/controller
 build_controller_bin:
 	$(BUILD_BIN)
 

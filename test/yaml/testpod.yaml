@@ -1,12 +1,11 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: test
   namespace: default
   labels:
     app: test
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: test
@@ -18,10 +17,8 @@ spec:
     spec:
       containers:
         - name: test
-          image: docker.m.daocloud.io/alpine:latest
+          image: ghcr.m.daocloud.io/spidernet-io/spiderdoctor/agent:<<EXAMPLE_APP_IMAGE_TAG>>
           imagePullPolicy: IfNotPresent
-          command:
-            - "/bin/sh"
+          command: ["/usr/bin/agent"]
           args:
-            - "-c"
-            - "sleep infinity"
+            - "--app-mode=true"

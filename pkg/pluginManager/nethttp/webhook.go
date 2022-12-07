@@ -143,7 +143,7 @@ func (s *PluginNetHttp) WebhookValidateCreate(logger *zap.Logger, ctx context.Co
 
 	// validate target
 	if true {
-		if r.Spec.Target.TargetAgent == nil && r.Spec.Target.TargetUser == nil {
+		if r.Spec.Target.TargetAgent == nil && r.Spec.Target.TargetUser == nil && r.Spec.Target.TargetPod == nil {
 			s := fmt.Sprintf("nethttp %v, no target specified in the spec", r.Name)
 			logger.Error(s)
 			return apierrors.NewBadRequest(s)
@@ -151,6 +151,16 @@ func (s *PluginNetHttp) WebhookValidateCreate(logger *zap.Logger, ctx context.Co
 
 		if r.Spec.Target.TargetAgent != nil && r.Spec.Target.TargetUser != nil {
 			s := fmt.Sprintf("nethttp %v, forbid to set TargetUser and TargetAgent at same time", r.Name)
+			logger.Error(s)
+			return apierrors.NewBadRequest(s)
+		}
+		if r.Spec.Target.TargetPod != nil && r.Spec.Target.TargetUser != nil {
+			s := fmt.Sprintf("nethttp %v, forbid to set TargetPod and TargetAgent at same time", r.Name)
+			logger.Error(s)
+			return apierrors.NewBadRequest(s)
+		}
+		if r.Spec.Target.TargetPod != nil && r.Spec.Target.TargetAgent != nil {
+			s := fmt.Sprintf("nethttp %v, forbid to set TargetPod and TargetAgent at same time", r.Name)
 			logger.Error(s)
 			return apierrors.NewBadRequest(s)
 		}
