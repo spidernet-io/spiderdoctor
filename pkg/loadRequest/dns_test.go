@@ -20,7 +20,7 @@ var _ = Describe("test dns ", Label("dns"), func() {
 
 		dnsServer := "223.5.5.5:53"
 		req := &loadRequest.DnsRequestData{
-			Method:                loadRequest.RequestMethodUdp,
+			Protocol:              loadRequest.RequestMethodUdp,
 			DnsType:               dns.TypeA,
 			TargetDomain:          "www.baidu.com",
 			DnsServerAddr:         &dnsServer,
@@ -50,7 +50,7 @@ var _ = Describe("test dns ", Label("dns"), func() {
 
 		dnsServer := "223.5.5.5:53"
 		req := &loadRequest.DnsRequestData{
-			Method:                loadRequest.RequestMethodTcp,
+			Protocol:              loadRequest.RequestMethodTcp,
 			DnsType:               dns.TypeA,
 			TargetDomain:          "www.baidu.com",
 			DnsServerAddr:         &dnsServer,
@@ -79,7 +79,7 @@ var _ = Describe("test dns ", Label("dns"), func() {
 
 		dnsServer := "223.5.5.5:53"
 		req := &loadRequest.DnsRequestData{
-			Method:                loadRequest.RequestMethodUdp,
+			Protocol:              loadRequest.RequestMethodUdp,
 			DnsType:               dns.TypeA,
 			TargetDomain:          "www.no-existed.com",
 			DnsServerAddr:         &dnsServer,
@@ -108,7 +108,7 @@ var _ = Describe("test dns ", Label("dns"), func() {
 	It("test aaaa ", Label("aaaa"), func() {
 		dnsServer := "223.5.5.5:53"
 		req := &loadRequest.DnsRequestData{
-			Method:                loadRequest.RequestMethodUdp,
+			Protocol:              loadRequest.RequestMethodUdp,
 			DnsType:               dns.TypeAAAA,
 			TargetDomain:          "wikipedia.org",
 			DnsServerAddr:         &dnsServer,

@@ -16,20 +16,21 @@ import (
 	"time"
 )
 
-type RequestMethod string
+type RequestProtocol string
 
 const (
-	RequestMethodUdp    = RequestMethod("udp")
-	RequestMethodTcp    = RequestMethod("tcp")
-	RequestMethodTcpTls = RequestMethod("tcp-tls")
+	RequestMethodUdp    = RequestProtocol("udp")
+	RequestMethodTcp    = RequestProtocol("tcp")
+	RequestMethodTcpTls = RequestProtocol("tcp-tls")
 
 	DefaultDnsConfPath = "/etc/resolv.conf"
 )
 
 type DnsRequestData struct {
-	Method RequestMethod
+	Protocol RequestProtocol
 	// dns.TypeA or dns.TypeAAAA
-	DnsType      uint16
+	DnsType uint16
+	// must be full domain
 	TargetDomain string
 	// empty, or specified to be format "2.2.2.2:53"
 	DnsServerAddr         *string
@@ -99,7 +100,7 @@ func executeRequestOnce(ServerAddress string, req *DnsRequestData) *dnsMetric {
 
 	// client
 	c := new(dns.Client)
-	c.Net = string(req.Method)
+	c.Net = string(req.Protocol)
 	c.Timeout = time.Duration(req.PerRequestTimeoutInMs) * time.Millisecond
 
 	r := dnsMetric{}
@@ -264,7 +265,7 @@ LOOP:
 	r.Duration = duration
 	r.TargetDomain = req.TargetDomain
 	r.DnsServer = ServerAddress
-	r.DnsMethod = string(req.Method)
+	r.DnsMethod = string(req.Protocol)
 
 	// logger.Sugar().Infof("result : %v ", r)
 	return r, nil
