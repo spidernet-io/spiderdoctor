@@ -49,4 +49,4 @@ jobs:
           echo "============ result ============ "
           echo "pr labels: ${PR_LABEL}"
           echo "required one label: ${{ env.LEASE_ONE_OF_LABELS }} "
-          echo "forbideen lables: ${{ env.FORBID_LABELS }} "
+          echo "forbideen labels: ${{ env.FORBID_LABELS }} "
