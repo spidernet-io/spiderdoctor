@@ -12,8 +12,8 @@ var _ = Describe("example ", Label("example"), func() {
 	It("example", Label("example-1"), func() {
 		GinkgoWriter.Printf("cluster information: %+v \n", frame.Info)
 
-		d, e := frame.GetDeployment("test", "default")
-		Expect(e).NotTo(HaveOccurred(), "failed to get deployment ")
-		GinkgoWriter.Printf("deployment: %+v \n", d)
+		d, e := frame.GetDaemonSet("test", "default")
+		Expect(e).NotTo(HaveOccurred(), "failed to get daemonset ")
+		GinkgoWriter.Printf("daemonset: %+v \n", d)
 	})
 })
