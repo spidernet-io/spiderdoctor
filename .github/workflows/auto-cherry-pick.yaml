@@ -23,9 +23,10 @@ jobs:
           fetch-depth: 0
 
       - name: cherry pick
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -x
-          echo ${{ secrets.WELAN_PAT }} | gh auth login --with-token
           DATA_FILE="/tmp/`date +%Y%m%d%H%M%S%N`"
           echo '${{ toJSON(github) }}' > ${DATA_FILE}
           echo "============ print var ======== "
