@@ -36,10 +36,10 @@ jobs:
       matrix:
         # ====modify====
         include:
-          - name: spiderdoctor-agent
+          - name: agent
             dockerfile: ./images/agent/Dockerfile
             context: ./
-          - name: spiderdoctor-controller
+          - name: controller
             dockerfile: ./images/controller/Dockerfile
             context: ./
 
@@ -104,7 +104,7 @@ jobs:
           push: true
           platforms: ${{ env.BUILD_PLATFORM }}
           tags: |
-            ${{ env.ONLINE_REGISTER }}/${{ github.repository }}/${{ matrix.name }}${{ env.RUN_SUFFIX }}:${{ env.RUN_IMAGE_TAG }}
+            ${{ env.ONLINE_REGISTER }}/${{ github.repository }}-${{ matrix.name }}${{ env.RUN_SUFFIX }}:${{ env.RUN_IMAGE_TAG }}
           build-args: |
             GIT_COMMIT_VERSION=${{ env.RUN_COMMIT_VER }}
             GIT_COMMIT_TIME=${{ env.RUN_COMMIT_TIME }}
