@@ -36,10 +36,10 @@ jobs:
       matrix:
         # ====modify====
         include:
-          - name: agent
+          - name: spiderdoctor-agent
             dockerfile: ./images/agent/Dockerfile
             context: ./
-          - name: controller
+          - name: spiderdoctor-controller
             dockerfile: ./images/controller/Dockerfile
             context: ./
 
