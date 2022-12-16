@@ -122,7 +122,7 @@ jobs:
           outputs: type=tar,dest=/tmp/${{ matrix.name }}.tar
           platforms: linux/amd64
           tags: |
-            ${{ env.ONLINE_REGISTER }}/${{ github.repository }}/${{ matrix.name }}${{ env.RUN_SUFFIX }}:${{ env.RUN_IMAGE_TAG }}
+            ${{ env.ONLINE_REGISTER }}/${{ github.repository }}-${{ matrix.name }}${{ env.RUN_SUFFIX }}:${{ env.RUN_IMAGE_TAG }}
           build-args: |
             GIT_COMMIT_VERSION=${{ env.RUN_COMMIT_VER }}
             GIT_COMMIT_TIME=${{ env.RUN_COMMIT_TIME }}
@@ -144,7 +144,7 @@ jobs:
           echo "${job_name_underscored}_DIGEST := \"${DIGEST}\"" > image-digest/makefile-digest.txt
           echo "### ${{ matrix.name }}" > image-digest/${{ matrix.name }}.txt
           echo "" >> image-digest/${{ matrix.name }}.txt
-          echo "\`${{ env.ONLINE_REGISTER }}/${{ github.repository }}/${{ matrix.name }}${{ env.RUN_SUFFIX }}:${{ env.RUN_IMAGE_TAG }}@${DIGEST}\`" >> image-digest/${{ matrix.name }}.txt
+          echo "\`${{ env.ONLINE_REGISTER }}/${{ github.repository }}-${{ matrix.name }}${{ env.RUN_SUFFIX }}:${{ env.RUN_IMAGE_TAG }}@${DIGEST}\`" >> image-digest/${{ matrix.name }}.txt
           echo "" >> image-digest/${{ matrix.name }}.txt
           # ====== Image Digests Output =============
           cd image-digest/
