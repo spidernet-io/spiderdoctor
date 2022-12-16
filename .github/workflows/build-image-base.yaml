@@ -47,9 +47,9 @@ jobs:
       matrix:
         include:
           # ====modify====
-          - name: agent-base
+          - name: spiderdoctor-agent-base
             context: ./images/agent-base
-          - name: controller-base
+          - name: spiderdoctor-controller-base
             context: ./images/controller-base
 
     steps:
