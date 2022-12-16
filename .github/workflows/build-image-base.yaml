@@ -47,9 +47,9 @@ jobs:
       matrix:
         include:
           # ====modify====
-          - name: spiderdoctor-agent-base
+          - name: agent-base
             context: ./images/agent-base
-          - name: spiderdoctor-controller-base
+          - name: controller-base
             context: ./images/controller-base
 
     steps:
@@ -135,7 +135,7 @@ jobs:
           github-token: ${{ secrets.WELAN_PAT }}
           platforms: ${{ env.BUILD_PLATFORM }}
           tags: |
-            ${{ env.ONLINE_REGISTER }}/${{ env.IMAGE_REPO }}/${{ matrix.name }}:${{ env.RUN_TAG }}
+            ${{ env.ONLINE_REGISTER }}/${{ env.IMAGE_REPO }}-${{ matrix.name }}:${{ env.RUN_TAG }}
 
       - name: Image Release Digest
         if: ${{ env.RUN_EXIST == 'false' }}
