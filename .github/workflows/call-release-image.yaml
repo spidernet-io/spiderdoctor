@@ -92,7 +92,7 @@ jobs:
           GIT_COMMIT_TIME=$( git show -s --format='format:%aI')
           echo "RUN_COMMIT_VER=${GIT_COMMIT_VERSION}" >> $GITHUB_ENV
           echo "RUN_COMMIT_TIME=${GIT_COMMIT_TIME}" >> $GITHUB_ENV
-          tmp=${{ matrix.name }}
+          tmp=${{ github.repository }}
           tmp=${tmp##*/}
           echo "RUN_IMAGE_SUFFIX=${tmp}-${{ matrix.name }}" >> $GITHUB_ENV
 
