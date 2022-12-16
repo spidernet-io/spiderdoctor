@@ -107,7 +107,7 @@ jobs:
         id: tag-in-repositories
         shell: bash
         run: |
-          if docker buildx imagetools inspect ${{ env.ONLINE_REGISTER }}/${{ env.IMAGE_REPO }}/${{ matrix.name }}:${{  env.RUN_TAG }} &>/dev/null; then
+          if docker buildx imagetools inspect ${{ env.ONLINE_REGISTER }}/${{ env.IMAGE_REPO }}-${{ matrix.name }}:${{  env.RUN_TAG }} &>/dev/null; then
             echo "RUN_EXIST=true" >> $GITHUB_ENV
             echo "the target base image exist , no need to build it "
           else
@@ -144,7 +144,7 @@ jobs:
           mkdir -p image-digest/
           echo "## ${{ matrix.name }}" > image-digest/${{ matrix.name }}.txt
           echo "" >> image-digest/${{ matrix.name }}.txt
-          echo "\`${{ env.ONLINE_REGISTER }}/${{ env.IMAGE_REPO }}/${{ matrix.name }}:${{ env.RUN_TAG }}@${{ steps.docker_build_release.outputs.digest }}\`" >> image-digest/${{ matrix.name }}.txt
+          echo "\`${{ env.ONLINE_REGISTER }}/${{ env.IMAGE_REPO }}-${{ matrix.name }}:${{ env.RUN_TAG }}@${{ steps.docker_build_release.outputs.digest }}\`" >> image-digest/${{ matrix.name }}.txt
           echo "" >> image-digest/${{ matrix.name }}.txt
 
       - name: Upload artifact digests
