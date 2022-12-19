@@ -20,8 +20,7 @@ type Interface interface {
 	SpiderdoctorV1() spiderdoctorv1.SpiderdoctorV1Interface
 }
 
-// Clientset contains the clients for groups. Each group has exactly one
-// version included in a Clientset.
+// Clientset contains the clients for groups.
 type Clientset struct {
 	*discovery.DiscoveryClient
 	spiderdoctorV1 *spiderdoctorv1.SpiderdoctorV1Client
