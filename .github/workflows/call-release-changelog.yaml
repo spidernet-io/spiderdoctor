@@ -28,7 +28,6 @@ on:
       begin_tag:
         description: '[optional] start commit based on which tag'
         required: false
-        default: v0.1.0
 
 permissions: write-all
 
