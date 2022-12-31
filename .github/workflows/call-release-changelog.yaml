@@ -6,7 +6,7 @@ env:
   LABEL_BUG: "release/bug"
   DEST_BRANCH: github_pages
   DEST_DIRECTORY: 'changelogs/'
-  PR_LABEL: release/robot_update_githubpage
+  PR_LABEL: pr/robot_update
   PR_REVIWER: weizhoublue
 
 on:
@@ -26,7 +26,7 @@ on:
         required: true
         default: v0.2.0
       begin_tag:
-        description: 'start commit based on which tag'
+        description: '[optional] start commit based on which tag'
         required: false
         default: v0.1.0
 
