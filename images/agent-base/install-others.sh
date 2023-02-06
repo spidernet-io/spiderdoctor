@@ -31,7 +31,9 @@ packages=(
   telnet
   # ssh / ssh-client
   curl
-  netcat
+  #netcat
+  # after ubuntu 22.10
+  netcat-traditional
   socat
   # nping
   nmap
@@ -53,7 +55,7 @@ packages=(
   wget
 )
 
-TARGETARCH="$1"
+TARGETARCH=${1:-""}
 echo "TARGETARCH=$TARGETARCH"
 
 export DEBIAN_FRONTEND=noninteractive

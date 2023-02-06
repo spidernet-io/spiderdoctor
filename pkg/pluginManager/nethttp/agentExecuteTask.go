@@ -33,7 +33,6 @@ func ParseSuccessCondition(successCondition *crd.NetSuccessCondition, metricResu
 }
 
 func SendRequestAndReport(logger *zap.Logger, targetName string, req *loadRequest.HttpRequestData, successCondition *crd.NetSuccessCondition, report map[string]interface{}) (failureReason string) {
-	failureReason = ""
 
 	report["TargetName"] = targetName
 	report["TargetUrl"] = req.Url
