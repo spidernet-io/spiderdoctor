@@ -15,7 +15,7 @@ require (
 	github.com/miekg/dns v1.1.50
 	github.com/montanaflynn/stats v0.6.6
 	github.com/onsi/ginkgo/v2 v2.6.1
-	github.com/onsi/gomega v1.24.1
+	github.com/onsi/gomega v1.24.2
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.14.0
 	github.com/pyroscope-io/client v0.5.0
@@ -31,18 +31,18 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v0.33.0
 	go.uber.org/ratelimit v0.2.0
 	go.uber.org/zap v1.24.0
-	golang.org/x/net v0.3.1-0.20221206200815-1e63c2f08a10
+	golang.org/x/net v0.4.0
 	google.golang.org/grpc v1.51.0
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/api v0.25.4
-	k8s.io/apimachinery v0.26.0
-	k8s.io/client-go v0.25.4
-	k8s.io/code-generator v0.26.0
+	k8s.io/api v0.26.1
+	k8s.io/apimachinery v0.26.1
+	k8s.io/client-go v0.26.1
+	k8s.io/code-generator v0.26.1
 	k8s.io/utils v0.0.0-20221108210102-8e77b1f39fe2
 	sigs.k8s.io/controller-runtime v0.13.1
-	sigs.k8s.io/controller-tools v0.10.0
+	sigs.k8s.io/controller-tools v0.11.3
 )
 
 require (
@@ -69,7 +69,7 @@ require (
 	github.com/go-openapi/jsonreference v0.20.0 // indirect
 	github.com/go-openapi/validate v0.22.0 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0 // indirect
-	github.com/gobuffalo/flect v0.2.5 // indirect
+	github.com/gobuffalo/flect v0.3.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
@@ -134,8 +134,8 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	k8s.io/apiextensions-apiserver v0.25.4 // indirect
-	k8s.io/component-base v0.25.4 // indirect
+	k8s.io/apiextensions-apiserver v0.26.1 // indirect
+	k8s.io/component-base v0.26.1 // indirect
 	k8s.io/gengo v0.0.0-20220902162205-c0856e24416d // indirect
 	k8s.io/klog/v2 v2.80.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20221110221610-a28e98eb7c70 // indirect
