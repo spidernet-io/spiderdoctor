@@ -13,13 +13,6 @@ on:
     paths:
       - '**.yml'
       - '**.yaml'
-  # checkout all markdown
-  workflow_dispatch:
-    inputs:
-      ref:
-        description: 'check all yaml for branch, sha, tag'
-        required: true
-        default: main
 
 jobs:
   linkyaml:
@@ -44,12 +37,22 @@ jobs:
           wget https://github.com/mikefarah/yq/releases/download/v4.30.7/yq_linux_amd64
           chmod +x yq_linux_amd64
           echo "=================== get pr number"
-          DATA_FILE="/tmp/`date +%Y%m%d%H%M%S%N`"
-          echo '${{ toJSON(github) }}' > ${DATA_FILE}
-          cat ${DATA_FILE}
-          grep -Eio "Merge pull request #[0-9]+ " < ${DATA_FILE} || true
-          PR_NUMBER=` cat ${DATA_FILE} | grep -Eio "Merge pull request #[0-9]+ " | grep -Eo "[0-9]+" | uniq ` || true
-              [ -n "${PR_NUMBER}" ] || { echo "no PR number, ignore" ; exit 0 ; }          
+          PR_NUMBER=""
+          if ${{ github.event_name == 'pull_request' }}; then
+              echo "trigger by pull_request"
+              PR_NUMBER=${{ github.event.number }}
+              [ -n "${PR_NUMBER}" ] || { echo "no PR number, ignore" ; exit 0 ; }     
+          elif ${{ github.event_name == 'push' }}; then
+              echo "trigger by push"
+              DATA_FILE="/tmp/`date +%Y%m%d%H%M%S%N`"
+              echo '${{ toJSON(github) }}' > ${DATA_FILE}
+              cat ${DATA_FILE}
+              grep -Eio "Merge pull request #[0-9]+ " < ${DATA_FILE} || true
+              PR_NUMBER=` cat ${DATA_FILE} | grep -Eio "Merge pull request #[0-9]+ " | grep -Eo "[0-9]+" | uniq ` || true
+              [ -n "${PR_NUMBER}" ] || { echo "no PR number, ignore" ; exit 0 ; }     
+          else
+              exit 1
+          fi
           echo "============= get changed chart========"
           URL="https://api.github.com/repos/${{ github.repository }}/pulls/${PR_NUMBER}/files"
           files_changed_data=$(curl -s --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' -X GET -G "$URL")
