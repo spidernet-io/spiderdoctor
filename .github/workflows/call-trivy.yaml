@@ -10,7 +10,7 @@ on:
         type: string
 
 jobs:
-  e2e_against_commit:
+e2e_against_commit:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
