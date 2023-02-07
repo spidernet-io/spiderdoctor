@@ -18,13 +18,13 @@ require (
 	github.com/onsi/gomega v1.24.1
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.14.0
-	github.com/pyroscope-io/client v0.5.0
+	github.com/pyroscope-io/client v0.6.0
 	github.com/sasha-s/go-deadlock v0.3.1
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.14.0
 	github.com/spidernet-io/e2eframework v0.0.0-20221012075947-0a835b3d4cf9
 	github.com/tsenart/vegeta/v12 v12.8.4
-	go.opentelemetry.io/otel v1.11.2
+	go.opentelemetry.io/otel v1.12.0
 	go.opentelemetry.io/otel/exporters/prometheus v0.33.0
 	go.opentelemetry.io/otel/metric v0.34.0
 	go.opentelemetry.io/otel/sdk v1.11.1
@@ -39,7 +39,7 @@ require (
 	k8s.io/api v0.25.4
 	k8s.io/apimachinery v0.26.0
 	k8s.io/client-go v0.25.4
-	k8s.io/code-generator v0.26.0
+	k8s.io/code-generator v0.26.1
 	k8s.io/utils v0.0.0-20221108210102-8e77b1f39fe2
 	sigs.k8s.io/controller-runtime v0.13.1
 	sigs.k8s.io/controller-tools v0.10.0
@@ -108,6 +108,7 @@ require (
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.37.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
+	github.com/pyroscope-io/godeltaprof v0.1.0 // indirect
 	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/spf13/afero v1.9.2 // indirect
@@ -117,7 +118,7 @@ require (
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/toqueteos/webbrowser v1.2.0 // indirect
 	go.mongodb.org/mongo-driver v1.11.0 // indirect
-	go.opentelemetry.io/otel/trace v1.11.2 // indirect
+	go.opentelemetry.io/otel/trace v1.12.0 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	golang.org/x/crypto v0.1.0 // indirect
