@@ -36,7 +36,7 @@ jobs:
         if: ${{ github.event_name != 'workflow_dispatch' }}
         uses: actions/checkout@v3
 
-    - name: yaml format yq
+      - name: yaml format yq
         env:
           GITHUB_TOKEN: ${{ secrets.WELAN_PAT}}
         run: |
