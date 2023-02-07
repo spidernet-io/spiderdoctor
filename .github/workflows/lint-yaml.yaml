@@ -62,7 +62,7 @@ jobs:
           for FILEPATH in $files_changed ; do
               if grep -E "*\.yaml" $FILEPATH &>/dev/null || grep -E "*\.yml" $FILEPATH &>/dev/null ; then
                   echo "------------ checking ${FILEPATH} "
-                  if ! yq_linux_amd64 ${FILEPATH} ; then 
+                  if ! ./yq_linux_amd64 ${FILEPATH} ; then 
                     echo "error, $FILEPATH is not yaml format"
                     exit 1
                   fi
