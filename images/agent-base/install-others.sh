@@ -53,6 +53,7 @@ packages=(
   tshark
   openssl
   wget
+  ndisc6
 )
 
 TARGETARCH=${1:-""}
