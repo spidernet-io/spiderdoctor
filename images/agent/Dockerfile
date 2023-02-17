@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 #====modify====
-ARG BASE_IMAGE=ghcr.io/spidernet-io/spiderdoctor-agent-base:b381e7abefa471f6e6a3f77ed4fbe6ee273301dc
+ARG BASE_IMAGE=ghcr.io/spidernet-io/spiderdoctor-agent-base:b14af67c3fc408004c78ce8cc50dcaf960919321
 ARG GOLANG_IMAGE=docker.io/library/golang:1.20
 
 #======= build bin ==========
