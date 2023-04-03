@@ -12,7 +12,7 @@ require (
 	github.com/go-swagger/go-swagger v0.30.3
 	github.com/google/gops v0.3.26
 	github.com/jessevdk/go-flags v1.5.0
-	github.com/miekg/dns v1.1.50
+	github.com/miekg/dns v1.1.53
 	github.com/montanaflynn/stats v0.6.6
 	github.com/onsi/ginkgo/v2 v2.9.2
 	github.com/onsi/gomega v1.27.4
