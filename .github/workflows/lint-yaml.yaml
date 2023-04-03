@@ -47,7 +47,7 @@ jobs:
           DATA_FILE="/tmp/`date +%Y%m%d%H%M%S%N`"
           echo '${{ toJSON(github) }}' > ${DATA_FILE}
           cat ${DATA_FILE}
-          grep -Eio "Merge pull request #[0-9]+ " < ${DATA_FILE} || true
+          grep -Eio "Merge pull request #[0-9]+ "  ${DATA_FILE} || true
           PR_NUMBER=` cat ${DATA_FILE} | grep -Eio "Merge pull request #[0-9]+ " | grep -Eo "[0-9]+" | uniq ` || true
               [ -n "${PR_NUMBER}" ] || { echo "no PR number, ignore" ; exit 0 ; }          
           echo "============= get changed chart========"
