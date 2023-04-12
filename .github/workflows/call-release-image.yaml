@@ -104,6 +104,7 @@ jobs:
           context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
           github-token: ${{ secrets.WELAN_PAT }}
+          provenance: false
           push: true
           platforms: ${{ env.BUILD_PLATFORM }}
           tags: |
@@ -122,6 +123,7 @@ jobs:
           context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
           github-token: ${{ secrets.WELAN_PAT }}
+          provenance: false
           outputs: type=tar,dest=/tmp/${{ env.RUN_IMAGE_SUFFIX }}.tar
           platforms: linux/amd64
           tags: |
