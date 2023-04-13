@@ -7,8 +7,8 @@ package fake
 
 import (
 	clientset "github.com/spidernet-io/spiderdoctor/pkg/k8s/client/clientset/versioned"
-	spiderdoctorv1 "github.com/spidernet-io/spiderdoctor/pkg/k8s/client/clientset/versioned/typed/spiderdoctor.spidernet.io/v1"
-	fakespiderdoctorv1 "github.com/spidernet-io/spiderdoctor/pkg/k8s/client/clientset/versioned/typed/spiderdoctor.spidernet.io/v1/fake"
+	spiderdoctorv1beta1 "github.com/spidernet-io/spiderdoctor/pkg/k8s/client/clientset/versioned/typed/spiderdoctor.spidernet.io/v1beta1"
+	fakespiderdoctorv1beta1 "github.com/spidernet-io/spiderdoctor/pkg/k8s/client/clientset/versioned/typed/spiderdoctor.spidernet.io/v1beta1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
@@ -66,7 +66,7 @@ var (
 	_ testing.FakeClient  = &Clientset{}
 )
 
-// SpiderdoctorV1 retrieves the SpiderdoctorV1Client
-func (c *Clientset) SpiderdoctorV1() spiderdoctorv1.SpiderdoctorV1Interface {
-	return &fakespiderdoctorv1.FakeSpiderdoctorV1{Fake: &c.Fake}
+// SpiderdoctorV1beta1 retrieves the SpiderdoctorV1beta1Client
+func (c *Clientset) SpiderdoctorV1beta1() spiderdoctorv1beta1.SpiderdoctorV1beta1Interface {
+	return &fakespiderdoctorv1beta1.FakeSpiderdoctorV1beta1{Fake: &c.Fake}
 }

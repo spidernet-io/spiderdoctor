@@ -1,7 +1,7 @@
 // Copyright 2022 Authors of spidernet-io
 // SPDX-License-Identifier: Apache-2.0
 
-package v1
+package v1beta1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -12,10 +12,31 @@ type NetdnsSpec struct {
 	Schedule *SchedulePlan `json:"schedule,omitempty"`
 
 	// +kubebuilder:validation:Optional
+	SourceAgentNodeSelector *metav1.LabelSelector `json:"sourceAgentNodeSelector,omitempty"`
+
+	// +kubebuilder:validation:Optional
+	Target *NetDnsTarget `json:"target,omitempty"`
+
+	// +kubebuilder:validation:Optional
 	Request *NetdnsRequest `json:"request,omitempty"`
 
 	// +kubebuilder:validation:Optional
 	SuccessCondition *NetSuccessCondition `json:"success,omitempty"`
+}
+
+type NetDnsTarget struct {
+	// +kubebuilder:validation:Optional
+	Server string `json:"server,omitempty"`
+
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default=53
+	Port int `json:"port,omitempty"`
+
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default=udp
+	// +kubebuilder:validation:Type:=string
+	// +kubebuilder:validation:Enum=udp;tcp;tcp-tls
+	Protocol string `json:"protocol,omitempty"`
 }
 
 type NetdnsRequest struct {
@@ -42,6 +63,10 @@ type NetdnsRequest struct {
 	// +kubebuilder:default=5
 	// +kubebuilder:validation:Minimum=1
 	PerRequestTimeoutInMS *uint64 `json:"perRequestTimeoutInMS,omitempty"`
+
+	// +kubebuilder:default=kubernetes.default.svc
+	// +kubebuilder:validation:Optional
+	Domain string `json:"domain"`
 }
 
 // scope(Namespaced or Cluster)

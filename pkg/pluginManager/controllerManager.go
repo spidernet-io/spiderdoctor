@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"github.com/spidernet-io/spiderdoctor/pkg/fileManager"
 	k8sObjManager "github.com/spidernet-io/spiderdoctor/pkg/k8ObjManager"
-	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
+	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1beta1"
 	"github.com/spidernet-io/spiderdoctor/pkg/reportManager"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	appsv1 "k8s.io/api/apps/v1"

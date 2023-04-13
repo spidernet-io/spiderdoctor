@@ -38,7 +38,7 @@ spec:
       jsonPath: .spec.schedule.intervalMinute
       name: intervalMinute
       type: integer
-    name: v1
+    name: v1beta1
     schema:
       openAPIV3Schema:
         properties:
@@ -58,6 +58,9 @@ spec:
             properties:
               request:
                 properties:
+                  domain:
+                    default: kubernetes.default.svc
+                    type: string
                   durationInSecond:
                     default: 2
                     format: int64
@@ -83,80 +86,86 @@ spec:
                 type: object
               schedule:
                 properties:
-                  intervalMinute:
-                    default: 360
-                    format: int64
-                    minimum: 1
-                    type: integer
-                  roundNumber:
-                    default: 1
-                    format: int64
-                    minimum: 0
-                    type: integer
-                  sourceAgentNodeSelector:
-                    description: A label selector is a label query over a set of resources.
-                      The result of matchLabels and matchExpressions are ANDed. An
-                      empty label selector matches all objects. A null label selector
-                      matches no objects.
+                  crontab:
+                    type: string
+                  simple:
                     properties:
-                      matchExpressions:
-                        description: matchExpressions is a list of label selector
-                          requirements. The requirements are ANDed.
-                        items:
-                          description: A label selector requirement is a selector
-                            that contains values, a key, and an operator that relates
-                            the key and values.
-                          properties:
-                            key:
-                              description: key is the label key that the selector
-                                applies to.
-                              type: string
-                            operator:
-                              description: operator represents a key's relationship
-                                to a set of values. Valid operators are In, NotIn,
-                                Exists and DoesNotExist.
-                              type: string
-                            values:
-                              description: values is an array of string values. If
-                                the operator is In or NotIn, the values array must
-                                be non-empty. If the operator is Exists or DoesNotExist,
-                                the values array must be empty. This array is replaced
-                                during a strategic merge patch.
-                              items:
-                                type: string
-                              type: array
-                          required:
-                          - key
-                          - operator
-                          type: object
-                        type: array
-                      matchLabels:
-                        additionalProperties:
-                          type: string
-                        description: matchLabels is a map of {key,value} pairs. A
-                          single {key,value} in the matchLabels map is equivalent
-                          to an element of matchExpressions, whose key field is "key",
-                          the operator is "In", and the values array contains only
-                          "value". The requirements are ANDed.
-                        type: object
+                      intervalMinute:
+                        default: 360
+                        format: int64
+                        minimum: 1
+                        type: integer
+                      roundNumber:
+                        default: 1
+                        format: int64
+                        minimum: 0
+                        type: integer
+                      startAfterMinute:
+                        default: 0
+                        format: int64
+                        minimum: 0
+                        type: integer
+                    required:
+                    - intervalMinute
+                    - roundNumber
+                    - startAfterMinute
                     type: object
-                    x-kubernetes-map-type: atomic
-                  startAfterMinute:
-                    default: 0
-                    format: int64
-                    minimum: 0
-                    type: integer
                   timeoutMinute:
                     default: 60
                     format: int64
                     minimum: 1
                     type: integer
                 required:
-                - intervalMinute
-                - roundNumber
-                - startAfterMinute
                 - timeoutMinute
                 type: object
+              sourceAgentNodeSelector:
+                description: A label selector is a label query over a set of resources.
+                  The result of matchLabels and matchExpressions are ANDed. An empty
+                  label selector matches all objects. A null label selector matches
+                  no objects.
+                properties:
+                  matchExpressions:
+                    description: matchExpressions is a list of label selector requirements.
+                      The requirements are ANDed.
+                    items:
+                      description: A label selector requirement is a selector that
+                        contains values, a key, and an operator that relates the key
+                        and values.
+                      properties:
+                        key:
+                          description: key is the label key that the selector applies
+                            to.
+                          type: string
+                        operator:
+                          description: operator represents a key's relationship to
+                            a set of values. Valid operators are In, NotIn, Exists
+                            and DoesNotExist.
+                          type: string
+                        values:
+                          description: values is an array of string values. If the
+                            operator is In or NotIn, the values array must be non-empty.
+                            If the operator is Exists or DoesNotExist, the values
+                            array must be empty. This array is replaced during a strategic
+                            merge patch.
+                          items:
+                            type: string
+                          type: array
+                      required:
+                      - key
+                      - operator
+                      type: object
+                    type: array
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    description: matchLabels is a map of {key,value} pairs. A single
+                      {key,value} in the matchLabels map is equivalent to an element
+                      of matchExpressions, whose key field is "key", the operator
+                      is "In", and the values array contains only "value". The requirements
+                      are ANDed.
+                    type: object
+                type: object
+                x-kubernetes-map-type: atomic
               success:
                 properties:
                   meanAccessDelayInMs:
@@ -170,6 +179,21 @@ spec:
                     minimum: 0
                     type: number
                 type: object
+              target:
+                properties:
+                  port:
+                    default: 53
+                    type: integer
+                  protocol:
+                    default: udp
+                    enum:
+                    - udp
+                    - tcp
+                    - tcp-tls
+                    type: string
+                  server:
+                    type: string
+                type: object
             type: object
           status:
             properties:
@@ -179,7 +203,7 @@ spec:
                 type: integer
               expectedRound:
                 format: int64
-                minimum: 0
+                minimum: -1
                 type: integer
               finish:
                 type: boolean

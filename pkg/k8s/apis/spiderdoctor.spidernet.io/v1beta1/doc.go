@@ -3,4 +3,4 @@
 
 // Package v1 is the v1 version of the API.
 // +groupName=spiderdoctor.spidernet.io
-package v1
+package v1beta1

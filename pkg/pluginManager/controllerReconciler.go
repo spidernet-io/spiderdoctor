@@ -6,7 +6,7 @@ package pluginManager
 import (
 	"context"
 	"github.com/spidernet-io/spiderdoctor/pkg/fileManager"
-	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
+	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1beta1"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"go.uber.org/zap"
 	"reflect"
@@ -50,7 +50,7 @@ func (s *pluginControllerReconciler) Reconcile(ctx context.Context, req reconcil
 
 		oldStatus := instance.Status.DeepCopy()
 		taskName := instance.Kind + "." + instance.Name
-		if result, newStatus, err := s.UpdateStatus(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy(), taskName); err != nil {
+		if result, newStatus, err := s.UpdateStatus(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy(), instance.Spec.SourceAgentNodeSelector.DeepCopy(), taskName); err != nil {
 			// requeue
 			logger.Sugar().Errorf("failed to UpdateStatus, will retry it, error=%v", err)
 			return ctrl.Result{}, err
@@ -87,7 +87,7 @@ func (s *pluginControllerReconciler) Reconcile(ctx context.Context, req reconcil
 
 		oldStatus := instance.Status.DeepCopy()
 		taskName := instance.Kind + "." + instance.Name
-		if result, newStatus, err := s.UpdateStatus(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy(), taskName); err != nil {
+		if result, newStatus, err := s.UpdateStatus(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy(), instance.Spec.SourceAgentNodeSelector.DeepCopy(), taskName); err != nil {
 			// requeue
 			logger.Sugar().Errorf("failed to UpdateStatus, will retry it, error=%v", err)
 			return ctrl.Result{}, err

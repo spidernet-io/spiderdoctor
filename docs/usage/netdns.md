@@ -3,7 +3,7 @@
 ```shell
 
 cat <<EOF > netdns1.yaml
-apiVersion: spiderdoctor.spidernet.io/v1
+apiVersion: spiderdoctor.spidernet.io/v1beta1
 kind: Netdns
 metadata:
   name: testdns1

@@ -17,7 +17,7 @@ webhooks:
       service:
         name: {{ .Values.spiderdoctorController.name | trunc 63 | trimSuffix "-" }}
         namespace: {{ .Release.Namespace }}
-        path: "/mutate-spiderdoctor-spidernet-io-v1-nethttp"
+        path: "/mutate-spiderdoctor-spidernet-io-v1beta1-nethttp"
         port: {{ .Values.spiderdoctorController.webhookPort }}
       {{- if (eq .Values.spiderdoctorController.tls.method "provided") }}
       caBundle: {{ .Values.spiderdoctorController.tls.provided.tlsCa | required "missing tls.provided.tlsCa" }}
@@ -32,7 +32,7 @@ webhooks:
           # ====modify====
           - spiderdoctor.spidernet.io
         apiVersions:
-          - v1
+          - v1beta1
         operations:
           - CREATE
           - UPDATE
@@ -45,7 +45,7 @@ webhooks:
       service:
         name: {{ .Values.spiderdoctorController.name | trunc 63 | trimSuffix "-" }}
         namespace: {{ .Release.Namespace }}
-        path: "/mutate-spiderdoctor-spidernet-io-v1-netdns"
+        path: "/mutate-spiderdoctor-spidernet-io-v1beta1-netdns"
         port: {{ .Values.spiderdoctorController.webhookPort }}
       {{- if (eq .Values.spiderdoctorController.tls.method "provided") }}
       caBundle: {{ .Values.spiderdoctorController.tls.provided.tlsCa | required "missing tls.provided.tlsCa" }}
@@ -60,7 +60,7 @@ webhooks:
       - apiGroups:
           - spiderdoctor.spidernet.io
         apiVersions:
-          - v1
+          - v1beta1
         operations:
           - CREATE
           - UPDATE
@@ -82,7 +82,7 @@ webhooks:
       service:
         name: {{ .Values.spiderdoctorController.name | trunc 63 | trimSuffix "-" }}
         namespace: {{ .Release.Namespace }}
-        path: "/validate-spiderdoctor-spidernet-io-v1-nethttp"
+        path: "/validate-spiderdoctor-spidernet-io-v1beta1-nethttp"
         port: {{ .Values.spiderdoctorController.webhookPort }}
       {{- if (eq .Values.spiderdoctorController.tls.method "provided") }}
       caBundle: {{ .Values.spiderdoctorController.tls.provided.tlsCa | required "missing tls.provided.tlsCa" }}
@@ -96,7 +96,7 @@ webhooks:
       - apiGroups:
           - spiderdoctor.spidernet.io
         apiVersions:
-          - v1
+          - v1beta1
         operations:
           - CREATE
           - UPDATE
@@ -108,7 +108,7 @@ webhooks:
       service:
         name: {{ .Values.spiderdoctorController.name | trunc 63 | trimSuffix "-" }}
         namespace: {{ .Release.Namespace }}
-        path: "/validate-spiderdoctor-spidernet-io-v1-netdns"
+        path: "/validate-spiderdoctor-spidernet-io-v1beta1-netdns"
         port: {{ .Values.spiderdoctorController.webhookPort }}
       {{- if (eq .Values.spiderdoctorController.tls.method "provided") }}
       caBundle: {{ .Values.spiderdoctorController.tls.provided.tlsCa | required "missing tls.provided.tlsCa" }}
@@ -122,7 +122,7 @@ webhooks:
       - apiGroups:
           - spiderdoctor.spidernet.io
         apiVersions:
-          - v1
+          - v1beta1
         operations:
           - CREATE
           - UPDATE

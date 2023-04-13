@@ -6,26 +6,26 @@
 package fake
 
 import (
-	v1 "github.com/spidernet-io/spiderdoctor/pkg/k8s/client/clientset/versioned/typed/spiderdoctor.spidernet.io/v1"
+	v1beta1 "github.com/spidernet-io/spiderdoctor/pkg/k8s/client/clientset/versioned/typed/spiderdoctor.spidernet.io/v1beta1"
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"
 )
 
-type FakeSpiderdoctorV1 struct {
+type FakeSpiderdoctorV1beta1 struct {
 	*testing.Fake
 }
 
-func (c *FakeSpiderdoctorV1) Netdnses() v1.NetdnsInterface {
+func (c *FakeSpiderdoctorV1beta1) Netdnses() v1beta1.NetdnsInterface {
 	return &FakeNetdnses{c}
 }
 
-func (c *FakeSpiderdoctorV1) Nethttps() v1.NethttpInterface {
+func (c *FakeSpiderdoctorV1beta1) Nethttps() v1beta1.NethttpInterface {
 	return &FakeNethttps{c}
 }
 
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
-func (c *FakeSpiderdoctorV1) RESTClient() rest.Interface {
+func (c *FakeSpiderdoctorV1beta1) RESTClient() rest.Interface {
 	var ret *rest.RESTClient
 	return ret
 }
