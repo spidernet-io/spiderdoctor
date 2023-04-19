@@ -7,8 +7,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/miekg/dns"
-	"github.com/montanaflynn/stats"
 	"github.com/spidernet-io/spiderdoctor/pkg/lock"
+	"github.com/spidernet-io/spiderdoctor/pkg/utils/stats"
 	"go.uber.org/ratelimit"
 	"go.uber.org/zap"
 	"net"
@@ -93,51 +93,16 @@ type dnsMetric struct {
 	msg *dns.Msg
 }
 
-func executeRequestOnce(ServerAddress string, req *DnsRequestData) *dnsMetric {
-
-	// request
-	msg := new(dns.Msg).SetQuestion(req.TargetDomain, req.DnsType)
-
-	// client
-	c := new(dns.Client)
-	c.Net = string(req.Protocol)
-	c.Timeout = time.Duration(req.PerRequestTimeoutInMs) * time.Millisecond
-
+func executeRequestOnce(c *dns.Client, conn *dns.Conn, msg *dns.Msg) *dnsMetric {
 	r := dnsMetric{}
-	r.msg, r.rtt, r.e = c.Exchange(msg, ServerAddress)
-
+	r.msg, r.rtt, r.e = c.ExchangeWithConn(msg, conn)
 	return &r
 }
 
-func ParseMetrics(dnsMetricList []*dnsMetric) (*DnsMetrics, error) {
+func ParseMetrics(final *DnsMetrics, validVals []float32) (*DnsMetrics, error) {
 	var e error
-	var t float64
-	final := &DnsMetrics{
-		TotalCount: len(dnsMetricList),
-		ErrorMap:   map[string]int{},
-		DnsAnswer:  []dns.RR{},
-		ReplyCode:  map[string]int{},
-	}
+	var t float32
 
-	validVals := []float64{}
-	for _, v := range dnsMetricList {
-		if v.e != nil {
-			final.FailedCount++
-			final.ErrorMap[v.e.Error()]++
-		} else {
-			fmt.Printf(" msg=%v, rtt=%v error=%v \n", v.msg, v.rtt, v.e)
-			if len(v.msg.Answer) > 0 && v.msg.Rcode == dns.RcodeSuccess {
-				final.SucceedCount++
-				final.DnsAnswer = append(final.DnsAnswer, v.msg.Answer...)
-				final.DnsAnswer = dns.Dedup(final.DnsAnswer, nil)
-				validVals = append(validVals, float64(v.rtt))
-			} else {
-				final.FailedCount++
-			}
-			rcodeStr := dns.RcodeToString[v.msg.Rcode]
-			final.ReplyCode[rcodeStr]++
-		}
-	}
 	final.SuccessRate = float64(final.SucceedCount) / float64(final.TotalCount)
 
 	// delay
@@ -191,7 +156,6 @@ func ParseMetrics(dnsMetricList []*dnsMetric) (*DnsMetrics, error) {
 func DnsRequest(logger *zap.Logger, req *DnsRequestData) (result *DnsMetrics, err error) {
 	var ServerAddress string
 	l := &lock.Mutex{}
-	dnsMetricList := []*dnsMetric{}
 
 	if req.DnsServerAddr == nil {
 		config, e := dns.ClientConfigFromFile(DefaultDnsConfPath)
@@ -229,13 +193,43 @@ func DnsRequest(logger *zap.Logger, req *DnsRequestData) (result *DnsMetrics, er
 	// -------- send all request
 	start := time.Now()
 	counter := 0
+
+	c := new(dns.Client)
+	c.Net = string(req.Protocol)
+	c.Timeout = time.Duration(req.PerRequestTimeoutInMs) * time.Millisecond
+	msg := new(dns.Msg).SetQuestion(req.TargetDomain, req.DnsType)
+	conn, _ := c.Dial(ServerAddress)
+	c.SingleInflight = true
+
+	final := &DnsMetrics{
+		ErrorMap:  map[string]int{},
+		DnsAnswer: []dns.RR{},
+		ReplyCode: map[string]int{},
+	}
+
+	validVals := []float32{}
+
 	p := func(wg *sync.WaitGroup) {
-		r := executeRequestOnce(ServerAddress, req)
+		r := executeRequestOnce(c, conn, msg)
 		l.Lock()
-		dnsMetricList = append(dnsMetricList, r)
+		final.TotalCount++
+		if r.e != nil {
+			final.FailedCount++
+			final.ErrorMap[r.e.Error()]++
+		} else {
+			if len(r.msg.Answer) > 0 && r.msg.Rcode == dns.RcodeSuccess {
+				final.SucceedCount++
+				validVals = append(validVals, float32(r.rtt))
+			} else {
+				final.FailedCount++
+			}
+			rcodeStr := dns.RcodeToString[r.msg.Rcode]
+			final.ReplyCode[rcodeStr]++
+		}
 		l.Unlock()
 		wg.Done()
 	}
+
 LOOP:
 	for {
 		select {
@@ -254,9 +248,8 @@ LOOP:
 	wg.Wait()
 	end := time.Now()
 	logger.Sugar().Infof("finish all %v requests for %v ", counter, req.TargetDomain)
-
-	// -------- parse final metric
-	r, e := ParseMetrics(dnsMetricList)
+	//-------- parse final metric
+	r, e := ParseMetrics(final, validVals)
 	if e != nil {
 		return nil, fmt.Errorf("failed to parse metric, %v", e)
 	}
@@ -267,7 +260,7 @@ LOOP:
 	r.DnsServer = ServerAddress
 	r.DnsMethod = string(req.Protocol)
 
-	// logger.Sugar().Infof("result : %v ", r)
+	logger.Sugar().Infof("result : %v ", r)
 	return r, nil
 
 }
