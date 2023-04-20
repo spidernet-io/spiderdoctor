@@ -8,7 +8,7 @@ package externalversions
 import (
 	"fmt"
 
-	v1 "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
+	v1beta1 "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1beta1"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
 )
@@ -39,11 +39,11 @@ func (f *genericInformer) Lister() cache.GenericLister {
 // TODO extend this to unknown resources with a client pool
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
-	// Group=spiderdoctor.spidernet.io, Version=v1
-	case v1.SchemeGroupVersion.WithResource("netdnses"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Spiderdoctor().V1().Netdnses().Informer()}, nil
-	case v1.SchemeGroupVersion.WithResource("nethttps"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Spiderdoctor().V1().Nethttps().Informer()}, nil
+	// Group=spiderdoctor.spidernet.io, Version=v1beta1
+	case v1beta1.SchemeGroupVersion.WithResource("netdnses"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Spiderdoctor().V1beta1().Netdnses().Informer()}, nil
+	case v1beta1.SchemeGroupVersion.WithResource("nethttps"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Spiderdoctor().V1beta1().Nethttps().Informer()}, nil
 
 	}
 

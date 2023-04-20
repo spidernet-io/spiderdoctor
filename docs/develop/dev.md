@@ -13,7 +13,7 @@
 5. apply cr
 
         cat <<EOF > mybook.yaml
-        apiVersion: spiderdoctor.spidernet.io/v1
+        apiVersion: spiderdoctor.spidernet.io/v1beta1
         kind: Mybook
         metadata:
           name: test

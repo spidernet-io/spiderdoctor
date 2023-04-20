@@ -10,7 +10,7 @@ set -o pipefail
 
 APIS_PKG="pkg/k8s/apis"
 OUTPUT_PKG="pkg/k8s/client"
-GROUPS_WITH_VERSIONS="spiderdoctor.spidernet.io:v1"
+GROUPS_WITH_VERSIONS="spiderdoctor.spidernet.io:v1beta1"
 
 #===================
 

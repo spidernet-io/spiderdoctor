@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	k8sObjManager "github.com/spidernet-io/spiderdoctor/pkg/k8ObjManager"
-	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
+	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1beta1"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"github.com/spidernet-io/spiderdoctor/pkg/reportManager"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
@@ -169,19 +169,19 @@ func (s *pluginControllerReconciler) WriteSummaryReport(taskName string, roundNu
 	}
 }
 
-func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx context.Context, oldStatus *crd.TaskStatus, schedulePlan *crd.SchedulePlan, taskName string) (result *reconcile.Result, taskStatus *crd.TaskStatus, e error) {
+func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx context.Context, oldStatus *crd.TaskStatus, schedulePlan *crd.SchedulePlan, sourceAgent *metav1.LabelSelector, taskName string) (result *reconcile.Result, taskStatus *crd.TaskStatus, e error) {
 	newStatus := oldStatus.DeepCopy()
 	nextInterval := time.Duration(types.ControllerConfig.Configmap.TaskPollIntervalInSecond) * time.Second
 	nowTime := time.Now()
 
 	// init new instance first
 	if newStatus.ExpectedRound == nil || len(newStatus.History) == 0 {
-		n := schedulePlan.RoundNumber
+		n := schedulePlan.Simple.RoundNumber
 		newStatus.ExpectedRound = &n
 		m := int64(0)
 		newStatus.DoneRound = &m
 
-		startTime := time.Now().Add(time.Duration(schedulePlan.StartAfterMinute) * time.Minute)
+		startTime := time.Now().Add(time.Duration(schedulePlan.Simple.StartAfterMinute) * time.Minute)
 		newRecod := NewStatusHistoryRecord(startTime, 1, schedulePlan)
 		newStatus.History = append(newStatus.History, *newRecod)
 		logger.Sugar().Debugf("initialize the first round of task : %v ", taskName, *newRecod)
@@ -215,7 +215,7 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 
 		} else if latestRecord.Status == crd.StatusHistoryRecordStatusOngoing {
 			logger.Debug("try to poll the status of task " + taskName)
-			if roundDone, e := s.UpdateRoundFinalStatus(logger, ctx, newStatus, schedulePlan.SourceAgentNodeSelector, false); e != nil {
+			if roundDone, e := s.UpdateRoundFinalStatus(logger, ctx, newStatus, sourceAgent, false); e != nil {
 				return nil, nil, e
 			} else {
 				if roundDone {
@@ -229,7 +229,7 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 						n := *(newStatus.DoneRound) + 1
 						newStatus.DoneRound = &n
 						if n < *(newStatus.ExpectedRound) {
-							startTime := latestRecord.StartTimeStamp.Time.Add(time.Duration(schedulePlan.IntervalMinute) * time.Minute)
+							startTime := latestRecord.StartTimeStamp.Time.Add(time.Duration(schedulePlan.Simple.IntervalMinute) * time.Minute)
 							newRecod := NewStatusHistoryRecord(startTime, int(n+1), schedulePlan)
 
 							tmp := append([]crd.StatusHistoryRecord{*newRecod}, newStatus.History...)
@@ -279,7 +279,7 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 			if latestRecord.Status == crd.StatusHistoryRecordStatusOngoing {
 				// here, we should update last round status
 
-				if _, e := s.UpdateRoundFinalStatus(logger, ctx, newStatus, schedulePlan.SourceAgentNodeSelector, true); e != nil {
+				if _, e := s.UpdateRoundFinalStatus(logger, ctx, newStatus, sourceAgent, true); e != nil {
 					return nil, nil, e
 				} else {
 					// all agent finished, so try to update the summary
@@ -294,7 +294,7 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 						newStatus.DoneRound = &n
 
 						if n < *(newStatus.ExpectedRound) {
-							startTime := latestRecord.StartTimeStamp.Time.Add(time.Duration(schedulePlan.IntervalMinute) * time.Minute)
+							startTime := latestRecord.StartTimeStamp.Time.Add(time.Duration(schedulePlan.Simple.IntervalMinute) * time.Minute)
 							newRecod := NewStatusHistoryRecord(startTime, int(n+1), schedulePlan)
 							tmp := append([]crd.StatusHistoryRecord{*newRecod}, newStatus.History...)
 							if len(tmp) > types.ControllerConfig.Configmap.CrdMaxHistory {

@@ -10,7 +10,7 @@ the following is the spec of nethttp
 ```shell
 apiVersion: v1
 items:
-- apiVersion: spiderdoctor.spidernet.io/v1
+- apiVersion: spiderdoctor.spidernet.io/v1beta1
   kind: Nethttp
   metadata:
     generation: 1
@@ -171,7 +171,7 @@ a quick task to test spiderdoctor agent, to verify the whole network is ok, each
 ```shell
 
 cat <<EOF > nethttp-test-agent.yaml
-apiVersion: spiderdoctor.spidernet.io/v1
+apiVersion: spiderdoctor.spidernet.io/v1beta1
 kind: Nethttp
 metadata:
   name: test-agent
@@ -198,7 +198,7 @@ a detail task to test spiderdoctor agent
 
 ```shell
 cat <<EOF > test-detail-agent.yaml
-apiVersion: spiderdoctor.spidernet.io/v1
+apiVersion: spiderdoctor.spidernet.io/v1beta1
 kind: Nethttp
 metadata:
   name: test-detail-agent
@@ -234,7 +234,7 @@ test custom URL
 ```shell
 
 cat <<EOF > test-custom.yaml
-apiVersion: spiderdoctor.spidernet.io/v1
+apiVersion: spiderdoctor.spidernet.io/v1beta1
 kind: Nethttp
 metadata:
   name: test-custom
@@ -264,7 +264,7 @@ use the spicified spiderdoctor agents to send the http request
 ```shell
 
 cat <<EOF > source-agent.yaml
-apiVersion: spiderdoctor.spidernet.io/v1
+apiVersion: spiderdoctor.spidernet.io/v1beta1
 kind: Nethttp
 metadata:
   name: source-agent
@@ -298,7 +298,7 @@ test pod
 
 ```shell
 cat <<EOF > test-pod.yaml
-apiVersion: spiderdoctor.spidernet.io/v1
+apiVersion: spiderdoctor.spidernet.io/v1beta1
 kind: Nethttp
 metadata:
   name: test-pod

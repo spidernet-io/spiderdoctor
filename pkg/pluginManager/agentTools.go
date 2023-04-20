@@ -9,11 +9,12 @@ import (
 	"encoding/json"
 	"fmt"
 	k8sObjManager "github.com/spidernet-io/spiderdoctor/pkg/k8ObjManager"
-	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
+	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1beta1"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"github.com/spidernet-io/spiderdoctor/pkg/taskStatusManager"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
 	"go.uber.org/zap"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"strings"
@@ -125,19 +126,20 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 	}()
 }
 
-func (s *pluginAgentReconciler) HandleAgentTaskRound(logger *zap.Logger, ctx context.Context, oldStatus *crd.TaskStatus, schedulePlan *crd.SchedulePlan, obj runtime.Object, taskName string, crdObjSpec interface{}) (result *reconcile.Result, taskStatus *crd.TaskStatus, e error) {
+func (s *pluginAgentReconciler) HandleAgentTaskRound(logger *zap.Logger, ctx context.Context, oldStatus *crd.TaskStatus, schedulePlan *crd.SchedulePlan, sourceAgent *v1.LabelSelector, obj runtime.Object, taskName string, crdObjSpec interface{}) (result *reconcile.Result, taskStatus *crd.TaskStatus, e error) {
 	newStatus := oldStatus.DeepCopy()
 	nowTime := time.Now()
 
 	// check node selector whether need to implement it
-	if schedulePlan.SourceAgentNodeSelector != nil {
-		if ok, e := k8sObjManager.GetK8sObjManager().MatchNodeSelected(ctx, types.AgentConfig.LocalNodeName, schedulePlan.SourceAgentNodeSelector); e != nil {
+
+	if sourceAgent != nil {
+		if ok, e := k8sObjManager.GetK8sObjManager().MatchNodeSelected(ctx, types.AgentConfig.LocalNodeName, sourceAgent); e != nil {
 			msg := fmt.Sprintf("failed to MatchNodeSelected, error=%v", e)
 			logger.Error(msg)
 			return nil, nil, fmt.Errorf(msg)
 		} else {
 			if !ok {
-				logger.Sugar().Infof("local node is not selected by the task, node selector=%v , ignore", schedulePlan.SourceAgentNodeSelector)
+				logger.Sugar().Infof("local node is not selected by the task, node selector=%v , ignore", sourceAgent)
 				return nil, nil, nil
 			}
 		}

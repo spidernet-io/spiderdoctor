@@ -1,7 +1,7 @@
 // Copyright 2022 Authors of spidernet-io
 // SPDX-License-Identifier: Apache-2.0
 
-package v1
+package v1beta1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -10,6 +10,9 @@ import (
 type NethttpSpec struct {
 	// +kubebuilder:validation:Optional
 	Schedule *SchedulePlan `json:"schedule,omitempty"`
+
+	// +kubebuilder:validation:Optional
+	SourceAgentNodeSelector *metav1.LabelSelector `json:"sourceAgentNodeSelector,omitempty"`
 
 	// +kubebuilder:validation:Optional
 	Target *NethttpTarget `json:"target,omitempty"`
@@ -74,6 +77,10 @@ type TargetPodSepc struct {
 
 	// +kubebuilder:validation:Minimum=1
 	HttpPort int `json:"httpPort"`
+
+	// +kubebuilder:validation:Type:=string
+	// +kubebuilder:validation:Optional
+	UrlPath string `json:"utlPath,omitempty"`
 
 	// +kubebuilder:validation:Type:=string
 	// +kubebuilder:validation:Enum=GET;POST;PUT;DELETE;CONNECT;OPTIONS;PATCH;HEAD

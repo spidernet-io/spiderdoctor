@@ -1,11 +1,23 @@
 // Copyright 2022 Authors of spidernet-io
 // SPDX-License-Identifier: Apache-2.0
 
-package v1
+package v1beta1
 
 import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 type SchedulePlan struct {
+	// +kubebuilder:validation:Optional
+	Simple *Simple `json:"simple,omitempty"`
+
+	// +kubebuilder:validation:Optional
+	Crontab *string `json:"crontab,omitempty"`
+
+	// +kubebuilder:default=60
+	// +kubebuilder:validation:Minimum=1
+	TimeoutMinute int64 `json:"timeoutMinute"`
+}
+
+type Simple struct {
 	// +kubebuilder:default=0
 	// +kubebuilder:validation:Minimum=0
 	StartAfterMinute int64 `json:"startAfterMinute"`
@@ -17,18 +29,11 @@ type SchedulePlan struct {
 	// +kubebuilder:default=360
 	// +kubebuilder:validation:Minimum=1
 	IntervalMinute int64 `json:"intervalMinute"`
-
-	// +kubebuilder:default=60
-	// +kubebuilder:validation:Minimum=1
-	TimeoutMinute int64 `json:"timeoutMinute"`
-
-	// +kubebuilder:validation:Optional
-	SourceAgentNodeSelector *metav1.LabelSelector `json:"sourceAgentNodeSelector,omitempty"`
 }
 
 type TaskStatus struct {
 	// +kubebuilder:validation:Optional
-	// +kubebuilder:validation:Minimum=0
+	// +kubebuilder:validation:Minimum=-1
 	ExpectedRound *int64 `json:"expectedRound,omitempty"`
 
 	// +kubebuilder:validation:Optional

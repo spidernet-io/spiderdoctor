@@ -4,7 +4,7 @@
 package netdns
 
 import (
-	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1"
+	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1beta1"
 	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
