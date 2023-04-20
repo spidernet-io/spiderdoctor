@@ -129,13 +129,13 @@ func (s *PluginNetHttp) WebhookValidateCreate(logger *zap.Logger, ctx context.Co
 			logger.Error(s)
 			return apierrors.NewBadRequest(s)
 		}
-		if r.Spec.Request.PerRequestTimeoutInMS > int(r.Spec.Schedule.TimeoutMinute*60*1000) {
-			s := fmt.Sprintf("nethttp %v requires PerRequestTimeoutInMS %v ms smaller than Schedule.TimeoutMinute %vm ", r.Name, r.Spec.Request.PerRequestTimeoutInMS, r.Spec.Schedule.TimeoutMinute)
+		if r.Spec.Request.PerRequestTimeoutInMS > int(r.Spec.Schedule.RoundTimeoutMinute*60*1000) {
+			s := fmt.Sprintf("nethttp %v requires PerRequestTimeoutInMS %v ms smaller than Schedule.RoundTimeoutMinute %vm ", r.Name, r.Spec.Request.PerRequestTimeoutInMS, r.Spec.Schedule.RoundTimeoutMinute)
 			logger.Error(s)
 			return apierrors.NewBadRequest(s)
 		}
-		if r.Spec.Request.DurationInSecond > int(r.Spec.Schedule.TimeoutMinute*60) {
-			s := fmt.Sprintf("nethttp %v requires request.DurationInSecond %vs smaller than Schedule.TimeoutMinute %vm ", r.Name, r.Spec.Request.DurationInSecond, r.Spec.Schedule.TimeoutMinute)
+		if r.Spec.Request.DurationInSecond > int(r.Spec.Schedule.RoundTimeoutMinute*60) {
+			s := fmt.Sprintf("nethttp %v requires request.DurationInSecond %vs smaller than Schedule.RoundTimeoutMinute %vm ", r.Name, r.Spec.Request.DurationInSecond, r.Spec.Schedule.RoundTimeoutMinute)
 			logger.Error(s)
 			return apierrors.NewBadRequest(s)
 		}

@@ -173,18 +173,18 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 	newStatus := oldStatus.DeepCopy()
 	nextInterval := time.Duration(types.ControllerConfig.Configmap.TaskPollIntervalInSecond) * time.Second
 	nowTime := time.Now()
-
+	var startTime time.Time
 	// init new instance first
+	scheduler := NewSchedule(*schedulePlan.Schedule)
 	if newStatus.ExpectedRound == nil || len(newStatus.History) == 0 {
-		n := schedulePlan.Simple.RoundNumber
-		newStatus.ExpectedRound = &n
+		startTime = scheduler.StartTime(nowTime)
 		m := int64(0)
 		newStatus.DoneRound = &m
+		newStatus.ExpectedRound = &schedulePlan.RoundNumber
 
-		startTime := time.Now().Add(time.Duration(schedulePlan.Simple.StartAfterMinute) * time.Minute)
-		newRecod := NewStatusHistoryRecord(startTime, 1, schedulePlan)
-		newStatus.History = append(newStatus.History, *newRecod)
-		logger.Sugar().Debugf("initialize the first round of task : %v ", taskName, *newRecod)
+		newRecord := NewStatusHistoryRecord(startTime, 1, schedulePlan)
+		newStatus.History = append(newStatus.History, *newRecord)
+		logger.Sugar().Debugf("initialize the first round of task : %v ", taskName, *newRecord)
 		// trigger
 		result = &reconcile.Result{
 			Requeue: true,
@@ -225,20 +225,21 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 					s.WriteSummaryReport(taskName, roundNumber, newStatus)
 
 					// add new round record
-					if *(newStatus.DoneRound) < *(newStatus.ExpectedRound) {
+					if *(newStatus.DoneRound) < *(newStatus.ExpectedRound) || *newStatus.ExpectedRound == -1 {
 						n := *(newStatus.DoneRound) + 1
 						newStatus.DoneRound = &n
-						if n < *(newStatus.ExpectedRound) {
-							startTime := latestRecord.StartTimeStamp.Time.Add(time.Duration(schedulePlan.Simple.IntervalMinute) * time.Minute)
-							newRecod := NewStatusHistoryRecord(startTime, int(n+1), schedulePlan)
+						startTime = scheduler.Next(latestRecord.StartTimeStamp.Time)
+						if n < *(newStatus.ExpectedRound) || *newStatus.ExpectedRound == -1 {
 
-							tmp := append([]crd.StatusHistoryRecord{*newRecod}, newStatus.History...)
+							newRecord := NewStatusHistoryRecord(startTime, int(n+1), schedulePlan)
+
+							tmp := append([]crd.StatusHistoryRecord{*newRecord}, newStatus.History...)
 							if len(tmp) > types.ControllerConfig.Configmap.CrdMaxHistory {
 								tmp = tmp[:(types.ControllerConfig.Configmap.CrdMaxHistory)]
 							}
 							newStatus.History = tmp
 
-							logger.Sugar().Infof("insert new record for next round : %+v", *newRecod)
+							logger.Sugar().Infof("insert new record for next round : %+v", *newRecord)
 						} else {
 							newStatus.Finish = true
 						}
@@ -248,7 +249,6 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 					result = &reconcile.Result{
 						Requeue: true,
 					}
-
 				} else {
 					// trigger after interval
 					result = &reconcile.Result{
@@ -289,20 +289,20 @@ func (s *pluginControllerReconciler) UpdateStatus(logger *zap.Logger, ctx contex
 					s.WriteSummaryReport(taskName, roundNumber, newStatus)
 
 					// add new round record
-					if *(newStatus.DoneRound) < *(newStatus.ExpectedRound) {
+					if *(newStatus.DoneRound) < *(newStatus.ExpectedRound) || *newStatus.ExpectedRound == -1 {
 						n := *(newStatus.DoneRound) + 1
 						newStatus.DoneRound = &n
 
-						if n < *(newStatus.ExpectedRound) {
-							startTime := latestRecord.StartTimeStamp.Time.Add(time.Duration(schedulePlan.Simple.IntervalMinute) * time.Minute)
-							newRecod := NewStatusHistoryRecord(startTime, int(n+1), schedulePlan)
-							tmp := append([]crd.StatusHistoryRecord{*newRecod}, newStatus.History...)
+						if n < *(newStatus.ExpectedRound) || *newStatus.ExpectedRound == -1 {
+							startTime = scheduler.Next(latestRecord.StartTimeStamp.Time)
+							newRecord := NewStatusHistoryRecord(startTime, int(n+1), schedulePlan)
+							tmp := append([]crd.StatusHistoryRecord{*newRecord}, newStatus.History...)
 							if len(tmp) > types.ControllerConfig.Configmap.CrdMaxHistory {
 								tmp = tmp[:(types.ControllerConfig.Configmap.CrdMaxHistory)]
 							}
 							newStatus.History = tmp
 
-							logger.Sugar().Infof("insert new record for next round : %+v", *newRecod)
+							logger.Sugar().Infof("insert new record for next round : %+v", *newRecord)
 						} else {
 							newStatus.Finish = true
 						}

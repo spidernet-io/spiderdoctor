@@ -25,7 +25,7 @@ import (
 func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger, obj runtime.Object, schedulePlan *crd.SchedulePlan, taskName string, roundNumber int, crdObjSpec interface{}) {
 	taskRoundName := fmt.Sprintf("%s.round%d", taskName, roundNumber)
 
-	roundDuration := time.Duration(schedulePlan.TimeoutMinute) * time.Minute
+	roundDuration := time.Duration(schedulePlan.RoundTimeoutMinute) * time.Minute
 	ctx, cancel := context.WithTimeout(context.Background(), roundDuration)
 	defer cancel()
 	taskSucceed := make(chan bool)
@@ -92,7 +92,7 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 					kindName := strings.Split(taskName, ".")[0]
 					instanceName := strings.TrimPrefix(taskName, kindName+".")
 					// save with maximum age roundDuration , in this interval, the controller also will collect it
-					t := time.Duration(schedulePlan.TimeoutMinute+5) * time.Minute
+					t := time.Duration(schedulePlan.RoundTimeoutMinute+5) * time.Minute
 
 					// file name format: fmt.Sprintf("%s_%s_round%d_%s_%s", kindName, taskName, roundNumber, nodeName, suffix)
 					if e := s.fm.WriteTaskFile(kindName, instanceName, roundNumber, s.localNodeName, time.Now().Add(t), out.Bytes()); e != nil {
