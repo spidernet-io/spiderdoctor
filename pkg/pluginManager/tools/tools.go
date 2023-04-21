@@ -5,7 +5,10 @@ package tools
 
 import (
 	"fmt"
+	"github.com/robfig/cron"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1beta1"
+	"strconv"
+	"strings"
 )
 
 func ValidataCrdSchedule(plan *crd.SchedulePlan) error {
@@ -14,31 +17,53 @@ func ValidataCrdSchedule(plan *crd.SchedulePlan) error {
 		return fmt.Errorf("Schedule is empty ")
 	}
 
-	if plan.Simple.StartAfterMinute < 0 {
-		return fmt.Errorf("Schedule.StartAfterMinute %v must not be smaller than 0 ", plan.Simple.StartAfterMinute)
+	args := strings.Split(*plan.Schedule, " ")
+
+	if len(args) == 2 {
+		startAfterMinute, err := strconv.Atoi(args[0])
+		if err != nil {
+			return fmt.Errorf("The format of the schedule is incorrect, it should be number ")
+		}
+		intervalMinute, err := strconv.Atoi(args[1])
+		if err != nil {
+			return fmt.Errorf("The format of the schedule is incorrect, it should be number ")
+		}
+		if startAfterMinute < 0 {
+			return fmt.Errorf("Schedule.StartAfterMinute %v must not be smaller than 0 ", startAfterMinute)
+		}
+
+		if intervalMinute < 1 {
+			return fmt.Errorf("Schedule.IntervalMinute %v must not be smaller than 1 ", intervalMinute)
+		}
+
+		if int(plan.RoundTimeoutMinute) > intervalMinute {
+			return fmt.Errorf("Schedule.RoundTimeoutMinute %v must not be bigger than Schedule.IntervalMinute %v ", plan.RoundTimeoutMinute, intervalMinute)
+		}
+
+	} else if len(args) == 5 {
+		_, err := cron.ParseStandard(*plan.Schedule)
+		if err != nil {
+			return fmt.Errorf("Crontab configuration error,err: %v ", err)
+		}
+
+	} else {
+		return fmt.Errorf("The format of the schedule is incorrect, it should be two or five ")
 	}
 
-	if plan.TimeoutMinute < 1 {
-		return fmt.Errorf("Schedule.TimeoutMinute %v must not be smaller than 1 ", plan.TimeoutMinute)
-	}
-	if plan.Simple.IntervalMinute < 1 {
-		return fmt.Errorf("Schedule.IntervalMinute %v must not be smaller than 1 ", plan.Simple.IntervalMinute)
-	}
-	if plan.TimeoutMinute > plan.Simple.IntervalMinute {
-		return fmt.Errorf("Schedule.TimeoutMinute %v must not be bigger than Schedule.IntervalMinute %v ", plan.TimeoutMinute, plan.Simple.IntervalMinute)
+	if plan.RoundTimeoutMinute < 1 {
+		return fmt.Errorf("Schedule.RoundTimeoutMinute %v must not be smaller than 1 ", plan.RoundTimeoutMinute)
 	}
 
 	return nil
 }
 
 func GetDefaultSchedule() (plan *crd.SchedulePlan) {
+	s := "0 60"
 	return &crd.SchedulePlan{
-		TimeoutMinute: 60,
-		Simple: &crd.Simple{
-			StartAfterMinute: 0,
-			RoundNumber:      1,
-			IntervalMinute:   60,
-		}}
+		RoundTimeoutMinute: 60,
+		Schedule:           &s,
+		RoundNumber:        1,
+	}
 }
 
 func GetDefaultNetSuccessCondition() (plan *crd.NetSuccessCondition) {

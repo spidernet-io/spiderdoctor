@@ -124,7 +124,7 @@ type HttpTarget struct {
 // +kubebuilder:printcolumn:JSONPath=".status.expectedRound",description="expectedRound",name="expectedRound",type=integer
 // +kubebuilder:printcolumn:JSONPath=".status.doneRound",description="doneRound",name="doneRound",type=integer
 // +kubebuilder:printcolumn:JSONPath=".status.lastRoundStatus",description="lastRoundStatus",name="lastRoundStatus",type=string
-// +kubebuilder:printcolumn:JSONPath=".spec.schedule.intervalMinute",description="roundIntervalMinute",name="intervalMinute",type=integer
+// +kubebuilder:printcolumn:JSONPath=".spec.schedule.schedule",description="schedule",name="schedule",type=string
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +genclient

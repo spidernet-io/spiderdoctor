@@ -86,37 +86,21 @@ spec:
                 type: object
               schedule:
                 properties:
-                  crontab:
-                    type: string
-                  simple:
-                    properties:
-                      intervalMinute:
-                        default: 360
-                        format: int64
-                        minimum: 1
-                        type: integer
-                      roundNumber:
-                        default: 1
-                        format: int64
-                        minimum: 0
-                        type: integer
-                      startAfterMinute:
-                        default: 0
-                        format: int64
-                        minimum: 0
-                        type: integer
-                    required:
-                    - intervalMinute
-                    - roundNumber
-                    - startAfterMinute
-                    type: object
-                  timeoutMinute:
+                  roundNumber:
+                    default: 1
+                    format: int64
+                    minimum: -1
+                    type: integer
+                  roundTimeoutMinute:
                     default: 60
                     format: int64
                     minimum: 1
                     type: integer
+                  schedule:
+                    type: string
                 required:
-                - timeoutMinute
+                - roundNumber
+                - roundTimeoutMinute
                 type: object
               sourceAgentNodeSelector:
                 description: A label selector is a label query over a set of resources.

@@ -21,7 +21,7 @@ func NewStatusHistoryRecord(startTime time.Time, RoundNumber int, schedulePlan *
 	}
 	newRecod.StartTimeStamp = metav1.NewTime(startTime)
 
-	adder := time.Duration(schedulePlan.TimeoutMinute) * time.Minute
+	adder := time.Duration(schedulePlan.RoundTimeoutMinute) * time.Minute
 	endTime := startTime.Add(adder)
 	newRecod.DeadLineTimeStamp = metav1.NewTime(endTime)
 

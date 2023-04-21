@@ -6,29 +6,17 @@ package v1beta1
 import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 type SchedulePlan struct {
-	// +kubebuilder:validation:Optional
-	Simple *Simple `json:"simple,omitempty"`
 
 	// +kubebuilder:validation:Optional
-	Crontab *string `json:"crontab,omitempty"`
+	Schedule *string `json:"schedule,omitempty"`
 
 	// +kubebuilder:default=60
 	// +kubebuilder:validation:Minimum=1
-	TimeoutMinute int64 `json:"timeoutMinute"`
-}
-
-type Simple struct {
-	// +kubebuilder:default=0
-	// +kubebuilder:validation:Minimum=0
-	StartAfterMinute int64 `json:"startAfterMinute"`
+	RoundTimeoutMinute int64 `json:"roundTimeoutMinute"`
 
 	// +kubebuilder:default=1
-	// +kubebuilder:validation:Minimum=0
+	// +kubebuilder:validation:Minimum=-1
 	RoundNumber int64 `json:"roundNumber"`
-
-	// +kubebuilder:default=360
-	// +kubebuilder:validation:Minimum=1
-	IntervalMinute int64 `json:"intervalMinute"`
 }
 
 type TaskStatus struct {
