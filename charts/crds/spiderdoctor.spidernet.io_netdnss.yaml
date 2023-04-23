@@ -34,10 +34,10 @@ spec:
       jsonPath: .status.lastRoundStatus
       name: lastRoundStatus
       type: string
-    - description: roundIntervalMinute
-      jsonPath: .spec.schedule.intervalMinute
-      name: intervalMinute
-      type: integer
+    - description: schedule
+      jsonPath: .spec.schedule.schedule
+      name: schedule
+      type: string
     name: v1beta1
     schema:
       openAPIV3Schema:
@@ -59,7 +59,7 @@ spec:
               request:
                 properties:
                   domain:
-                    default: kubernetes.default.svc
+                    default: kubernetes.default.svc.cluster.local
                     type: string
                   durationInSecond:
                     default: 2
@@ -77,12 +77,6 @@ spec:
                     maximum: 20
                     minimum: 1
                     type: integer
-                  testIPv4:
-                    default: true
-                    type: boolean
-                  testIPv6:
-                    default: false
-                    type: boolean
                 type: object
               schedule:
                 properties:
@@ -165,9 +159,6 @@ spec:
                 type: object
               target:
                 properties:
-                  port:
-                    default: 53
-                    type: integer
                   protocol:
                     default: udp
                     enum:
@@ -175,8 +166,25 @@ spec:
                     - tcp
                     - tcp-tls
                     type: string
-                  server:
-                    type: string
+                  targetDns:
+                    properties:
+                      serviceNamespaceName:
+                        type: string
+                      testIPv4:
+                        default: true
+                        type: boolean
+                      testIPv6:
+                        default: false
+                        type: boolean
+                    type: object
+                  targetUser:
+                    properties:
+                      port:
+                        default: 53
+                        type: integer
+                      server:
+                        type: string
+                    type: object
                 type: object
             type: object
           status:

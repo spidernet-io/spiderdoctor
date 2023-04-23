@@ -8,6 +8,7 @@ import (
 	"fmt"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -91,4 +92,27 @@ func (nm *k8sObjManager) GetServiceAccessUrl(ctx context.Context, name, namespac
 	}
 
 	return r, nil
+}
+
+func (nm *k8sObjManager) ListServicesDnsIP(ctx context.Context) ([]string, error) {
+	serviceList := new(corev1.ServiceList)
+	var err error
+	var result []string
+	label := map[string]string{
+		"k8s-app": "kube-dns",
+	}
+	ListOption := &client.ListOptions{
+		Namespace:     "kube-system",
+		LabelSelector: labels.SelectorFromSet(label),
+	}
+
+	if err = nm.client.List(ctx, serviceList, ListOption); err != nil {
+		return nil, err
+	}
+
+	for _, v := range serviceList.Items {
+		result = append(result, v.Spec.ClusterIPs...)
+	}
+
+	return result, nil
 }

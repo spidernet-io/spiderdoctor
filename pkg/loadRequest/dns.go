@@ -11,7 +11,6 @@ import (
 	"github.com/spidernet-io/spiderdoctor/pkg/utils/stats"
 	"go.uber.org/ratelimit"
 	"go.uber.org/zap"
-	"net"
 	"sync"
 	"time"
 )
@@ -33,7 +32,7 @@ type DnsRequestData struct {
 	// must be full domain
 	TargetDomain string
 	// empty, or specified to be format "2.2.2.2:53"
-	DnsServerAddr         *string
+	DnsServerAddr         string
 	PerRequestTimeoutInMs int
 	Qps                   int
 	DurationInMs          int
@@ -154,22 +153,8 @@ func ParseMetrics(final *DnsMetrics, validVals []float32) (*DnsMetrics, error) {
 }
 
 func DnsRequest(logger *zap.Logger, req *DnsRequestData) (result *DnsMetrics, err error) {
-	var ServerAddress string
+	ServerAddress := req.DnsServerAddr
 	l := &lock.Mutex{}
-
-	if req.DnsServerAddr == nil {
-		config, e := dns.ClientConfigFromFile(DefaultDnsConfPath)
-		if e != nil {
-			return nil, fmt.Errorf("Error getting nameservers from %v : %v", DefaultDnsConfPath, e)
-		}
-		if len(config.Servers) == 0 {
-			return nil, fmt.Errorf("no name servers in %v ", DefaultDnsConfPath)
-		}
-		ServerAddress = net.JoinHostPort(config.Servers[0], config.Port)
-	} else {
-		ServerAddress = *(req.DnsServerAddr)
-	}
-	// TODO: when dns.TypeAAAA, prefer ipv6 server ?
 
 	logger.Sugar().Infof("dns ServerAddress=%v, request=%v, ", ServerAddress, req)
 
