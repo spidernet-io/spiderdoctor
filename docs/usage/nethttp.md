@@ -17,10 +17,9 @@ items:
     name: testhttp1
   spec:
     schedule:
-      intervalMinute: 2
+      schedule: "*/1 * * * *"
       roundNumber: 2
-      startAfterMinute: 0
-      timeoutMinute: 1
+      roundTimeoutMinute: 1
       sourceAgentNodeSelector:
         matchExpressions:
           - { key: "kubernetes.io/hostname", operator: In, values: ["spiderdoctor-worker"] }
@@ -37,6 +36,7 @@ items:
           matchExpressions:
             - { key: "app", operator: In, values: ["http-server"] }
         httpPort: 80
+        utlPath: "/"
         method: GET
         testIPv4: true
         testIPv6: true
@@ -77,7 +77,7 @@ items:
 
       startAfterMinute: when the start the first round
 
-      timeoutMinute: the timeout in minute for each round, when the rask does not finish in time, it results to be failuire
+      roundTimeoutMinute: the timeout in minute for each round, when the rask does not finish in time, it results to be failuire
 
       sourceAgentNodeSelector [optional]: set the node label selector, then, the spiderdoctor agent who locates on these nodes will implement the task. If not set this field, all spiderdoctor agent will execute the task
 
@@ -177,10 +177,9 @@ metadata:
   name: test-agent
 spec:
   schedule:
-    startAfterMinute: 0
+    schedule: "1 1"
     roundNumber: 2
-    intervalMinute: 2
-    timeoutMinute: 1
+    roundTimeoutMinute: 1
   request:
     durationInSecond: 2
     qps: 2
@@ -204,10 +203,9 @@ metadata:
   name: test-detail-agent
 spec:
   schedule:
-    startAfterMinute: 0
+    schedule: "1 1"
     roundNumber: 2
-    intervalMinute: 2
-    timeoutMinute: 1
+    roundTimeoutMinute: 1
   target:
     targetAgent:
       testIPv4: true
@@ -240,10 +238,9 @@ metadata:
   name: test-custom
 spec:
   schedule:
-    startAfterMinute: 0
+    schedule: "1 1"
     roundNumber: 2
-    intervalMinute: 2
-    timeoutMinute: 1
+    roundTimeoutMinute: 1
   target:
     targetUser:
       url: "http://172.80.1.2"
@@ -270,10 +267,9 @@ metadata:
   name: source-agent
 spec:
   schedule:
-    startAfterMinute: 0
+    schedule: "1 1"
     roundNumber: 2
-    intervalMinute: 2
-    timeoutMinute: 1
+    roundTimeoutMinute: 1
     sourceAgentNodeSelector:
         matchExpressions:
           - { key: "kubernetes.io/hostname", operator: In, values: ["spiderdoctor-worker"] }
@@ -304,16 +300,16 @@ metadata:
   name: test-pod
 spec:
   schedule:
-    startAfterMinute: 0
+    schedule: "1 1"
     roundNumber: 2
-    intervalMinute: 2
-    timeoutMinute: 1
+    roundTimeoutMinute: 1
   target:
     targetPod:
       podLabelSelector:
           matchExpressions:
             - { key: "app", operator: In, values: ["test"] }
       method: "GET"
+      utlPath: "/"
       httpPort: 80
       testIPv4: true
       testIPv6: true
