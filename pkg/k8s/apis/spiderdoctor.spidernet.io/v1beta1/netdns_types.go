@@ -26,27 +26,37 @@ type NetdnsSpec struct {
 
 type NetDnsTarget struct {
 	// +kubebuilder:validation:Optional
-	Server string `json:"server,omitempty"`
-
+	NetDnsTargetUser *NetDnsTargetUserSpec `json:"targetUser,omitempty"`
 	// +kubebuilder:validation:Optional
-	// +kubebuilder:default=53
-	Port int `json:"port,omitempty"`
+	NetDnsTargetDns *NetDnsTargetDnsSpec `json:"targetDns,omitempty"`
 
 	// +kubebuilder:validation:Optional
 	// +kubebuilder:default=udp
 	// +kubebuilder:validation:Type:=string
 	// +kubebuilder:validation:Enum=udp;tcp;tcp-tls
-	Protocol string `json:"protocol,omitempty"`
+	Protocol *string `json:"protocol,omitempty"`
 }
 
-type NetdnsRequest struct {
+type NetDnsTargetUserSpec struct {
+	// +kubebuilder:validation:Optional
+	Server *string `json:"server,omitempty"`
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default=53
+	Port *int `json:"port,omitempty"`
+}
+
+type NetDnsTargetDnsSpec struct {
+	// +kubebuilder:validation:Optional
+	ServiceNamespacedName *string `json:"serviceNamespaceName,omitempty"`
 	// +kubebuilder:default=true
 	// +kubebuilder:validation:Optional
 	TestIPv4 *bool `json:"testIPv4,omitempty"`
-
 	// +kubebuilder:default=false
 	// +kubebuilder:validation:Optional
 	TestIPv6 *bool `json:"testIPv6,omitempty"`
+}
+
+type NetdnsRequest struct {
 
 	// +kubebuilder:validation:Optional
 	// +kubebuilder:default=2
@@ -64,7 +74,7 @@ type NetdnsRequest struct {
 	// +kubebuilder:validation:Minimum=1
 	PerRequestTimeoutInMS *uint64 `json:"perRequestTimeoutInMS,omitempty"`
 
-	// +kubebuilder:default=kubernetes.default.svc
+	// +kubebuilder:default=kubernetes.default.svc.cluster.local
 	// +kubebuilder:validation:Optional
 	Domain string `json:"domain"`
 }
@@ -75,7 +85,7 @@ type NetdnsRequest struct {
 // +kubebuilder:printcolumn:JSONPath=".status.expectedRound",description="expectedRound",name="expectedRound",type=integer
 // +kubebuilder:printcolumn:JSONPath=".status.doneRound",description="doneRound",name="doneRound",type=integer
 // +kubebuilder:printcolumn:JSONPath=".status.lastRoundStatus",description="lastRoundStatus",name="lastRoundStatus",type=string
-// +kubebuilder:printcolumn:JSONPath=".spec.schedule.intervalMinute",description="roundIntervalMinute",name="intervalMinute",type=integer
+// +kubebuilder:printcolumn:JSONPath=".spec.schedule.schedule",description="schedule",name="schedule",type=string
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +genclient

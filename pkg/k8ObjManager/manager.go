@@ -37,6 +37,7 @@ type K8sObjManager interface {
 	// service
 	GetService(ctx context.Context, name, namespace string) (*corev1.Service, error)
 	GetServiceAccessUrl(ctx context.Context, name, namespace string, portName string) (*ServiceAccessUrl, error)
+	ListServicesDnsIP(ctx context.Context) ([]string, error)
 
 	GetIngress(ctx context.Context, name, namespace string) (*networkingv1.Ingress, error)
 }
