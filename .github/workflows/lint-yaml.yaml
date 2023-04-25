@@ -33,6 +33,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.WELAN_PAT}}
         run: |
+          set -x
           echo "=================== install yq"
           wget https://github.com/mikefarah/yq/releases/download/v4.30.7/yq_linux_amd64
           chmod +x yq_linux_amd64
