@@ -138,14 +138,14 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 				if len(podips.IPv4) > 0 && (target.TargetPod.TestIPv4 == nil || (target.TargetPod.TestIPv4 != nil && *target.TargetPod.TestIPv4)) {
 					testTargetList = append(testTargetList, &TestTarget{
 						Name:   "SelectedPodV4IP_" + podname + "_" + podips.IPv4,
-						Url:    fmt.Sprintf("http://%s:%d", podips.IPv4, target.TargetPod.HttpPort),
+						Url:    fmt.Sprintf("http://%s:%d%s", podips.IPv4, target.TargetPod.HttpPort, target.TargetPod.UrlPath),
 						Method: loadRequest.HttpMethod(target.TargetPod.Method),
 					})
 				}
 				if len(podips.IPv6) > 0 && (target.TargetPod.TestIPv6 == nil || (target.TargetPod.TestIPv6 != nil && *target.TargetPod.TestIPv6)) {
 					testTargetList = append(testTargetList, &TestTarget{
 						Name:   "SelectedPodV6IP_" + podname + "_" + podips.IPv6,
-						Url:    fmt.Sprintf("http://%s:%d", podips.IPv6, target.TargetPod.HttpPort),
+						Url:    fmt.Sprintf("http://%s:%d%s", podips.IPv6, target.TargetPod.HttpPort, target.TargetPod.UrlPath),
 						Method: loadRequest.HttpMethod(target.TargetPod.Method),
 					})
 				}
