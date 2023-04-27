@@ -73,9 +73,9 @@ items:
 
       roundNumber: how many rounds it should be to run this task
 
-      intervalMinute:  the time interval in minute, for run each round for this task
-
-      startAfterMinute: when the start the first round
+      schedule: Support Linux crontab syntax for scheduling tasks, while also supporting simple writing. 
+                The first digit represents how long the task will start, and the second digit represents the interval time between each round of tasks,
+                separated by spaces. Example: "1 2" indicates that the task will start in 1 minute, and the interval time between each round of tasks.
 
       roundTimeoutMinute: the timeout in minute for each round, when the rask does not finish in time, it results to be failuire
 
