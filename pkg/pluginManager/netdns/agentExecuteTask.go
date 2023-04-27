@@ -18,18 +18,22 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 func ParseSuccessCondition(successCondition *crd.NetSuccessCondition, metricResult *loadRequest.DnsMetrics) (failureReason string, err error) {
+	mean, _ := time.ParseDuration(metricResult.DelayForSuccess.Mean)
+
 	switch {
 	case successCondition.SuccessRate != nil && metricResult.SuccessRate < *(successCondition.SuccessRate):
 		failureReason = fmt.Sprintf("Success Rate %v is lower than request %v", metricResult.SuccessRate, *(successCondition.SuccessRate))
-	case successCondition.MeanAccessDelayInMs != nil && metricResult.DelayForSuccess.Mean.Milliseconds() > *(successCondition.MeanAccessDelayInMs):
-		failureReason = fmt.Sprintf("mean delay %v ms is bigger than request %v ms", metricResult.DelayForSuccess.Mean.Milliseconds(), *(successCondition.MeanAccessDelayInMs))
+	case successCondition.MeanAccessDelayInMs != nil && mean.Milliseconds() > *(successCondition.MeanAccessDelayInMs):
+		failureReason = fmt.Sprintf("mean delay %v ms is bigger than request %v ms", mean.Milliseconds(), *(successCondition.MeanAccessDelayInMs))
 	default:
 		failureReason = ""
 		err = nil
 	}
+
 	return
 }
 
@@ -47,7 +51,7 @@ func SendRequestAndReport(logger *zap.Logger, targetName string, req *loadReques
 		report["FailureReason"] = failureReason
 		return
 	}
-	report["MeanDelay"] = result.DelayForSuccess.Mean.String()
+	report["MeanDelay"] = result.DelayForSuccess.Mean
 	report["SucceedRate"] = fmt.Sprintf("%v", result.SuccessRate)
 
 	failureReason, err = ParseSuccessCondition(successCondition, result)
@@ -108,7 +112,7 @@ func (s *PluginNetDns) AgentExecuteTask(logger *zap.Logger, ctx context.Context,
 				DnsServerAddr:         server,
 				PerRequestTimeoutInMs: int(*instance.Spec.Request.PerRequestTimeoutInMS),
 				Qps:                   int(*instance.Spec.Request.QPS),
-				DurationInMs:          int(*instance.Spec.Request.DurationInSecond),
+				DurationInSecond:      int(*instance.Spec.Request.DurationInSecond),
 			}})
 		} else {
 			testTargetList = append(testTargetList, &testTarget{Name: "typeAAAA_" + server + "_" + instance.Spec.Request.Domain, Request: &loadRequest.DnsRequestData{
@@ -118,7 +122,7 @@ func (s *PluginNetDns) AgentExecuteTask(logger *zap.Logger, ctx context.Context,
 				DnsServerAddr:         server,
 				PerRequestTimeoutInMs: int(*instance.Spec.Request.PerRequestTimeoutInMS),
 				Qps:                   int(*instance.Spec.Request.QPS),
-				DurationInMs:          int(*instance.Spec.Request.DurationInSecond),
+				DurationInSecond:      int(*instance.Spec.Request.DurationInSecond),
 			}})
 		}
 	}
@@ -142,7 +146,7 @@ func (s *PluginNetDns) AgentExecuteTask(logger *zap.Logger, ctx context.Context,
 						DnsServerAddr:         server,
 						PerRequestTimeoutInMs: int(*instance.Spec.Request.PerRequestTimeoutInMS),
 						Qps:                   int(*instance.Spec.Request.QPS),
-						DurationInMs:          int(*instance.Spec.Request.DurationInSecond),
+						DurationInSecond:      int(*instance.Spec.Request.DurationInSecond),
 					}})
 				} else if ip.To4() == nil && *instance.Spec.Target.NetDnsTargetDns.TestIPv6 {
 					testTargetList = append(testTargetList, &testTarget{Name: "typeAAAA_" + server + "_" + instance.Spec.Request.Domain, Request: &loadRequest.DnsRequestData{
@@ -152,7 +156,7 @@ func (s *PluginNetDns) AgentExecuteTask(logger *zap.Logger, ctx context.Context,
 						DnsServerAddr:         server,
 						PerRequestTimeoutInMs: int(*instance.Spec.Request.PerRequestTimeoutInMS),
 						Qps:                   int(*instance.Spec.Request.QPS),
-						DurationInMs:          int(*instance.Spec.Request.DurationInSecond),
+						DurationInSecond:      int(*instance.Spec.Request.DurationInSecond),
 					}})
 				}
 			}
@@ -174,7 +178,7 @@ func (s *PluginNetDns) AgentExecuteTask(logger *zap.Logger, ctx context.Context,
 						DnsServerAddr:         server,
 						PerRequestTimeoutInMs: int(*instance.Spec.Request.PerRequestTimeoutInMS),
 						Qps:                   int(*instance.Spec.Request.QPS),
-						DurationInMs:          int(*instance.Spec.Request.DurationInSecond),
+						DurationInSecond:      int(*instance.Spec.Request.DurationInSecond),
 					}})
 				} else if ip.To4() == nil && *instance.Spec.Target.NetDnsTargetDns.TestIPv6 {
 					testTargetList = append(testTargetList, &testTarget{Name: "typeAAAA_" + server + "_" + instance.Spec.Request.Domain, Request: &loadRequest.DnsRequestData{
@@ -184,7 +188,7 @@ func (s *PluginNetDns) AgentExecuteTask(logger *zap.Logger, ctx context.Context,
 						DnsServerAddr:         server,
 						PerRequestTimeoutInMs: int(*instance.Spec.Request.PerRequestTimeoutInMS),
 						Qps:                   int(*instance.Spec.Request.QPS),
-						DurationInMs:          int(*instance.Spec.Request.DurationInSecond),
+						DurationInSecond:      int(*instance.Spec.Request.DurationInSecond),
 					}})
 				}
 			}
