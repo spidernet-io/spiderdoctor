@@ -35,33 +35,33 @@ type DnsRequestData struct {
 	DnsServerAddr         string
 	PerRequestTimeoutInMs int
 	Qps                   int
-	DurationInMs          int
+	DurationInSecond      int
 }
 
 // ------------------
 
 type DelayMetric struct {
 	// Mean is the mean request latency.
-	Mean time.Duration `json:"mean"`
+	Mean string `json:"mean"`
 	// P50 is the 50th percentile request latency.
-	P50 time.Duration `json:"50th"`
+	P50 string `json:"50th"`
 	// P90 is the 90th percentile request latency.
-	P90 time.Duration `json:"90th"`
+	P90 string `json:"90th"`
 	// P95 is the 95th percentile request latency.
-	P95 time.Duration `json:"95th"`
+	P95 string `json:"95th"`
 	// P99 is the 99th percentile request latency.
-	P99 time.Duration `json:"99th"`
+	P99 string `json:"99th"`
 	// Max is the maximum observed request latency.
-	Max time.Duration `json:"max"`
+	Max string `json:"max"`
 	// Min is the minimum observed request latency.
-	Min time.Duration `json:"min"`
+	Min string `json:"min"`
 }
 
 // final metric
 type DnsMetrics struct {
 	StartTime time.Time
 	EndTime   time.Time
-	Duration  time.Duration
+	Duration  string
 
 	TargetDomain string
 	DnsServer    string
@@ -110,43 +110,43 @@ func ParseMetrics(final *DnsMetrics, validVals []float32) (*DnsMetrics, error) {
 		if e != nil {
 			return nil, fmt.Errorf("failed to parse mean delay, error=%v", e)
 		}
-		final.DelayForSuccess.Mean = time.Duration(t)
+		final.DelayForSuccess.Mean = parseTime(time.Duration(t))
 
 		t, e = stats.Max(validVals)
 		if e != nil {
 			return nil, fmt.Errorf("failed to parse max delay, error=%v", e)
 		}
-		final.DelayForSuccess.Max = time.Duration(t)
+		final.DelayForSuccess.Max = parseTime(time.Duration(t))
 
 		t, e = stats.Min(validVals)
 		if e != nil {
 			return nil, fmt.Errorf("failed to parse min delay, error=%v", e)
 		}
-		final.DelayForSuccess.Min = time.Duration(t)
+		final.DelayForSuccess.Min = parseTime(time.Duration(t))
 
 		t, e = stats.Percentile(validVals, 50)
 		if e != nil {
 			return nil, fmt.Errorf("failed to parse 50 Percentile, error=%v", e)
 		}
-		final.DelayForSuccess.P50 = time.Duration(t)
+		final.DelayForSuccess.P50 = parseTime(time.Duration(t))
 
 		t, e = stats.Percentile(validVals, 90)
 		if e != nil {
 			return nil, fmt.Errorf("failed to parse 90 Percentile, error=%v", e)
 		}
-		final.DelayForSuccess.P90 = time.Duration(t)
+		final.DelayForSuccess.P90 = parseTime(time.Duration(t))
 
 		t, e = stats.Percentile(validVals, 95)
 		if e != nil {
 			return nil, fmt.Errorf("failed to parse 95 Percentile, error=%v", e)
 		}
-		final.DelayForSuccess.P95 = time.Duration(t)
+		final.DelayForSuccess.P95 = parseTime(time.Duration(t))
 
 		t, e = stats.Percentile(validVals, 99)
 		if e != nil {
 			return nil, fmt.Errorf("failed to parse 99 Percentile, error=%v", e)
 		}
-		final.DelayForSuccess.P99 = time.Duration(t)
+		final.DelayForSuccess.P99 = parseTime(time.Duration(t))
 	}
 
 	return final, nil
@@ -169,7 +169,7 @@ func DnsRequest(logger *zap.Logger, req *DnsRequestData) (result *DnsMetrics, er
 
 	rl := ratelimit.New(req.Qps)
 	var wg sync.WaitGroup
-	d := time.Duration(req.DurationInMs) * time.Millisecond
+	d := time.Duration(req.DurationInSecond) * time.Second
 	ctx, cancel := context.WithTimeout(context.Background(), d)
 	defer cancel()
 	var duration time.Duration
@@ -240,7 +240,7 @@ LOOP:
 	}
 	r.StartTime = start
 	r.EndTime = end
-	r.Duration = duration
+	r.Duration = duration.String()
 	r.TargetDomain = req.TargetDomain
 	r.DnsServer = ServerAddress
 	r.DnsMethod = string(req.Protocol)
@@ -248,4 +248,8 @@ LOOP:
 	logger.Sugar().Infof("result : %v ", r)
 	return r, nil
 
+}
+
+func parseTime(t time.Duration) string {
+	return fmt.Sprintf("%.6fms", t.Seconds()*1000)
 }
