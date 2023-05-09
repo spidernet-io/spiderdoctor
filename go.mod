@@ -17,7 +17,7 @@ require (
 	github.com/onsi/gomega v1.27.6
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.14.0
-	github.com/pyroscope-io/client v0.6.0
+	github.com/pyroscope-io/client v0.7.0
 	github.com/robfig/cron v1.2.0
 	github.com/sasha-s/go-deadlock v0.3.1
 	github.com/spf13/cobra v1.6.1
