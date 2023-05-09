@@ -23,10 +23,12 @@
 
 * Implement DNS benchmark function : [PR 325](https://github.com/spidernet-io/spiderdoctor/pull/325)
 
+* metrics format : [PR 336](https://github.com/spidernet-io/spiderdoctor/pull/336)
+
 
 
 ***
 
 ## Totoal PR
 
-[ 39 PR](https://github.com/spidernet-io/spiderdoctor/compare/v0.3.0...v0.4.0-rc0)
+[ 41 PR](https://github.com/spidernet-io/spiderdoctor/compare/v0.3.0...v0.4.0-rc0)
