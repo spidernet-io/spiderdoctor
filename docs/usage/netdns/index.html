@@ -468,6 +468,8 @@
         
           
         
+          
+        
       
       
         <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
@@ -511,9 +513,54 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          netdns
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         netdns
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#concept" class="md-nav__link">
+    concept
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    example
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#report" class="md-nav__link">
+    report
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -528,6 +575,20 @@
     <li class="md-nav__item">
       <a href="../nethttp/" class="md-nav__link">
         Nethttp
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../performance/" class="md-nav__link">
+        environment
       </a>
     </li>
   
@@ -560,6 +621,35 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#concept" class="md-nav__link">
+    concept
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    example
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#report" class="md-nav__link">
+    report
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -580,6 +670,11 @@
 
 
 <h1 id="netdns">netdns</h1>
+<h2 id="concept">concept</h2>
+<p>Fo this kind task, each spiderdoctor agent will send dns request to specified target, and get success rate and mean delay.
+It could specify success condition to tell the result succeed or fail.
+And, more detailed report will print to spiderdoctor agent stdout, or save to disc by spiderdoctor controller.</p>
+<p>the following is the spec of netdns</p>
 <pre><code class="language-shell">
 cat &lt;&lt;EOF &gt; netdns.yaml
 apiVersion: spiderdoctor.spidernet.io/v1beta1
@@ -595,6 +690,10 @@ spec:
     targetDns:
       testIPv4: true
       testIPv6: false
+      serviceNamespaceName: kube-system/test-app
+    targetUser:
+      server: 172.18.0.1
+      port: 53
     protocol: udp
   request:
     durationInSecond: 10
@@ -609,15 +708,81 @@ EOF
 kubectl apply -f netdns.yaml
 
 </code></pre>
+<ul>
+<li>
+<p>spec.schedule: set how to schedule the task.</p>
+<p>roundNumber: how many rounds it should be to run this task</p>
+<p>schedule: Support Linux crontab syntax for scheduling tasks, while also supporting simple writing. 
+            The first digit represents how long the task will start, and the second digit represents the interval time between each round of tasks,
+            separated by spaces. Example: "1 2" indicates that the task will start in 1 minute, and the interval time between each round of tasks.</p>
+<p>roundTimeoutMinute: the timeout in minute for each round, when the rask does not finish in time, it results to be failuire</p>
+<p>sourceAgentNodeSelector [optional]: set the node label selector, then, the spiderdoctor agent who locates on these nodes will implement the task. If not set this field, all spiderdoctor agent will execute the task</p>
+</li>
+<li>
+<p>spec.request: how each spiderdoctor agent should send the dns request</p>
+<p>durationInSecond: for each round, the duration in second how long the dns request lasts</p>
+<p>perRequestTimeoutInMS: timeout in ms for each dns request</p>
+<p>qps: qps</p>
+<p>domain： resolved domain</p>
+</li>
+<li>
+<p>spec.target: set the target of dns request. it could not set targetUser and targetDns at the same time</p>
+<p>targetUser [optional]: set an user-defined DNS server for the dns request</p>
+<pre><code>server: the address for dns server
+
+port: the port for dns server
+</code></pre>
+<p>targetDns: [optional]: set cluster dns server for the dns request</p>
+<pre><code>testIPv4: test DNS server IPv4 address and request is type A.
+
+testIPv6: test DNS server IPv6 address and request is type AAAA.
+
+serviceNamespaceName: Specify the namespace and name of the DNS to be tested, do not fill in the default test cluster for all DNS servers
+</code></pre>
+<p>protocol: Specify request protocol,Optional value udp，tcp，tcp-tls,default udp.</p>
+</li>
+<li>
+<p>spec.success: define the success condition of the task result</p>
+</li>
+</ul>
+<p>meanAccessDelayInMs: mean access delay in MS, if the actual delay is bigger than this, it results to be failure</p>
+<p>successRate: the success rate of all dns requests. Notice, when a dns response code is &gt;=200 and &lt; 400, it's treated as success. if the actual whole success rate is smaller than successRate, the task results to be failure</p>
+<ul>
+<li>status: the status of the task
+  doneRound: how many rounds have finished</li>
+</ul>
+<p>expectedRound: how many rounds the task expect</p>
+<p>finish: whether all rounds of this task have finished</p>
+<p>lastRoundStatus: the result of last round</p>
+<p>history:
+  roundNumber: the round number</p>
+<pre><code>    status: the status of this round
+
+    startTimeStamp: when this round begins
+
+    endTimeStamp: when this round finally finished
+
+    duration: how long the round spent
+
+    deadLineTimeStamp: the time deadline of a round
+
+    failedAgentNodeList: the node list where failed spiderdoctor agent locate
+
+    notReportAgentNodeList: the node list where uknown spiderdoctor agent locate. This means these agents have problems.
+
+    succeedAgentNodeList: the node list where successful spiderdoctor agent locate
+</code></pre>
+<h2 id="example">example</h2>
+<p>test custom dns server by crontab</p>
 <pre><code class="language-shell">
 cat &lt;&lt;EOF &gt; netdns1.yaml
 apiVersion: spiderdoctor.spidernet.io/v1beta1
 kind: Netdns
 metadata:
-  name: testdns1
+  name: testdns
 spec:
   schedule:
-    schedule: &quot;1 2&quot;
+    schedule: &quot;*/1 * * * *&quot;
     roundNumber: 2
     roundTimeoutMinute: 1
   target:
@@ -637,6 +802,139 @@ EOF
 
 kubectl apply -f netdns1.yaml
 
+</code></pre>
+<p>test custom dns server by simple</p>
+<pre><code class="language-shell">
+cat &lt;&lt;EOF &gt; netdns1.yaml
+apiVersion: spiderdoctor.spidernet.io/v1beta1
+kind: Netdns
+metadata:
+  name: testdns
+spec:
+  schedule:
+    schedule: &quot;1 1&quot;
+    roundNumber: 2
+    roundTimeoutMinute: 1
+  target:
+    protocol: udp
+    targetUser:
+      server: 172.18.0.1
+      port: 53
+  request:
+    durationInSecond: 10
+    qps: 10
+    perRequestTimeoutInMS: 500
+    domain: &quot;baidu.com&quot;
+  success:
+    successRate: 1
+    meanAccessDelayInMs: 1000
+EOF
+
+kubectl apply -f netdns1.yaml
+
+</code></pre>
+<p>test cluster dns server by crontab</p>
+<pre><code class="language-shell">
+cat &lt;&lt;EOF &gt; netdns.yaml
+apiVersion: spiderdoctor.spidernet.io/v1beta1
+kind: Netdns
+metadata:
+  name: testdns
+spec:
+  schedule:
+    schedule: &quot;*/1 * * * *&quot;
+    roundNumber: 2
+    roundTimeoutMinute: 1
+  target:
+    targetDns:
+      testIPv4: true
+      testIPv6: false
+      serviceNamespaceName: kube-system/test-app
+    protocol: udp
+  request:
+    durationInSecond: 10
+    qps: 20
+    perRequestTimeoutInMS: 500
+    domain: &quot;kube-dns.kube-system.svc.cluster.local&quot;
+  success:
+    successRate: 1
+    meanAccessDelayInMs: 10000
+EOF
+
+kubectl apply -f netdns.yaml
+
+</code></pre>
+<p>test cluster dns server by simple</p>
+<pre><code class="language-shell">
+cat &lt;&lt;EOF &gt; netdns.yaml
+apiVersion: spiderdoctor.spidernet.io/v1beta1
+kind: Netdns
+metadata:
+  name: testdns
+spec:
+  schedule:
+    schedule: &quot;1 1&quot;
+    roundNumber: 2
+    roundTimeoutMinute: 1
+  target:
+    targetDns:
+      testIPv4: true
+      testIPv6: false
+      serviceNamespaceName: kube-system/test-app
+    protocol: udp
+  request:
+    durationInSecond: 10
+    qps: 20
+    perRequestTimeoutInMS: 500
+    domain: &quot;kube-dns.kube-system.svc.cluster.local&quot;
+  success:
+    successRate: 1
+    meanAccessDelayInMs: 10000
+EOF
+
+kubectl apply -f netdns.yaml
+
+</code></pre>
+<h2 id="report">report</h2>
+<p>when the spiderdoctor is not enabled to aggerate reports, all reports will be printed in the stdout of spiderdoctor agent.
+Use the following command to get its report</p>
+<pre><code class="language-shell">kubectl logs -n kube-system  spiderdoctor-agent-lwhtm | jq 'select( .TaskName==&quot;netdns.testdns&quot; )'
+</code></pre>
+<p>when the spiderdoctor is enabled to aggregate reports, all reports will be collected in the PVC or hostPath of spiderdoctor controller.</p>
+<p>metric introduction</p>
+<pre><code class="language-json">{
+  &quot;TaskName&quot;: &quot;netdns.testdns&quot;,
+  &quot;TaskSpec&quot;: {
+    &quot;schedule&quot;: {
+      &quot;schedule&quot;: &quot;1 1&quot;,
+      &quot;roundTimeoutMinute&quot;: 1,
+      &quot;roundNumber&quot;: 2
+    },
+    &quot;target&quot;: {
+      &quot;protocol&quot;: &quot;tcp&quot;
+    },
+    &quot;request&quot;: {
+      &quot;durationInSecond&quot;: 10,
+      &quot;qps&quot;: 20,
+      &quot;perRequestTimeoutInMS&quot;: 500,
+      &quot;domain&quot;: &quot;kube-dns.kube-system.svc.cluster.local&quot;
+    },
+    &quot;success&quot;: {
+      &quot;successRate&quot;: 1,
+      &quot;meanAccessDelayInMs&quot;: 10000
+    }
+  },
+  &quot;RoundNumber&quot;: 1,
+  &quot;RoundResult&quot;: &quot;succeed&quot;,
+  &quot;NodeName&quot;: &quot;spiderdoctor-control-plane&quot;,
+  &quot;PodName&quot;: &quot;spiderdoctor-agent-lwhtm&quot;,
+  &quot;FailedReason&quot;: &quot;&quot;,
+  &quot;StartTimeStamp&quot;: &quot;2023-04-27T07:07:32.032814878Z&quot;,
+  &quot;EndTimeStamp&quot;: &quot;2023-04-27T07:07:32.070513569Z&quot;,
+  &quot;RoundDuraiton&quot;: &quot;37.69869ms&quot;,
+  &quot;ReportType&quot;: &quot;agent test report&quot;,
+  &quot;Detail&quot;: {}
+}
 </code></pre>
 
 

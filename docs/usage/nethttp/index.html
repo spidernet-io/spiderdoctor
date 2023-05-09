@@ -12,6 +12,8 @@
         <link rel="prev" href="../netdns/">
       
       
+        <link rel="next" href="../performance/">
+      
       <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.8">
     
@@ -466,6 +468,8 @@
         
           
         
+          
+        
       
       
         <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
@@ -579,6 +583,20 @@
   
 </nav>
       
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../performance/" class="md-nav__link">
+        environment
+      </a>
     </li>
   
 
@@ -735,8 +753,9 @@ items:
 <li>
 <p>spec.schedule: set how to schedule the task.</p>
 <p>roundNumber: how many rounds it should be to run this task</p>
-<p>intervalMinute:  the time interval in minute, for run each round for this task</p>
-<p>startAfterMinute: when the start the first round</p>
+<p>schedule: Support Linux crontab syntax for scheduling tasks, while also supporting simple writing. 
+            The first digit represents how long the task will start, and the second digit represents the interval time between each round of tasks,
+            separated by spaces. Example: "1 2" indicates that the task will start in 1 minute, and the interval time between each round of tasks.</p>
 <p>roundTimeoutMinute: the timeout in minute for each round, when the rask does not finish in time, it results to be failuire</p>
 <p>sourceAgentNodeSelector [optional]: set the node label selector, then, the spiderdoctor agent who locates on these nodes will implement the task. If not set this field, all spiderdoctor agent will execute the task</p>
 </li>
