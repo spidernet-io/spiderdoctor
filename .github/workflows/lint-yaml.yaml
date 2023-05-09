@@ -32,6 +32,7 @@ jobs:
       - name: github yaml format yq
         env:
           GITHUB_TOKEN: ${{ secrets.WELAN_PAT}}
+          JSON_DOC: ${{ toJSON(github) }}
         run: |
           set -x
           echo "=================== install yq"
@@ -45,11 +46,8 @@ jobs:
               [ -n "${PR_NUMBER}" ] || { echo "no PR number, ignore" ; exit 0 ; }     
           elif ${{ github.event_name == 'push' }}; then
               echo "trigger by push"
-              DATA_FILE="/tmp/`date +%Y%m%d%H%M%S%N`"
-              echo '${{ toJSON(github) }}' > ${DATA_FILE}
-              cat ${DATA_FILE}
-              grep -Eio "Merge pull request #[0-9]+ "  ${DATA_FILE} || true
-              PR_NUMBER=` cat ${DATA_FILE} | grep -Eio "Merge pull request #[0-9]+ " | grep -Eo "[0-9]+" | uniq ` || true
+              echo "${JSON_DOC}"
+              PR_NUMBER=` grep -Eio "Merge pull request #[0-9]+ " <<< "${JSON_DOC}" | grep -Eo "[0-9]+" | uniq ` || true
               [ -n "${PR_NUMBER}" ] || { echo "no PR number, ignore" ; exit 0 ; }     
           else
               exit 1
