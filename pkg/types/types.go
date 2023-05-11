@@ -8,6 +8,8 @@ type ConfigmapConfig struct {
 	TaskPollIntervalInSecond                   int    `yaml:"taskPollIntervalInSecond"`
 	NethttpDefaultRequestQps                   int    `yaml:"nethttp_defaultRequest_Qps"`
 	NethttpDefaultRequestMaxQps                int    `yaml:"nethttp_defaultRequest_MaxQps"`
+	NethttpDefaultConcurrency                  int    `yaml:"nethttp_defaultConcurrency"`
+	NethttpDefaultMaxIdleConnsPerHost          int    `yaml:"nethttp_defaultMaxIdleConnsPerHost"`
 	NethttpDefaultRequestDurationInSecond      int    `yaml:"nethttp_defaultRequest_DurationInSecond"`
 	NethttpDefaultRequestPerRequestTimeoutInMS int    `yaml:"nethttp_defaultRequest_PerRequestTimeoutInMS"`
 	MultusPodAnnotationKey                     string `yaml:"multusPodAnnotationKey"`

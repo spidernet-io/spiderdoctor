@@ -1,6 +1,6 @@
 // Copyright 2022 Authors of spidernet-io
 // SPDX-License-Identifier: Apache-2.0
-package loadRequest_test
+package loadDns_test
 
 import (
 	"testing"

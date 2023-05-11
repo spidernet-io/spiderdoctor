@@ -1,7 +1,7 @@
 // Copyright 2022 Authors of spidernet-io
 // SPDX-License-Identifier: Apache-2.0
 
-package loadRequest_test
+package loadDns_test
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 	"github.com/miekg/dns"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/spidernet-io/spiderdoctor/pkg/loadRequest"
+	"github.com/spidernet-io/spiderdoctor/pkg/loadRequest/loadDns"
 	"github.com/spidernet-io/spiderdoctor/pkg/logger"
 )
 
@@ -19,8 +19,8 @@ var _ = Describe("test dns ", Label("dns"), func() {
 	It("test udp ", func() {
 
 		dnsServer := "223.5.5.5:53"
-		req := &loadRequest.DnsRequestData{
-			Protocol:              loadRequest.RequestMethodUdp,
+		req := &loadDns.DnsRequestData{
+			Protocol:              loadDns.RequestMethodUdp,
 			DnsType:               dns.TypeA,
 			TargetDomain:          "www.baidu.com",
 			DnsServerAddr:         dnsServer,
@@ -30,7 +30,7 @@ var _ = Describe("test dns ", Label("dns"), func() {
 		}
 
 		log := logger.NewStdoutLogger("debug", "test")
-		result, e := loadRequest.DnsRequest(log, req)
+		result, e := loadDns.DnsRequest(log, req)
 		Expect(e).NotTo(HaveOccurred(), "failed to execute , error=%v", e)
 		Expect(result.FailedCount).To(Equal(0))
 		Expect(len(result.ReplyCode)).To(Equal(1))
@@ -49,8 +49,8 @@ var _ = Describe("test dns ", Label("dns"), func() {
 	It("test tcp ", func() {
 
 		dnsServer := "223.5.5.5:53"
-		req := &loadRequest.DnsRequestData{
-			Protocol:              loadRequest.RequestMethodTcp,
+		req := &loadDns.DnsRequestData{
+			Protocol:              loadDns.RequestMethodTcp,
 			DnsType:               dns.TypeA,
 			TargetDomain:          "www.baidu.com",
 			DnsServerAddr:         dnsServer,
@@ -60,7 +60,7 @@ var _ = Describe("test dns ", Label("dns"), func() {
 		}
 
 		log := logger.NewStdoutLogger("debug", "test")
-		result, e := loadRequest.DnsRequest(log, req)
+		result, e := loadDns.DnsRequest(log, req)
 		Expect(e).NotTo(HaveOccurred(), "failed to execute , error=%v", e)
 		Expect(result.FailedCount).To(Equal(0))
 		Expect(len(result.ReplyCode)).To(Equal(1))
@@ -78,8 +78,8 @@ var _ = Describe("test dns ", Label("dns"), func() {
 	It("test bad domain ", func() {
 
 		dnsServer := "223.5.5.5:53"
-		req := &loadRequest.DnsRequestData{
-			Protocol:              loadRequest.RequestMethodUdp,
+		req := &loadDns.DnsRequestData{
+			Protocol:              loadDns.RequestMethodUdp,
 			DnsType:               dns.TypeA,
 			TargetDomain:          "www.no-existed.com",
 			DnsServerAddr:         dnsServer,
@@ -89,7 +89,7 @@ var _ = Describe("test dns ", Label("dns"), func() {
 		}
 
 		log := logger.NewStdoutLogger("debug", "test")
-		result, e := loadRequest.DnsRequest(log, req)
+		result, e := loadDns.DnsRequest(log, req)
 		Expect(e).NotTo(HaveOccurred(), "failed to execute , error=%v", e)
 		Expect(result.SucceedCount).To(Equal(0))
 		Expect(len(result.ReplyCode)).To(Equal(1))
@@ -107,8 +107,8 @@ var _ = Describe("test dns ", Label("dns"), func() {
 
 	It("test aaaa ", Label("aaaa"), func() {
 		dnsServer := "223.5.5.5:53"
-		req := &loadRequest.DnsRequestData{
-			Protocol:              loadRequest.RequestMethodUdp,
+		req := &loadDns.DnsRequestData{
+			Protocol:              loadDns.RequestMethodUdp,
 			DnsType:               dns.TypeAAAA,
 			TargetDomain:          "wikipedia.org",
 			DnsServerAddr:         dnsServer,
@@ -118,7 +118,7 @@ var _ = Describe("test dns ", Label("dns"), func() {
 		}
 
 		log := logger.NewStdoutLogger("debug", "test")
-		result, e := loadRequest.DnsRequest(log, req)
+		result, e := loadDns.DnsRequest(log, req)
 		Expect(e).NotTo(HaveOccurred(), "failed to execute , error=%v", e)
 		Expect(result.FailedCount).To(Equal(0))
 		Expect(len(result.ReplyCode)).To(Equal(1))
