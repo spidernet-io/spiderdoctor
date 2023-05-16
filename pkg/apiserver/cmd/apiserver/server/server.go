@@ -29,6 +29,11 @@ func NewSpiderDoctorServerOptions() *SpiderDoctorServerOptions {
 func (s *SpiderDoctorServerOptions) Config() (*apiserver.Config, error) {
 	serverConfig := genericapiserver.NewRecommendedConfig(apiserver.Codecs)
 
+	err := s.RecommendedOptions.ApplyTo(serverConfig)
+	if nil != err {
+		return nil, err
+	}
+
 	config := &apiserver.Config{
 		GenericConfig: serverConfig,
 		ExtraConfig:   apiserver.ExtraConfig{},
@@ -37,10 +42,28 @@ func (s *SpiderDoctorServerOptions) Config() (*apiserver.Config, error) {
 	return config, nil
 }
 
-func NewCommandStartSpiderDoctorServer() (*cobra.Command, error) {
+func NewCommandStartSpiderDoctorServer(stopCh <-chan struct{}) (*cobra.Command, error) {
+	options := NewSpiderDoctorServerOptions()
 
 	cmd := &cobra.Command{
 		Short: "run a SpiderDoctor api server",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			config, err := options.Config()
+			if nil != err {
+				return err
+			}
+
+			server, err := config.Complete().New()
+			if nil != err {
+				return err
+			}
+			
+			err = server.Run(stopCh)
+			if nil != err {
+				return err
+			}
+			return nil
+		},
 	}
 
 	cmd.Flags()

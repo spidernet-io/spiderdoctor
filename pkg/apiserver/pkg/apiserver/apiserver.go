@@ -1,6 +1,8 @@
 package apiserver
 
 import (
+	"github.com/spidernet-io/spiderdoctor/pkg/apiserver/pkg/registry"
+	"github.com/spidernet-io/spiderdoctor/pkg/apiserver/pkg/registry/spiderdoctor/pluginreport"
 	"github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -67,10 +69,24 @@ func (c completedConfig) New() (*SpiderDoctorServer, error) {
 
 	apiGroupInfo := genericapiserver.NewDefaultAPIGroupInfo(GroupName, Scheme, metav1.ParameterCodec, Codecs)
 	v1beta1storage := map[string]rest.Storage{}
-	//v1beta1storage["PluginReport"] =
+	v1beta1storage["PluginReport"] = registry.RESTInPeace(pluginreport.NewREST(Scheme, c.GenericConfig.RESTOptionsGetter))
 	apiGroupInfo.VersionedResourcesStorageMap["v1beta1"] = v1beta1storage
 
+	err = s.GenericAPIServer.InstallAPIGroup(&apiGroupInfo)
+	if nil != err {
+		return nil, err
+	}
+
 	return s, nil
+}
+
+func (s *SpiderDoctorServer) Run(stopCh <-chan struct{}) error {
+
+	s.GenericAPIServer.AddPostStartHookOrDie("post-starthook", func(ctx genericapiserver.PostStartHookContext) error {
+		return nil
+	})
+
+	return s.GenericAPIServer.PrepareRun().Run(stopCh)
 }
 
 func init() {

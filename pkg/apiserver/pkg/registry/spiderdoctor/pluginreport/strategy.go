@@ -2,10 +2,13 @@ package pluginreport
 
 import (
 	"context"
+	"fmt"
+	"github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1beta1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
+	"k8s.io/apiserver/pkg/registry/generic"
 	"k8s.io/apiserver/pkg/registry/rest"
 	"k8s.io/apiserver/pkg/storage"
 	"k8s.io/apiserver/pkg/storage/names"
@@ -64,13 +67,21 @@ func (p pluginReportStrategy) ValidateUpdate(ctx context.Context, obj, old runti
 }
 
 func GetAttrs(obj runtime.Object) (labels.Set, fields.Set, error) {
-
+	pluginReport, ok := obj.(*v1beta1.PluginReport)
+	if !ok {
+		return nil, nil, fmt.Errorf("given object is not a PluginReport")
+	}
+	return labels.Set(pluginReport.ObjectMeta.Labels), SelectableFields(pluginReport), nil
 }
 
 func MatchPluginReport(label labels.Selector, field fields.Selector) storage.SelectionPredicate {
-
+	return storage.SelectionPredicate{
+		Label:    label,
+		Field:    field,
+		GetAttrs: GetAttrs,
+	}
 }
 
-func SelectableFields() fields.Set {
-
+func SelectableFields(obj *v1beta1.PluginReport) fields.Set {
+	return generic.ObjectMetaFieldsSet(&obj.ObjectMeta, true)
 }

@@ -43,3 +43,7 @@ type PluginReportSpec struct {
 	ReportType     string      `json:"reportType"`
 	//Detail         interface{} `json:"detail"`
 }
+
+func init() {
+	SchemeBuilder.Register(&PluginReport{}, &PluginReportList{})
+}
