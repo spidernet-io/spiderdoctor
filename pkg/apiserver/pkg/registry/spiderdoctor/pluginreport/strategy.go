@@ -1,0 +1,76 @@
+package pluginreport
+
+import (
+	"context"
+	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/validation/field"
+	"k8s.io/apiserver/pkg/registry/rest"
+	"k8s.io/apiserver/pkg/storage"
+	"k8s.io/apiserver/pkg/storage/names"
+)
+
+type pluginReportStrategy struct {
+	runtime.ObjectTyper
+	names.NameGenerator
+}
+
+var _ rest.RESTCreateStrategy = &pluginReportStrategy{}
+var _ rest.RESTUpdateStrategy = &pluginReportStrategy{}
+
+func NewStrategy(typer runtime.ObjectTyper) pluginReportStrategy {
+	return pluginReportStrategy{
+		ObjectTyper:   typer,
+		NameGenerator: names.SimpleNameGenerator,
+	}
+}
+
+func (p pluginReportStrategy) NamespaceScoped() bool {
+	return true
+}
+
+func (p pluginReportStrategy) PrepareForCreate(ctx context.Context, obj runtime.Object) {
+}
+
+func (p pluginReportStrategy) PrepareForUpdate(ctx context.Context, obj, old runtime.Object) {
+}
+
+func (p pluginReportStrategy) Validate(ctx context.Context, obj runtime.Object) field.ErrorList {
+	return field.ErrorList{}
+}
+
+func (p pluginReportStrategy) WarningsOnCreate(ctx context.Context, obj runtime.Object) []string {
+	return []string{}
+}
+
+func (p pluginReportStrategy) WarningsOnUpdate(ctx context.Context, obj, old runtime.Object) []string {
+	return []string{}
+}
+
+func (p pluginReportStrategy) AllowCreateOnUpdate() bool {
+	return false
+}
+
+func (p pluginReportStrategy) AllowUnconditionalUpdate() bool {
+	return false
+}
+
+func (p pluginReportStrategy) Canonicalize(obj runtime.Object) {
+}
+
+func (p pluginReportStrategy) ValidateUpdate(ctx context.Context, obj, old runtime.Object) field.ErrorList {
+	return field.ErrorList{}
+}
+
+func GetAttrs(obj runtime.Object) (labels.Set, fields.Set, error) {
+
+}
+
+func MatchPluginReport(label labels.Selector, field fields.Selector) storage.SelectionPredicate {
+
+}
+
+func SelectableFields() fields.Set {
+
+}

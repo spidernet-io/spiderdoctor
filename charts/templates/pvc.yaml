@@ -20,3 +20,17 @@ spec:
       storage: {{ .Values.feature.aggregateReport.controller.pvc.storageRequests | quote }}
     {{- end }}
 {{- end }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.spiderdoctorController.name | trunc 63 | trimSuffix "-" }}
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  storageClassName: {{ .Values.feature.aggregateReport.controller.pvc.storageClass | quote }}
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/tmp/data"

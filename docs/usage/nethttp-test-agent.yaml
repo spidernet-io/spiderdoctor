@@ -1,0 +1,16 @@
+apiVersion: spiderdoctor.spidernet.io/v1beta1
+kind: Nethttp
+metadata:
+  name: test-agent
+spec:
+  schedule:
+    schedule: "1 1"
+    roundNumber: 2
+    roundTimeoutMinute: 1
+  request:
+    durationInSecond: 2
+    qps: 2
+    perRequestTimeoutInMS: 1000
+  success:
+    successRate: 1
+    meanAccessDelayInMs: 10000
