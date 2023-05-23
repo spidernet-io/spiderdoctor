@@ -7,6 +7,8 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	config "github.com/spidernet-io/spiderdoctor/pkg/types"
 )
 
 func TestIppoolCR(t *testing.T) {
@@ -16,4 +18,5 @@ func TestIppoolCR(t *testing.T) {
 
 var _ = BeforeSuite(func() {
 	// nothing to do
+	config.AgentConfig.Configmap.NetdnsDefaultConcurrency = 50
 })
