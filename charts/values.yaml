@@ -40,6 +40,12 @@ feature:
   ## @param feature.nethttp_defaultRequest_MaxQps qps for kind nethttp
   nethttp_defaultRequest_MaxQps: 100
 
+  ## @param feature.nethttp_defaultConcurrency concurrency  for kind nethttp
+  nethttp_defaultConcurrency: 50
+
+  ## @param feature.nethttp_defaultMaxIdleConnsPerHost max idle connect for kind nethttp
+  nethttp_defaultMaxIdleConnsPerHost: 50
+
   ## @param feature.nethttp_defaultRequest_DurationInSecond Duration In Second for kind nethttp
   nethttp_defaultRequest_DurationInSecond: 2
 

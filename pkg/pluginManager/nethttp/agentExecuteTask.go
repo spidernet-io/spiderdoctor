@@ -8,23 +8,22 @@ import (
 	"fmt"
 	k8sObjManager "github.com/spidernet-io/spiderdoctor/pkg/k8ObjManager"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1beta1"
-	"github.com/spidernet-io/spiderdoctor/pkg/loadRequest"
+	"github.com/spidernet-io/spiderdoctor/pkg/loadRequest/loadHttp"
 	"github.com/spidernet-io/spiderdoctor/pkg/lock"
 	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	config "github.com/spidernet-io/spiderdoctor/pkg/types"
-	vegeta "github.com/tsenart/vegeta/v12/lib"
 	"go.uber.org/zap"
 	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sync"
 )
 
-func ParseSuccessCondition(successCondition *crd.NetSuccessCondition, metricResult *vegeta.Metrics) (failureReason string, err error) {
+func ParseSuccessCondition(successCondition *crd.NetSuccessCondition, metricResult *loadHttp.Metrics) (failureReason string, err error) {
 	switch {
-	case successCondition.SuccessRate != nil && metricResult.Success < *(successCondition.SuccessRate):
-		failureReason = fmt.Sprintf("Success Rate %v is lower than request %v", metricResult.Success, *(successCondition.SuccessRate))
-	case successCondition.MeanAccessDelayInMs != nil && metricResult.Latencies.Mean.Milliseconds() > *(successCondition.MeanAccessDelayInMs):
-		failureReason = fmt.Sprintf("mean delay %v ms is bigger than request %v ms", metricResult.Latencies.Mean.Milliseconds(), *(successCondition.MeanAccessDelayInMs))
+	case successCondition.SuccessRate != nil && float64(metricResult.Success/metricResult.Requests) < *(successCondition.SuccessRate):
+		failureReason = fmt.Sprintf("Success Rate %v is lower than request %v", metricResult.Success/metricResult.Requests, *(successCondition.SuccessRate))
+	case successCondition.MeanAccessDelayInMs != nil && int64(metricResult.Latencies.Mean) > *(successCondition.MeanAccessDelayInMs):
+		failureReason = fmt.Sprintf("mean delay %v ms is bigger than request %v ms", metricResult.Latencies.Mean, *(successCondition.MeanAccessDelayInMs))
 	default:
 		failureReason = ""
 		err = nil
@@ -32,16 +31,16 @@ func ParseSuccessCondition(successCondition *crd.NetSuccessCondition, metricResu
 	return
 }
 
-func SendRequestAndReport(logger *zap.Logger, targetName string, req *loadRequest.HttpRequestData, successCondition *crd.NetSuccessCondition, report map[string]interface{}) (failureReason string) {
+func SendRequestAndReport(logger *zap.Logger, targetName string, req *loadHttp.HttpRequestData, successCondition *crd.NetSuccessCondition, report map[string]interface{}) (failureReason string) {
 
 	report["TargetName"] = targetName
 	report["TargetUrl"] = req.Url
 	report["TargetMethod"] = req.Method
 	report["Succeed"] = "false"
 
-	result := loadRequest.HttpRequest(req)
-	report["MeanDelay"] = result.Latencies.Mean.String()
-	report["SucceedRate"] = fmt.Sprintf("%v", result.Success)
+	result := loadHttp.HttpRequest(logger, req)
+	report["MeanDelay"] = result.Latencies.Mean
+	report["SucceedRate"] = fmt.Sprintf("%v", result.Success/result.Requests)
 
 	var err error
 	failureReason, err = ParseSuccessCondition(successCondition, result)
@@ -70,7 +69,7 @@ func SendRequestAndReport(logger *zap.Logger, targetName string, req *loadReques
 type TestTarget struct {
 	Name   string
 	Url    string
-	Method loadRequest.HttpMethod
+	Method loadHttp.HttpMethod
 }
 
 func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context, obj runtime.Object) (finalfailureReason string, finalReport types.PluginRoundDetail, err error) {
@@ -98,8 +97,8 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 		logger.Sugar().Infof("load test custom target: Method=%v, Url=%v , qps=%v, PerRequestTimeout=%vs, Duration=%vs", target.TargetUser.Method, target.TargetUser.Url, request.QPS, request.PerRequestTimeoutInMS, request.DurationInSecond)
 		finalReport["TargetType"] = "custom url"
 		finalReport["TargetNumber"] = "1"
-		d := &loadRequest.HttpRequestData{
-			Method:              loadRequest.HttpMethod(target.TargetUser.Method),
+		d := &loadHttp.HttpRequestData{
+			Method:              loadHttp.HttpMethod(target.TargetUser.Method),
 			Url:                 target.TargetUser.Url,
 			Qps:                 request.QPS,
 			PerRequestTimeoutMS: request.PerRequestTimeoutInMS,
@@ -139,14 +138,14 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 					testTargetList = append(testTargetList, &TestTarget{
 						Name:   "SelectedPodV4IP_" + podname + "_" + podips.IPv4,
 						Url:    fmt.Sprintf("http://%s:%d%s", podips.IPv4, target.TargetPod.HttpPort, target.TargetPod.UrlPath),
-						Method: loadRequest.HttpMethod(target.TargetPod.Method),
+						Method: loadHttp.HttpMethod(target.TargetPod.Method),
 					})
 				}
 				if len(podips.IPv6) > 0 && (target.TargetPod.TestIPv6 == nil || (target.TargetPod.TestIPv6 != nil && *target.TargetPod.TestIPv6)) {
 					testTargetList = append(testTargetList, &TestTarget{
 						Name:   "SelectedPodV6IP_" + podname + "_" + podips.IPv6,
 						Url:    fmt.Sprintf("http://%s:%d%s", podips.IPv6, target.TargetPod.HttpPort, target.TargetPod.UrlPath),
-						Method: loadRequest.HttpMethod(target.TargetPod.Method),
+						Method: loadHttp.HttpMethod(target.TargetPod.Method),
 					})
 				}
 			}
@@ -185,14 +184,14 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 							testTargetList = append(testTargetList, &TestTarget{
 								Name:   "AgentPodV4IP_" + podname + "_" + podips.IPv4,
 								Url:    fmt.Sprintf("http://%s:%d", podips.IPv4, config.AgentConfig.HttpPort),
-								Method: loadRequest.HttpMethodGet,
+								Method: loadHttp.HttpMethodGet,
 							})
 						}
 						if len(podips.IPv6) > 0 && (target.TargetAgent.TestIPv6 == nil || (target.TargetAgent.TestIPv6 != nil && *target.TargetAgent.TestIPv6)) {
 							testTargetList = append(testTargetList, &TestTarget{
 								Name:   "AgentPodV6IP_" + podname + "_" + podips.IPv6,
 								Url:    fmt.Sprintf("http://%s:%d", podips.IPv6, config.AgentConfig.HttpPort),
-								Method: loadRequest.HttpMethodGet,
+								Method: loadHttp.HttpMethodGet,
 							})
 						}
 					}
@@ -241,7 +240,7 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 				testTargetList = append(testTargetList, &TestTarget{
 					Name:   "AgentClusterV4IP_" + agentV4Url.ClusterIPUrl[0],
 					Url:    fmt.Sprintf("http://%s", agentV4Url.ClusterIPUrl[0]),
-					Method: loadRequest.HttpMethodGet,
+					Method: loadHttp.HttpMethodGet,
 				})
 			} else {
 				finalfailureReason = "failed to get cluster IPv4 IP"
@@ -256,7 +255,7 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 				testTargetList = append(testTargetList, &TestTarget{
 					Name:   "AgentClusterV6IP_" + agentV6Url.ClusterIPUrl[0],
 					Url:    fmt.Sprintf("http://%s", agentV6Url.ClusterIPUrl[0]),
-					Method: loadRequest.HttpMethodGet,
+					Method: loadHttp.HttpMethodGet,
 				})
 			} else {
 				finalfailureReason = "failed to get cluster IPv6 IP"
@@ -271,7 +270,7 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 				testTargetList = append(testTargetList, &TestTarget{
 					Name:   "AgentNodePortV4IP_" + localNodeIpv4 + "_" + fmt.Sprintf("%v", agentV4Url.NodePort),
 					Url:    fmt.Sprintf("http://%s:%d", localNodeIpv4, agentV4Url.NodePort),
-					Method: loadRequest.HttpMethodGet,
+					Method: loadHttp.HttpMethodGet,
 				})
 			} else {
 				finalfailureReason = "failed to get nodePort IPv4 address"
@@ -285,7 +284,7 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 				testTargetList = append(testTargetList, &TestTarget{
 					Name:   "AgentNodePortV6IP_" + localNodeIpv6 + "_" + fmt.Sprintf("%v", agentV6Url.NodePort),
 					Url:    fmt.Sprintf("http://%s:%d", localNodeIpv6, agentV6Url.NodePort),
-					Method: loadRequest.HttpMethodGet,
+					Method: loadHttp.HttpMethodGet,
 				})
 			} else {
 				finalfailureReason = "failed to get nodePort IPv6 address"
@@ -300,7 +299,7 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 				testTargetList = append(testTargetList, &TestTarget{
 					Name:   "AgentLoadbalancerV4IP_" + agentV4Url.LoadBalancerUrl[0],
 					Url:    fmt.Sprintf("http://%s", agentV4Url.LoadBalancerUrl[0]),
-					Method: loadRequest.HttpMethodGet,
+					Method: loadHttp.HttpMethodGet,
 				})
 			} else {
 				finalfailureReason = "failed to get loadbalancer IPv4 address"
@@ -314,7 +313,7 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 				testTargetList = append(testTargetList, &TestTarget{
 					Name:   "AgentLoadbalancerV6IP_" + agentV6Url.LoadBalancerUrl[0],
 					Url:    fmt.Sprintf("http://%s", agentV6Url.LoadBalancerUrl[0]),
-					Method: loadRequest.HttpMethodGet,
+					Method: loadHttp.HttpMethodGet,
 				})
 			} else {
 				finalfailureReason = "failed to get loadbalancer IPv6 address"
@@ -334,7 +333,7 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 				testTargetList = append(testTargetList, &TestTarget{
 					Name:   "AgentIngress_" + url,
 					Url:    url,
-					Method: loadRequest.HttpMethodGet,
+					Method: loadHttp.HttpMethodGet,
 				})
 			} else {
 				finalfailureReason = "failed to get agent ingress address"
@@ -354,7 +353,7 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 		wg.Add(1)
 		go func(wg *sync.WaitGroup, l *lock.Mutex, t TestTarget) {
 			itemReport := map[string]interface{}{}
-			d := &loadRequest.HttpRequestData{
+			d := &loadHttp.HttpRequestData{
 				Method:              t.Method,
 				Url:                 t.Url,
 				Qps:                 request.QPS,

@@ -20,39 +20,60 @@
 
 # Nethttp
 
-In a pod with a CPU of 1
+In a pod with a CPU of 1 
+
+The test server is a server that sleeps for one second and then returns
+## Http1.1
 
 | client       | time | requests | qps     | Memory |
 |--------------|------|----------|---------|--------|
-| spiderdoctor | 1m   | 67346    | 1122.43 | 2Gi    |
-| wrk          | 1m   | 53612    | 892.85  | 2Mb    |
+| spiderdoctor | 0.5m | 81912    | 2988.67 | 210Mb  |
+| hey          | 0.5m | 58423    | 1947.42 | 210Mb  |
+
+| client       | time | requests | qps     | Memory |
+|--------------|------|----------|---------|--------|
+| spiderdoctor | 1m   | 179634   | 2,993.9 | 210Mb  |
+| hey          | 1m   | 118452   | 1974.2  | 220Mb  |
+
+| client       | time | requests | qps     | Memory |
+|--------------|------|----------|---------|--------|
+| spiderdoctor | 5m   | 897979   | 2993.26 | 210Mb  |
+| hey          | 5m   | 596077   | 1986.92 | 270Mb  |
+
+
+## Http2
+
+| client       | time | requests | qps     | Memory |
+|--------------|------|----------|---------|--------|
+| spiderdoctor | 0.5m | 238787   | 7959.57 | 350Mb  |
+| hey          | 0.5m | 7213     | 240.44  | 110Mb  |
+
+| client       | time | requests  | qps      | Memory |
+|--------------|------|-----------|----------|--------|
+| spiderdoctor | 1m   | 481070    | 8017.83  | 370Mb  |
+| hey          | 1m   | 14665     | 244.42   | 120Mb  |
 
 | client       | time | requests | qps      | Memory |
 |--------------|------|----------|----------|--------|
-| spiderdoctor | 5m   | 272403   | 908.01   | 2.6Gi  |
-| wrk          | 5m   | 265551   | 884.92   | 5Mb    |
-
-| client       | time | requests  | qps     | Memory |
-|--------------|------|-----------|---------|--------|
-| spiderdoctor | 10m  | 467254    | 778.75  | 4.5Gi  |
-| wrk          | 10m  | 565638    | 942.58  | 5Mb    |
+| spiderdoctor | 5m   | 2419874  | 8066.25  | 390Mb  |
+| hey          | 5m   | 74776    | 249.25   | 130Mb  |
 
 
 # Netdns
 
 In a pod with a CPU of 1
 
-| client       | time | requests | qps       | Memory |
-|--------------|------|----------|-----------|--------|
-| spiderdoctor | 1m   | 1855511  | 30,925.18 | 23Mb   |
-| dnsperf      | 1m   | 1728086  |28800.406  | 8Mb    |
+| client       | time | requests | qps        | Memory |
+|--------------|------|----------|------------|--------|
+| spiderdoctor | 1m   | 1855511  | 30925.18   | 23Mb   |
+| dnsperf      | 1m   | 1728086  | 28800.406  | 8Mb    |
 
-| client       | time | requests | qps       | Memory |
-|--------------|------|----------|-----------|--------|
-| spiderdoctor | 5m   | 9171699  | 30,572.33 | 100Mb  |
-| dnsperf      | 5m   | 8811137  | 29370.34  | 8Mb    |
+| client       | time | requests | qps      | Memory |
+|--------------|------|----------|----------|--------|
+| spiderdoctor | 5m   | 9171699  | 30572.33 | 100Mb  |
+| dnsperf      | 5m   | 8811137  | 29370.34 | 8Mb    |
 
 | client       | time | requests  | qps       | Memory |
 |--------------|------|-----------|-----------|--------|
-| spiderdoctor | 10m  | 18561282  | 30,935.47 | 173Mb  |
+| spiderdoctor | 10m  | 18561282  | 30935.47  | 173Mb  |
 | dnsperf      | 10m  | 17260779  | 28767.666 | 8Mb    |

@@ -9,7 +9,7 @@ import (
 	"github.com/miekg/dns"
 	k8sObjManager "github.com/spidernet-io/spiderdoctor/pkg/k8ObjManager"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1beta1"
-	"github.com/spidernet-io/spiderdoctor/pkg/loadRequest"
+	"github.com/spidernet-io/spiderdoctor/pkg/loadRequest/loadDns"
 	"github.com/spidernet-io/spiderdoctor/pkg/lock"
 	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"go.uber.org/zap"
@@ -21,7 +21,7 @@ import (
 	"time"
 )
 
-func ParseSuccessCondition(successCondition *crd.NetSuccessCondition, metricResult *loadRequest.DnsMetrics) (failureReason string, err error) {
+func ParseSuccessCondition(successCondition *crd.NetSuccessCondition, metricResult *loadDns.DnsMetrics) (failureReason string, err error) {
 	mean, _ := time.ParseDuration(metricResult.DelayForSuccess.Mean)
 
 	switch {
@@ -37,14 +37,14 @@ func ParseSuccessCondition(successCondition *crd.NetSuccessCondition, metricResu
 	return
 }
 
-func SendRequestAndReport(logger *zap.Logger, targetName string, req *loadRequest.DnsRequestData, successCondition *crd.NetSuccessCondition, report map[string]interface{}) (failureReason string) {
+func SendRequestAndReport(logger *zap.Logger, targetName string, req *loadDns.DnsRequestData, successCondition *crd.NetSuccessCondition, report map[string]interface{}) (failureReason string) {
 
 	report["TargetName"] = targetName
 	report["TargetServer"] = req.DnsServerAddr
 	report["TargetProtocol"] = req.Protocol
 	report["Succeed"] = "false"
 
-	result, err := loadRequest.DnsRequest(logger, req)
+	result, err := loadDns.DnsRequest(logger, req)
 	if err != nil {
 		failureReason = fmt.Sprintf("%v", err)
 		logger.Sugar().Errorf("internal error for target %v, error=%v", req.DnsServerAddr, err)
@@ -79,7 +79,7 @@ func SendRequestAndReport(logger *zap.Logger, targetName string, req *loadReques
 
 type testTarget struct {
 	Name    string
-	Request *loadRequest.DnsRequestData
+	Request *loadDns.DnsRequestData
 }
 
 func (s *PluginNetDns) AgentExecuteTask(logger *zap.Logger, ctx context.Context, obj runtime.Object) (finalfailureReason string, finalReport types.PluginRoundDetail, err error) {
@@ -105,8 +105,8 @@ func (s *PluginNetDns) AgentExecuteTask(logger *zap.Logger, ctx context.Context,
 		server = net.JoinHostPort(*instance.Spec.Target.NetDnsTargetUser.Server, strconv.Itoa(*instance.Spec.Target.NetDnsTargetUser.Port))
 		ip := net.ParseIP(*instance.Spec.Target.NetDnsTargetUser.Server)
 		if ip.To4() != nil {
-			testTargetList = append(testTargetList, &testTarget{Name: "typeA_" + server + "_" + instance.Spec.Request.Domain, Request: &loadRequest.DnsRequestData{
-				Protocol:              loadRequest.RequestProtocol(*instance.Spec.Target.Protocol),
+			testTargetList = append(testTargetList, &testTarget{Name: "typeA_" + server + "_" + instance.Spec.Request.Domain, Request: &loadDns.DnsRequestData{
+				Protocol:              loadDns.RequestProtocol(*instance.Spec.Target.Protocol),
 				DnsType:               dns.TypeA,
 				TargetDomain:          instance.Spec.Request.Domain,
 				DnsServerAddr:         server,
@@ -115,8 +115,8 @@ func (s *PluginNetDns) AgentExecuteTask(logger *zap.Logger, ctx context.Context,
 				DurationInSecond:      int(*instance.Spec.Request.DurationInSecond),
 			}})
 		} else {
-			testTargetList = append(testTargetList, &testTarget{Name: "typeAAAA_" + server + "_" + instance.Spec.Request.Domain, Request: &loadRequest.DnsRequestData{
-				Protocol:              loadRequest.RequestProtocol(*instance.Spec.Target.Protocol),
+			testTargetList = append(testTargetList, &testTarget{Name: "typeAAAA_" + server + "_" + instance.Spec.Request.Domain, Request: &loadDns.DnsRequestData{
+				Protocol:              loadDns.RequestProtocol(*instance.Spec.Target.Protocol),
 				DnsType:               dns.TypeAAAA,
 				TargetDomain:          instance.Spec.Request.Domain,
 				DnsServerAddr:         server,
@@ -139,8 +139,8 @@ func (s *PluginNetDns) AgentExecuteTask(logger *zap.Logger, ctx context.Context,
 				ip := net.ParseIP(serviceIP)
 				server = net.JoinHostPort(serviceIP, "53")
 				if ip.To4() != nil && *instance.Spec.Target.NetDnsTargetDns.TestIPv4 {
-					testTargetList = append(testTargetList, &testTarget{Name: "typeA_" + server + "_" + instance.Spec.Request.Domain, Request: &loadRequest.DnsRequestData{
-						Protocol:              loadRequest.RequestProtocol(*instance.Spec.Target.Protocol),
+					testTargetList = append(testTargetList, &testTarget{Name: "typeA_" + server + "_" + instance.Spec.Request.Domain, Request: &loadDns.DnsRequestData{
+						Protocol:              loadDns.RequestProtocol(*instance.Spec.Target.Protocol),
 						DnsType:               dns.TypeA,
 						TargetDomain:          instance.Spec.Request.Domain,
 						DnsServerAddr:         server,
@@ -149,8 +149,8 @@ func (s *PluginNetDns) AgentExecuteTask(logger *zap.Logger, ctx context.Context,
 						DurationInSecond:      int(*instance.Spec.Request.DurationInSecond),
 					}})
 				} else if ip.To4() == nil && *instance.Spec.Target.NetDnsTargetDns.TestIPv6 {
-					testTargetList = append(testTargetList, &testTarget{Name: "typeAAAA_" + server + "_" + instance.Spec.Request.Domain, Request: &loadRequest.DnsRequestData{
-						Protocol:              loadRequest.RequestProtocol(*instance.Spec.Target.Protocol),
+					testTargetList = append(testTargetList, &testTarget{Name: "typeAAAA_" + server + "_" + instance.Spec.Request.Domain, Request: &loadDns.DnsRequestData{
+						Protocol:              loadDns.RequestProtocol(*instance.Spec.Target.Protocol),
 						DnsType:               dns.TypeAAAA,
 						TargetDomain:          instance.Spec.Request.Domain,
 						DnsServerAddr:         server,
@@ -171,8 +171,8 @@ func (s *PluginNetDns) AgentExecuteTask(logger *zap.Logger, ctx context.Context,
 				ip := net.ParseIP(serviceIP)
 				server = net.JoinHostPort(serviceIP, "53")
 				if ip.To4() != nil && *instance.Spec.Target.NetDnsTargetDns.TestIPv4 {
-					testTargetList = append(testTargetList, &testTarget{Name: "typeA_" + server + "_" + instance.Spec.Request.Domain, Request: &loadRequest.DnsRequestData{
-						Protocol:              loadRequest.RequestProtocol(*instance.Spec.Target.Protocol),
+					testTargetList = append(testTargetList, &testTarget{Name: "typeA_" + server + "_" + instance.Spec.Request.Domain, Request: &loadDns.DnsRequestData{
+						Protocol:              loadDns.RequestProtocol(*instance.Spec.Target.Protocol),
 						DnsType:               dns.TypeA,
 						TargetDomain:          instance.Spec.Request.Domain,
 						DnsServerAddr:         server,
@@ -181,8 +181,8 @@ func (s *PluginNetDns) AgentExecuteTask(logger *zap.Logger, ctx context.Context,
 						DurationInSecond:      int(*instance.Spec.Request.DurationInSecond),
 					}})
 				} else if ip.To4() == nil && *instance.Spec.Target.NetDnsTargetDns.TestIPv6 {
-					testTargetList = append(testTargetList, &testTarget{Name: "typeAAAA_" + server + "_" + instance.Spec.Request.Domain, Request: &loadRequest.DnsRequestData{
-						Protocol:              loadRequest.RequestProtocol(*instance.Spec.Target.Protocol),
+					testTargetList = append(testTargetList, &testTarget{Name: "typeAAAA_" + server + "_" + instance.Spec.Request.Domain, Request: &loadDns.DnsRequestData{
+						Protocol:              loadDns.RequestProtocol(*instance.Spec.Target.Protocol),
 						DnsType:               dns.TypeAAAA,
 						TargetDomain:          instance.Spec.Request.Domain,
 						DnsServerAddr:         server,
