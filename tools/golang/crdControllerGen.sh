@@ -31,3 +31,9 @@ controllerGenCmd crd:allowDangerousTypes=true paths="${API_CODE_DIR}"  output:di
 
 echo "generate deepcode to api code"
 controllerGenCmd  object paths="${API_CODE_DIR}"
+
+
+#======================
+echo "generate apiserver deepcode to api code"
+APISERVER_API_CODE_DIR=${2:-"${PROJECT_ROOT}/pkg/k8s/apis/system/v1beta1"}
+controllerGenCmd object paths="${APISERVER_API_CODE_DIR}"

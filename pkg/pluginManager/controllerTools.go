@@ -144,7 +144,7 @@ func (s *pluginControllerReconciler) WriteSummaryReport(taskName string, roundNu
 			StartTimeStamp: newStatus.History[0].StartTimeStamp.Time,
 			EndTimeStamp:   time.Now(),
 			RoundDuraiton:  time.Since(newStatus.History[0].StartTimeStamp.Time).String(),
-			Detail:         newStatus.History[0],
+			Detail:         newStatus.History[0], // 就是那个CR实例的history[0]
 			ReportType:     plugintypes.ReportTypeSummary,
 		}
 
