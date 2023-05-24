@@ -70,6 +70,26 @@ rules:
 - apiGroups:
   - spiderdoctor.spidernet.io
   resources:
+  - httpapphealthys
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - spiderdoctor.spidernet.io
+  resources:
+  - httpapphealthys/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - spiderdoctor.spidernet.io
+  resources:
   - netdnss
   verbs:
   - create
@@ -90,7 +110,7 @@ rules:
 - apiGroups:
   - spiderdoctor.spidernet.io
   resources:
-  - nethttps
+  - netreachhealthys
   verbs:
   - create
   - delete
@@ -102,7 +122,7 @@ rules:
 - apiGroups:
   - spiderdoctor.spidernet.io
   resources:
-  - nethttps/status
+  - netreachhealthys/status
   verbs:
   - get
   - patch

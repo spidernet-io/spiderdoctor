@@ -11,10 +11,12 @@ import (
 
 // Interface provides access to all the informers in this group version.
 type Interface interface {
+	// HttpAppHealthies returns a HttpAppHealthyInformer.
+	HttpAppHealthies() HttpAppHealthyInformer
+	// NetReachHealthies returns a NetReachHealthyInformer.
+	NetReachHealthies() NetReachHealthyInformer
 	// Netdnses returns a NetdnsInformer.
 	Netdnses() NetdnsInformer
-	// Nethttps returns a NethttpInformer.
-	Nethttps() NethttpInformer
 }
 
 type version struct {
@@ -28,12 +30,17 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 	return &version{factory: f, namespace: namespace, tweakListOptions: tweakListOptions}
 }
 
+// HttpAppHealthies returns a HttpAppHealthyInformer.
+func (v *version) HttpAppHealthies() HttpAppHealthyInformer {
+	return &httpAppHealthyInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// NetReachHealthies returns a NetReachHealthyInformer.
+func (v *version) NetReachHealthies() NetReachHealthyInformer {
+	return &netReachHealthyInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
 // Netdnses returns a NetdnsInformer.
 func (v *version) Netdnses() NetdnsInformer {
 	return &netdnsInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
-}
-
-// Nethttps returns a NethttpInformer.
-func (v *version) Nethttps() NethttpInformer {
-	return &nethttpInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }

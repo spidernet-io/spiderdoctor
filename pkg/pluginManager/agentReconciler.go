@@ -41,8 +41,8 @@ func (s *pluginAgentReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	// ------ add crd ------
 	switch s.crdKind {
-	case KindNameNethttp:
-		instance := crd.Nethttp{}
+	case KindNameNetReachHealthy:
+		instance := crd.NetReachHealthy{}
 		if err := s.client.Get(ctx, req.NamespacedName, &instance); err != nil {
 			s.logger.Sugar().Errorf("unable to fetch obj , error=%v", err)
 			return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -57,7 +57,7 @@ func (s *pluginAgentReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 		oldStatus := instance.Status.DeepCopy()
 		taskName := instance.Kind + "." + instance.Name
-		if result, newStatus, err := s.HandleAgentTaskRound(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy(), instance.Spec.SourceAgentNodeSelector.DeepCopy(), &instance, taskName, instance.Spec); err != nil {
+		if result, newStatus, err := s.HandleAgentTaskRound(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy(), &instance, taskName, instance.Spec); err != nil {
 			// requeue
 			logger.Sugar().Errorf("failed to HandleAgentTaskRound, will retry it, error=%v", err)
 			return ctrl.Result{}, err
@@ -78,6 +78,42 @@ func (s *pluginAgentReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			}
 		}
 
+	case KindNameHttpAppHealthy:
+		instance := crd.HttpAppHealthy{}
+		if err := s.client.Get(ctx, req.NamespacedName, &instance); err != nil {
+			s.logger.Sugar().Errorf("unable to fetch obj , error=%v", err)
+			return ctrl.Result{}, client.IgnoreNotFound(err)
+		}
+
+		logger := s.logger.With(zap.String(instance.Kind, instance.Name))
+		logger.Sugar().Debugf("reconcile handle %v", instance)
+		if instance.DeletionTimestamp != nil {
+			s.logger.Sugar().Debugf("ignore deleting task %v", req)
+			return ctrl.Result{}, nil
+		}
+
+		oldStatus := instance.Status.DeepCopy()
+		taskName := instance.Kind + "." + instance.Name
+		if result, newStatus, err := s.HandleAgentTaskRound(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy(), &instance, taskName, instance.Spec); err != nil {
+			// requeue
+			logger.Sugar().Errorf("failed to HandleAgentTaskRound, will retry it, error=%v", err)
+			return ctrl.Result{}, err
+
+		} else {
+			if newStatus != nil && !reflect.DeepEqual(newStatus, oldStatus) {
+				instance.Status = *newStatus
+				if err := s.client.Status().Update(ctx, &instance); err != nil {
+					// requeue
+					logger.Sugar().Errorf("failed to update status, will retry it, error=%v", err)
+					return ctrl.Result{}, err
+				}
+				logger.Sugar().Debugf("succeeded update status, newStatus=%+v", newStatus)
+			}
+
+			if result != nil {
+				return *result, nil
+			}
+		}
 	case KindNameNetdns:
 		instance := crd.Netdns{}
 		if err := s.client.Get(ctx, req.NamespacedName, &instance); err != nil {
@@ -93,7 +129,7 @@ func (s *pluginAgentReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 		oldStatus := instance.Status.DeepCopy()
 		taskName := instance.Kind + "." + instance.Name
-		if result, newStatus, err := s.HandleAgentTaskRound(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy(), instance.Spec.SourceAgentNodeSelector.DeepCopy(), &instance, taskName, instance.Spec); err != nil {
+		if result, newStatus, err := s.HandleAgentTaskRound(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy(), &instance, taskName, instance.Spec); err != nil {
 			// requeue
 			logger.Sugar().Errorf("failed to HandleAgentTaskRound, will retry it, error=%v", err)
 			return ctrl.Result{}, err

@@ -1,7 +1,7 @@
 // Copyright 2022 Authors of spidernet-io
 // SPDX-License-Identifier: Apache-2.0
 
-package nethttp
+package netreachhealthy
 
 import (
 	"context"
@@ -72,13 +72,13 @@ type TestTarget struct {
 	Method loadHttp.HttpMethod
 }
 
-func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context, obj runtime.Object) (finalfailureReason string, finalReport types.PluginRoundDetail, err error) {
+func (s *PluginNetReachHealthy) AgentExecuteTask(logger *zap.Logger, ctx context.Context, obj runtime.Object) (finalfailureReason string, finalReport types.PluginRoundDetail, err error) {
 	finalfailureReason = ""
 	finalReport = types.PluginRoundDetail{}
 	err = nil
 	var e error
 
-	instance, ok := obj.(*crd.Nethttp)
+	instance, ok := obj.(*crd.NetReachHealthy)
 	if !ok {
 		msg := "failed to get instance"
 		logger.Error(msg)
@@ -93,114 +93,53 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 	successCondition := instance.Spec.SuccessCondition
 	testTargetList := []*TestTarget{}
 
-	if target.TargetUser != nil {
-		logger.Sugar().Infof("load test custom target: Method=%v, Url=%v , qps=%v, PerRequestTimeout=%vs, Duration=%vs", target.TargetUser.Method, target.TargetUser.Url, request.QPS, request.PerRequestTimeoutInMS, request.DurationInSecond)
-		finalReport["TargetType"] = "custom url"
-		finalReport["TargetNumber"] = "1"
-		d := &loadHttp.HttpRequestData{
-			Method:              loadHttp.HttpMethod(target.TargetUser.Method),
-			Url:                 target.TargetUser.Url,
-			Qps:                 request.QPS,
-			PerRequestTimeoutMS: request.PerRequestTimeoutInMS,
-			RequestTimeSecond:   request.DurationInSecond,
-		}
-		failureReason := SendRequestAndReport(logger, "custom target", d, successCondition, finalReport)
-		if len(failureReason) > 0 {
-			finalfailureReason = fmt.Sprintf("test custom target: %v", failureReason)
-		}
-		return
+	// test spiderdoctor agent
+	logger.Sugar().Infof("load test spiderdoctor Agent pod: qps=%v, PerRequestTimeout=%vs, Duration=%vs", request.QPS, request.PerRequestTimeoutInMS, request.DurationInSecond)
+	finalfailureReason = ""
 
-	} else if target.TargetPod != nil {
-		// test pod agent
-		logger.Sugar().Infof("load test selected pod: qps=%v, PerRequestTimeout=%vs, Duration=%vs", request.QPS, request.PerRequestTimeoutInMS, request.DurationInSecond)
-		finalfailureReason = ""
+	// ----------------------- test pod ip
+	if target.Endpoint {
 		var PodIps k8sObjManager.PodIps
 
-		if target.TargetPod.TestMultusInterface {
-			PodIps, e = k8sObjManager.GetK8sObjManager().ListSelectedPodMultusIPs(ctx, &(target.TargetPod.PodLabelSelector))
+		if target.MultusInterface {
+			PodIps, e = k8sObjManager.GetK8sObjManager().ListDaemonsetPodMultusIPs(ctx, config.AgentConfig.Configmap.SpiderDoctorAgentDaemonsetName, config.AgentConfig.PodNamespace)
 			logger.Sugar().Debugf("test agent multus pod ip: %v", PodIps)
+			if e != nil {
+				logger.Sugar().Errorf("failed to ListDaemonsetPodMultusIPs, error=%v", e)
+				finalfailureReason = fmt.Sprintf("failed to ListDaemonsetPodMultusIPs, error=%v", e)
+			}
+
 		} else {
-			PodIps, e = k8sObjManager.GetK8sObjManager().ListSelectedPodIPs(ctx, &(target.TargetPod.PodLabelSelector))
+			PodIps, e = k8sObjManager.GetK8sObjManager().ListDaemonsetPodIPs(ctx, config.AgentConfig.Configmap.SpiderDoctorAgentDaemonsetName, config.AgentConfig.PodNamespace)
 			logger.Sugar().Debugf("test agent single pod ip: %v", PodIps)
-		}
-		if e != nil {
-			logger.Sugar().Errorf("failed to list por ip, error=%v", e)
-			finalfailureReason = fmt.Sprintf("failed to list pod ip, error=%v", e)
-		} else if len(PodIps) == 0 {
-			s := fmt.Sprintf("failed to find any pod with label %v", target.TargetPod.PodLabelSelector)
-			logger.Error(s)
-			finalfailureReason = s
-		}
-
-		for podname, ips := range PodIps {
-			for _, podips := range ips {
-				if len(podips.IPv4) > 0 && (target.TargetPod.TestIPv4 == nil || (target.TargetPod.TestIPv4 != nil && *target.TargetPod.TestIPv4)) {
-					testTargetList = append(testTargetList, &TestTarget{
-						Name:   "SelectedPodV4IP_" + podname + "_" + podips.IPv4,
-						Url:    fmt.Sprintf("http://%s:%d%s", podips.IPv4, target.TargetPod.HttpPort, target.TargetPod.UrlPath),
-						Method: loadHttp.HttpMethod(target.TargetPod.Method),
-					})
-				}
-				if len(podips.IPv6) > 0 && (target.TargetPod.TestIPv6 == nil || (target.TargetPod.TestIPv6 != nil && *target.TargetPod.TestIPv6)) {
-					testTargetList = append(testTargetList, &TestTarget{
-						Name:   "SelectedPodV6IP_" + podname + "_" + podips.IPv6,
-						Url:    fmt.Sprintf("http://%s:%d%s", podips.IPv6, target.TargetPod.HttpPort, target.TargetPod.UrlPath),
-						Method: loadHttp.HttpMethod(target.TargetPod.Method),
-					})
-				}
+			if e != nil {
+				logger.Sugar().Errorf("failed to ListDaemonsetPodIPs, error=%v", e)
+				finalfailureReason = fmt.Sprintf("failed to ListDaemonsetPodIPs, error=%v", e)
 			}
 		}
 
-	} else {
-		// test spiderdoctor agent
-		logger.Sugar().Infof("load test spiderdoctor Agent pod: qps=%v, PerRequestTimeout=%vs, Duration=%vs", request.QPS, request.PerRequestTimeoutInMS, request.DurationInSecond)
-		finalfailureReason = ""
-
-		// ----------------------- test pod ip
-		if target.TargetAgent.TestEndpoint {
-			var PodIps k8sObjManager.PodIps
-
-			if target.TargetAgent.TestMultusInterface {
-				PodIps, e = k8sObjManager.GetK8sObjManager().ListDaemonsetPodMultusIPs(ctx, config.AgentConfig.Configmap.SpiderDoctorAgentDaemonsetName, config.AgentConfig.PodNamespace)
-				logger.Sugar().Debugf("test agent multus pod ip: %v", PodIps)
-				if e != nil {
-					logger.Sugar().Errorf("failed to ListDaemonsetPodMultusIPs, error=%v", e)
-					finalfailureReason = fmt.Sprintf("failed to ListDaemonsetPodMultusIPs, error=%v", e)
-				}
-
-			} else {
-				PodIps, e = k8sObjManager.GetK8sObjManager().ListDaemonsetPodIPs(ctx, config.AgentConfig.Configmap.SpiderDoctorAgentDaemonsetName, config.AgentConfig.PodNamespace)
-				logger.Sugar().Debugf("test agent single pod ip: %v", PodIps)
-				if e != nil {
-					logger.Sugar().Errorf("failed to ListDaemonsetPodIPs, error=%v", e)
-					finalfailureReason = fmt.Sprintf("failed to ListDaemonsetPodIPs, error=%v", e)
-				}
-			}
-
-			if len(PodIps) > 0 {
-				for podname, ips := range PodIps {
-					for _, podips := range ips {
-						if len(podips.IPv4) > 0 && (target.TargetAgent.TestIPv4 == nil || (target.TargetAgent.TestIPv4 != nil && *target.TargetAgent.TestIPv4)) {
-							testTargetList = append(testTargetList, &TestTarget{
-								Name:   "AgentPodV4IP_" + podname + "_" + podips.IPv4,
-								Url:    fmt.Sprintf("http://%s:%d", podips.IPv4, config.AgentConfig.HttpPort),
-								Method: loadHttp.HttpMethodGet,
-							})
-						}
-						if len(podips.IPv6) > 0 && (target.TargetAgent.TestIPv6 == nil || (target.TargetAgent.TestIPv6 != nil && *target.TargetAgent.TestIPv6)) {
-							testTargetList = append(testTargetList, &TestTarget{
-								Name:   "AgentPodV6IP_" + podname + "_" + podips.IPv6,
-								Url:    fmt.Sprintf("http://%s:%d", podips.IPv6, config.AgentConfig.HttpPort),
-								Method: loadHttp.HttpMethodGet,
-							})
-						}
+		if len(PodIps) > 0 {
+			for podname, ips := range PodIps {
+				for _, podips := range ips {
+					if len(podips.IPv4) > 0 && (target.IPv4 == nil || (target.IPv4 != nil && *target.IPv4)) {
+						testTargetList = append(testTargetList, &TestTarget{
+							Name:   "AgentPodV4IP_" + podname + "_" + podips.IPv4,
+							Url:    fmt.Sprintf("http://%s:%d", podips.IPv4, config.AgentConfig.HttpPort),
+							Method: loadHttp.HttpMethodGet,
+						})
+					}
+					if len(podips.IPv6) > 0 && (target.IPv6 == nil || (target.IPv6 != nil && *target.IPv6)) {
+						testTargetList = append(testTargetList, &TestTarget{
+							Name:   "AgentPodV6IP_" + podname + "_" + podips.IPv6,
+							Url:    fmt.Sprintf("http://%s:%d", podips.IPv6, config.AgentConfig.HttpPort),
+							Method: loadHttp.HttpMethodGet,
+						})
 					}
 				}
-			} else {
-				logger.Sugar().Debugf("ignore test agent pod ip")
 			}
+		} else {
+			logger.Sugar().Debugf("ignore test agent pod ip")
 		}
-
 		// ----------------------- get service
 		var agentV4Url, agentV6Url *k8sObjManager.ServiceAccessUrl
 		serviceAccessPortName := "http"
@@ -235,7 +174,7 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 		}
 
 		// ----------------------- test clusterIP ipv4
-		if target.TargetAgent.TestClusterIp && target.TargetAgent.TestIPv4 != nil && *(target.TargetAgent.TestIPv4) {
+		if target.ClusterIP && target.IPv4 != nil && *(target.IPv4) {
 			if agentV4Url != nil && len(agentV4Url.ClusterIPUrl) > 0 {
 				testTargetList = append(testTargetList, &TestTarget{
 					Name:   "AgentClusterV4IP_" + agentV4Url.ClusterIPUrl[0],
@@ -250,7 +189,7 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 		}
 
 		// ----------------------- test clusterIP ipv6
-		if target.TargetAgent.TestClusterIp && target.TargetAgent.TestIPv6 != nil && *(target.TargetAgent.TestIPv6) {
+		if target.ClusterIP && target.IPv6 != nil && *(target.IPv6) {
 			if agentV6Url != nil && len(agentV6Url.ClusterIPUrl) > 0 {
 				testTargetList = append(testTargetList, &TestTarget{
 					Name:   "AgentClusterV6IP_" + agentV6Url.ClusterIPUrl[0],
@@ -265,7 +204,7 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 		}
 
 		// ----------------------- test node port
-		if target.TargetAgent.TestNodePort && target.TargetAgent.TestIPv4 != nil && *(target.TargetAgent.TestIPv4) {
+		if target.NodePort && target.IPv4 != nil && *(target.IPv4) {
 			if agentV4Url != nil && agentV4Url.NodePort != 0 && len(localNodeIpv4) != 0 {
 				testTargetList = append(testTargetList, &TestTarget{
 					Name:   "AgentNodePortV4IP_" + localNodeIpv4 + "_" + fmt.Sprintf("%v", agentV4Url.NodePort),
@@ -279,7 +218,7 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 			logger.Sugar().Debugf("ignore test agent nodePort ipv4")
 		}
 
-		if target.TargetAgent.TestNodePort && target.TargetAgent.TestIPv6 != nil && *(target.TargetAgent.TestIPv6) {
+		if target.NodePort && target.IPv6 != nil && *(target.IPv6) {
 			if agentV6Url != nil && agentV6Url.NodePort != 0 && len(localNodeIpv6) != 0 {
 				testTargetList = append(testTargetList, &TestTarget{
 					Name:   "AgentNodePortV6IP_" + localNodeIpv6 + "_" + fmt.Sprintf("%v", agentV6Url.NodePort),
@@ -294,7 +233,7 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 		}
 
 		// ----------------------- test loadbalancer IP
-		if target.TargetAgent.TestLoadBalancer && target.TargetAgent.TestIPv4 != nil && *(target.TargetAgent.TestIPv4) {
+		if target.LoadBalancer && target.IPv4 != nil && *(target.IPv4) {
 			if agentV4Url != nil && len(agentV4Url.LoadBalancerUrl) > 0 {
 				testTargetList = append(testTargetList, &TestTarget{
 					Name:   "AgentLoadbalancerV4IP_" + agentV4Url.LoadBalancerUrl[0],
@@ -308,7 +247,7 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 			logger.Sugar().Debugf("ignore test agent loadbalancer ipv4")
 		}
 
-		if target.TargetAgent.TestLoadBalancer && target.TargetAgent.TestIPv6 != nil && *(target.TargetAgent.TestIPv6) {
+		if target.LoadBalancer && target.IPv6 != nil && *(target.IPv6) {
 			if agentV6Url != nil && len(agentV6Url.LoadBalancerUrl) > 0 {
 				testTargetList = append(testTargetList, &TestTarget{
 					Name:   "AgentLoadbalancerV6IP_" + agentV6Url.LoadBalancerUrl[0],
@@ -323,7 +262,7 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 		}
 
 		// ----------------------- test ingress
-		if target.TargetAgent.TestIngress {
+		if target.Ingress {
 			if agentIngress != nil && len(agentIngress.Status.LoadBalancer.Ingress) > 0 {
 				http := "http"
 				if len(agentIngress.Spec.TLS) > 0 {
@@ -377,7 +316,7 @@ func (s *PluginNetHttp) AgentExecuteTask(logger *zap.Logger, ctx context.Context
 
 	// ----------------------- aggregate report
 	finalReport["Detail"] = reportList
-	finalReport["TargetType"] = "spiderdoctor agent"
+	finalReport["TargetType"] = "NetReachHealthy"
 	finalReport["TargetNumber"] = fmt.Sprintf("%d", len(testTargetList))
 	if len(finalfailureReason) > 0 {
 		logger.Sugar().Errorf("plugin finally failed, %v", finalfailureReason)

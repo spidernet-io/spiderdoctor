@@ -1,7 +1,7 @@
 // Copyright 2022 Authors of spidernet-io
 // SPDX-License-Identifier: Apache-2.0
 
-package nethttp
+package httpapphealthy
 
 import (
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1beta1"
@@ -9,11 +9,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type PluginNetHttp struct {
+type PluginHttpAppHealthy struct {
 }
 
-var _ types.ChainingPlugin = &PluginNetHttp{}
+var _ types.ChainingPlugin = &PluginHttpAppHealthy{}
 
-func (s *PluginNetHttp) GetApiType() client.Object {
-	return &crd.Nethttp{}
+func (s *PluginHttpAppHealthy) GetApiType() client.Object {
+	return &crd.HttpAppHealthy{}
 }

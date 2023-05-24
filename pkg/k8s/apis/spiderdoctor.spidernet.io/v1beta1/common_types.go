@@ -94,3 +94,22 @@ type NetSuccessCondition struct {
 	// +kubebuilder:validation:Optional
 	MeanAccessDelayInMs *int64 `json:"meanAccessDelayInMs,omitempty"`
 }
+
+type NetHttpRequest struct {
+
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default=2
+	// +kubebuilder:validation:Minimum=1
+	DurationInSecond int `json:"durationInSecond,omitempty"`
+
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default=5
+	// +kubebuilder:validation:Maximum=100
+	// +kubebuilder:validation:Minimum=1
+	QPS int `json:"qps,omitempty"`
+
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default=5
+	// +kubebuilder:validation:Minimum=1
+	PerRequestTimeoutInMS int `json:"perRequestTimeoutInMS,omitempty"`
+}

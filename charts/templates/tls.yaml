@@ -17,7 +17,7 @@ webhooks:
       service:
         name: {{ .Values.spiderdoctorController.name | trunc 63 | trimSuffix "-" }}
         namespace: {{ .Release.Namespace }}
-        path: "/mutate-spiderdoctor-spidernet-io-v1beta1-nethttp"
+        path: "/mutate-spiderdoctor-spidernet-io-v1beta1-httpapphealthy"
         port: {{ .Values.spiderdoctorController.webhookPort }}
       {{- if (eq .Values.spiderdoctorController.tls.method "provided") }}
       caBundle: {{ .Values.spiderdoctorController.tls.provided.tlsCa | required "missing tls.provided.tlsCa" }}
@@ -26,7 +26,34 @@ webhooks:
       {{- end }}
     failurePolicy: Fail
     sideEffects: None
-    name: nethttp.spiderdoctor.spidernet.io
+    name: httpapphealthy.spiderdoctor.spidernet.io
+    rules:
+      - apiGroups:
+          # ====modify====
+          - spiderdoctor.spidernet.io
+        apiVersions:
+          - v1beta1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - httpapphealthys
+  - admissionReviewVersions:
+      - v1
+    clientConfig:
+      service:
+        name: {{ .Values.spiderdoctorController.name | trunc 63 | trimSuffix "-" }}
+        namespace: {{ .Release.Namespace }}
+        path: "/mutate-spiderdoctor-spidernet-io-v1beta1-netreachhealthy"
+        port: {{ .Values.spiderdoctorController.webhookPort }}
+      {{- if (eq .Values.spiderdoctorController.tls.method "provided") }}
+      caBundle: {{ .Values.spiderdoctorController.tls.provided.tlsCa | required "missing tls.provided.tlsCa" }}
+      {{- else if (eq .Values.spiderdoctorController.tls.method "auto") }}
+      caBundle: {{ .ca.Cert | b64enc }}
+      {{- end }}
+    failurePolicy: Fail
+    sideEffects: None
+    name: netreachhealthy.spiderdoctor.spidernet.io
     rules:
       - apiGroups:
           # ====modify====
@@ -38,7 +65,7 @@ webhooks:
           - UPDATE
         resources:
           # ====modify==== crdName
-          - nethttps
+          - netreachhealthys
   - admissionReviewVersions:
       - v1
     clientConfig:
@@ -82,7 +109,7 @@ webhooks:
       service:
         name: {{ .Values.spiderdoctorController.name | trunc 63 | trimSuffix "-" }}
         namespace: {{ .Release.Namespace }}
-        path: "/validate-spiderdoctor-spidernet-io-v1beta1-nethttp"
+        path: "/validate-spiderdoctor-spidernet-io-v1beta1-httpapphealthy"
         port: {{ .Values.spiderdoctorController.webhookPort }}
       {{- if (eq .Values.spiderdoctorController.tls.method "provided") }}
       caBundle: {{ .Values.spiderdoctorController.tls.provided.tlsCa | required "missing tls.provided.tlsCa" }}
@@ -90,7 +117,7 @@ webhooks:
       caBundle: {{ .ca.Cert | b64enc }}
       {{- end }}
     failurePolicy: Fail
-    name: nethttp.spiderdoctor.spidernet.io
+    name: httpapphealthy.spiderdoctor.spidernet.io
     sideEffects: None
     rules:
       - apiGroups:
@@ -101,7 +128,33 @@ webhooks:
           - CREATE
           - UPDATE
         resources:
-          - nethttps
+          - httpapphealthys
+  - admissionReviewVersions:
+      - v1
+    clientConfig:
+      service:
+        name: {{ .Values.spiderdoctorController.name | trunc 63 | trimSuffix "-" }}
+        namespace: {{ .Release.Namespace }}
+        path: "/validate-spiderdoctor-spidernet-io-v1beta1-netreachhealthy"
+        port: {{ .Values.spiderdoctorController.webhookPort }}
+      {{- if (eq .Values.spiderdoctorController.tls.method "provided") }}
+      caBundle: {{ .Values.spiderdoctorController.tls.provided.tlsCa | required "missing tls.provided.tlsCa" }}
+      {{- else if (eq .Values.spiderdoctorController.tls.method "auto") }}
+      caBundle: {{ .ca.Cert | b64enc }}
+      {{- end }}
+    failurePolicy: Fail
+    name: netreachhealthy.spiderdoctor.spidernet.io
+    sideEffects: None
+    rules:
+      - apiGroups:
+          - spiderdoctor.spidernet.io
+        apiVersions:
+          - v1beta1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - netreachhealthys
   - admissionReviewVersions:
       - v1
     clientConfig:
