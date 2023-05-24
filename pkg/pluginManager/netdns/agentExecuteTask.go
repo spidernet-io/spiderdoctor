@@ -18,17 +18,15 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 )
 
-func ParseSuccessCondition(successCondition *crd.NetSuccessCondition, metricResult *loadDns.DnsMetrics) (failureReason string, err error) {
-	mean, _ := time.ParseDuration(metricResult.DelayForSuccess.Mean)
+func ParseSuccessCondition(successCondition *crd.NetSuccessCondition, metricResult *loadDns.Metrics) (failureReason string, err error) {
 
 	switch {
-	case successCondition.SuccessRate != nil && metricResult.SuccessRate < *(successCondition.SuccessRate):
-		failureReason = fmt.Sprintf("Success Rate %v is lower than request %v", metricResult.SuccessRate, *(successCondition.SuccessRate))
-	case successCondition.MeanAccessDelayInMs != nil && mean.Milliseconds() > *(successCondition.MeanAccessDelayInMs):
-		failureReason = fmt.Sprintf("mean delay %v ms is bigger than request %v ms", mean.Milliseconds(), *(successCondition.MeanAccessDelayInMs))
+	case successCondition.SuccessRate != nil && float64(metricResult.Success/metricResult.Requests) < *(successCondition.SuccessRate):
+		failureReason = fmt.Sprintf("Success Rate %v is lower than request %v", metricResult.Success/metricResult.Requests, *(successCondition.SuccessRate))
+	case successCondition.MeanAccessDelayInMs != nil && int64(metricResult.Latencies.Mean) > *(successCondition.MeanAccessDelayInMs):
+		failureReason = fmt.Sprintf("mean delay %v ms is bigger than request %v ms", metricResult.Latencies.Mean, *(successCondition.MeanAccessDelayInMs))
 	default:
 		failureReason = ""
 		err = nil
@@ -51,8 +49,8 @@ func SendRequestAndReport(logger *zap.Logger, targetName string, req *loadDns.Dn
 		report["FailureReason"] = failureReason
 		return
 	}
-	report["MeanDelay"] = result.DelayForSuccess.Mean
-	report["SucceedRate"] = fmt.Sprintf("%v", result.SuccessRate)
+	report["MeanDelay"] = result.Latencies.Mean
+	report["SucceedRate"] = fmt.Sprintf("%v", result.Success/result.Requests)
 
 	failureReason, err = ParseSuccessCondition(successCondition, result)
 	if err != nil {

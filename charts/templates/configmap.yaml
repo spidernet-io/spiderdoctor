@@ -22,6 +22,7 @@ data:
     nethttp_defaultMaxIdleConnsPerHost: {{ .Values.feature.nethttp_defaultMaxIdleConnsPerHost }}
     nethttp_defaultRequest_DurationInSecond: {{ .Values.feature.nethttp_defaultRequest_DurationInSecond }}
     nethttp_defaultRequest_PerRequestTimeoutInMS: {{ .Values.feature.nethttp_defaultRequest_PerRequestTimeoutInMS }}
+    netdns_defaultConcurrency: {{ .Values.feature.netdns_defaultConcurrency }}
     multusPodAnnotationKey: {{ .Values.feature.multusPodAnnotationKey }}
     crdMaxHistory: {{ .Values.feature.crdMaxHistory }}
     {{- if .Values.feature.enableIPv4 }}

@@ -32,7 +32,7 @@ var _ = Describe("test dns ", Label("dns"), func() {
 		log := logger.NewStdoutLogger("debug", "test")
 		result, e := loadDns.DnsRequest(log, req)
 		Expect(e).NotTo(HaveOccurred(), "failed to execute , error=%v", e)
-		Expect(result.FailedCount).To(Equal(0))
+		Expect(int(result.Failed)).To(Equal(0))
 		Expect(len(result.ReplyCode)).To(Equal(1))
 		Expect(result.ReplyCode).Should(HaveKey(dns.RcodeToString[dns.RcodeSuccess]))
 
@@ -62,7 +62,7 @@ var _ = Describe("test dns ", Label("dns"), func() {
 		log := logger.NewStdoutLogger("debug", "test")
 		result, e := loadDns.DnsRequest(log, req)
 		Expect(e).NotTo(HaveOccurred(), "failed to execute , error=%v", e)
-		Expect(result.FailedCount).To(Equal(0))
+		Expect(int(result.Failed)).To(Equal(0))
 		Expect(len(result.ReplyCode)).To(Equal(1))
 		Expect(result.ReplyCode).Should(HaveKey(dns.RcodeToString[dns.RcodeSuccess]))
 
@@ -91,7 +91,7 @@ var _ = Describe("test dns ", Label("dns"), func() {
 		log := logger.NewStdoutLogger("debug", "test")
 		result, e := loadDns.DnsRequest(log, req)
 		Expect(e).NotTo(HaveOccurred(), "failed to execute , error=%v", e)
-		Expect(result.SucceedCount).To(Equal(0))
+		Expect(result.ReplyCode["NXDOMAIN"]).To(Equal(int(result.Requests)))
 		Expect(len(result.ReplyCode)).To(Equal(1))
 		Expect(result.ReplyCode).Should(HaveKey(dns.RcodeToString[dns.RcodeNameError]))
 
@@ -120,7 +120,7 @@ var _ = Describe("test dns ", Label("dns"), func() {
 		log := logger.NewStdoutLogger("debug", "test")
 		result, e := loadDns.DnsRequest(log, req)
 		Expect(e).NotTo(HaveOccurred(), "failed to execute , error=%v", e)
-		Expect(result.FailedCount).To(Equal(0))
+		Expect(int(result.Failed)).To(Equal(0))
 		Expect(len(result.ReplyCode)).To(Equal(1))
 		Expect(result.ReplyCode).Should(HaveKey(dns.RcodeToString[dns.RcodeSuccess]))
 

@@ -12,6 +12,7 @@ type ConfigmapConfig struct {
 	NethttpDefaultMaxIdleConnsPerHost          int    `yaml:"nethttp_defaultMaxIdleConnsPerHost"`
 	NethttpDefaultRequestDurationInSecond      int    `yaml:"nethttp_defaultRequest_DurationInSecond"`
 	NethttpDefaultRequestPerRequestTimeoutInMS int    `yaml:"nethttp_defaultRequest_PerRequestTimeoutInMS"`
+	NetdnsDefaultConcurrency                   int    `yaml:"netdns_defaultConcurrency"`
 	MultusPodAnnotationKey                     string `yaml:"multusPodAnnotationKey"`
 	CrdMaxHistory                              int    `yaml:"crdMaxHistory"`
 
