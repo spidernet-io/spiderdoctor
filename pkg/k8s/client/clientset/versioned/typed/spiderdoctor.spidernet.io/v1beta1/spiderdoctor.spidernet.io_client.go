@@ -15,8 +15,9 @@ import (
 
 type SpiderdoctorV1beta1Interface interface {
 	RESTClient() rest.Interface
+	HttpAppHealthiesGetter
+	NetReachHealthiesGetter
 	NetdnsesGetter
-	NethttpsGetter
 }
 
 // SpiderdoctorV1beta1Client is used to interact with features provided by the spiderdoctor.spidernet.io group.
@@ -24,12 +25,16 @@ type SpiderdoctorV1beta1Client struct {
 	restClient rest.Interface
 }
 
-func (c *SpiderdoctorV1beta1Client) Netdnses() NetdnsInterface {
-	return newNetdnses(c)
+func (c *SpiderdoctorV1beta1Client) HttpAppHealthies() HttpAppHealthyInterface {
+	return newHttpAppHealthies(c)
 }
 
-func (c *SpiderdoctorV1beta1Client) Nethttps() NethttpInterface {
-	return newNethttps(c)
+func (c *SpiderdoctorV1beta1Client) NetReachHealthies() NetReachHealthyInterface {
+	return newNetReachHealthies(c)
+}
+
+func (c *SpiderdoctorV1beta1Client) Netdnses() NetdnsInterface {
+	return newNetdnses(c)
 }
 
 // NewForConfig creates a new SpiderdoctorV1beta1Client for the given config.

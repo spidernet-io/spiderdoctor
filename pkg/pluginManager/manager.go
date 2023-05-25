@@ -5,8 +5,9 @@ package pluginManager
 
 import (
 	"github.com/spidernet-io/spiderdoctor/pkg/lock"
+	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager/httpapphealthy"
 	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager/netdns"
-	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager/nethttp"
+	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager/netreachhealthy"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"go.uber.org/zap"
 )
@@ -37,8 +38,9 @@ func InitPluginManager(logger *zap.Logger) PluginManager {
 
 const (
 	// ------ add crd ------
-	KindNameNethttp = "Nethttp"
-	KindNameNetdns  = "Netdns"
+	KindNameHttpAppHealthy  = "HttpAppHealthy"
+	KindNameNetReachHealthy = "NetReachHealthy"
+	KindNameNetdns          = "Netdns"
 )
 
 func init() {
@@ -47,7 +49,8 @@ func init() {
 	}
 
 	// ------ add crd ------
-	globalPluginManager.chainingPlugins[KindNameNethttp] = &nethttp.PluginNetHttp{}
+	globalPluginManager.chainingPlugins[KindNameHttpAppHealthy] = &httpapphealthy.PluginHttpAppHealthy{}
+	globalPluginManager.chainingPlugins[KindNameNetReachHealthy] = &netreachhealthy.PluginNetReachHealthy{}
 	globalPluginManager.chainingPlugins[KindNameNetdns] = &netdns.PluginNetDns{}
 
 }

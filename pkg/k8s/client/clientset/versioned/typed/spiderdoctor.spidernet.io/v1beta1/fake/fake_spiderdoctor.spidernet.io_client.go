@@ -15,12 +15,16 @@ type FakeSpiderdoctorV1beta1 struct {
 	*testing.Fake
 }
 
-func (c *FakeSpiderdoctorV1beta1) Netdnses() v1beta1.NetdnsInterface {
-	return &FakeNetdnses{c}
+func (c *FakeSpiderdoctorV1beta1) HttpAppHealthies() v1beta1.HttpAppHealthyInterface {
+	return &FakeHttpAppHealthies{c}
 }
 
-func (c *FakeSpiderdoctorV1beta1) Nethttps() v1beta1.NethttpInterface {
-	return &FakeNethttps{c}
+func (c *FakeSpiderdoctorV1beta1) NetReachHealthies() v1beta1.NetReachHealthyInterface {
+	return &FakeNetReachHealthies{c}
+}
+
+func (c *FakeSpiderdoctorV1beta1) Netdnses() v1beta1.NetdnsInterface {
+	return &FakeNetdnses{c}
 }
 
 // RESTClient returns a RESTClient that is used to communicate

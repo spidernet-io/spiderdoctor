@@ -32,9 +32,9 @@ func (s *pluginControllerReconciler) Reconcile(ctx context.Context, req reconcil
 
 	// ------ add crd ------
 	switch s.crdKind {
-	case KindNameNethttp:
+	case KindNameNetReachHealthy:
 		// ------ add crd ------
-		instance := crd.Nethttp{}
+		instance := crd.NetReachHealthy{}
 
 		if err := s.client.Get(ctx, req.NamespacedName, &instance); err != nil {
 			s.logger.Sugar().Errorf("unable to fetch obj , error=%v", err)
@@ -50,7 +50,7 @@ func (s *pluginControllerReconciler) Reconcile(ctx context.Context, req reconcil
 
 		oldStatus := instance.Status.DeepCopy()
 		taskName := instance.Kind + "." + instance.Name
-		if result, newStatus, err := s.UpdateStatus(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy(), instance.Spec.SourceAgentNodeSelector.DeepCopy(), taskName); err != nil {
+		if result, newStatus, err := s.UpdateStatus(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy(), nil, taskName); err != nil {
 			// requeue
 			logger.Sugar().Errorf("failed to UpdateStatus, will retry it, error=%v", err)
 			return ctrl.Result{}, err
@@ -70,6 +70,43 @@ func (s *pluginControllerReconciler) Reconcile(ctx context.Context, req reconcil
 			}
 		}
 
+	case KindNameHttpAppHealthy:
+		// ------ add crd ------
+		instance := crd.HttpAppHealthy{}
+
+		if err := s.client.Get(ctx, req.NamespacedName, &instance); err != nil {
+			s.logger.Sugar().Errorf("unable to fetch obj , error=%v", err)
+			return ctrl.Result{}, client.IgnoreNotFound(err)
+		}
+		logger := s.logger.With(zap.String(instance.Kind, instance.Name))
+		logger.Sugar().Debugf("reconcile handle %v", instance)
+
+		if instance.DeletionTimestamp != nil {
+			s.logger.Sugar().Debugf("ignore deleting task %v", req)
+			return ctrl.Result{}, nil
+		}
+
+		oldStatus := instance.Status.DeepCopy()
+		taskName := instance.Kind + "." + instance.Name
+		if result, newStatus, err := s.UpdateStatus(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy(), nil, taskName); err != nil {
+			// requeue
+			logger.Sugar().Errorf("failed to UpdateStatus, will retry it, error=%v", err)
+			return ctrl.Result{}, err
+		} else {
+			if newStatus != nil && !reflect.DeepEqual(newStatus, oldStatus) {
+				instance.Status = *newStatus
+				if err := s.client.Status().Update(ctx, &instance); err != nil {
+					// requeue
+					logger.Sugar().Errorf("failed to update status, will retry it, error=%v", err)
+					return ctrl.Result{}, err
+				}
+				logger.Sugar().Debugf("succeeded update status, newStatus=%+v", newStatus)
+			}
+
+			if result != nil {
+				return *result, nil
+			}
+		}
 	case KindNameNetdns:
 		// ------ add crd ------
 		instance := crd.Netdns{}

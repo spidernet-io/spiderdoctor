@@ -5,6 +5,8 @@
 
 package v1beta1
 
-type NetdnsExpansion interface{}
+type HttpAppHealthyExpansion interface{}
 
-type NethttpExpansion interface{}
+type NetReachHealthyExpansion interface{}
+
+type NetdnsExpansion interface{}
