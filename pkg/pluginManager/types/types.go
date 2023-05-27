@@ -5,16 +5,22 @@ package types
 
 import (
 	"context"
+	"github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/system/v1beta1"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
 )
 
+type Task interface {
+	KindTask() string
+}
+
 type ChainingPlugin interface {
 	GetApiType() client.Object
 
-	AgentExecuteTask(logger *zap.Logger, ctx context.Context, obj runtime.Object) (failureReason string, report PluginRoundDetail, err error)
+	AgentExecuteTask(logger *zap.Logger, ctx context.Context, obj runtime.Object) (failureReason string, task Task, err error)
+	SetReportWithTask(report *v1beta1.Report, crdSpec interface{}, task Task) error
 
 	// ControllerReconcile(*zap.Logger, client.Client, context.Context, reconcile.Request) (reconcile.Result, error)
 	// AgentReconcile(*zap.Logger, client.Client, context.Context, reconcile.Request) (reconcile.Result, error)

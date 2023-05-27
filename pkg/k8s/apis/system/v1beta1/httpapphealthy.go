@@ -7,6 +7,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const HttpAppHealthyTaskName = "HttpAppHealthyTask"
+
 type HttpAppHealthyTask struct {
 	TargetType    string                     `json:"TargetType"`
 	TargetNumber  int64                      `json:"TargetNumber"`
@@ -39,4 +41,8 @@ type HttpMetrics struct {
 	// request data size
 	TotalDataSize string      `json:"TotalDataSize"`
 	StatusCodes   map[int]int `json:"StatusCodes"`
+}
+
+func (h *HttpAppHealthyTask) KindTask() string {
+	return HttpAppHealthyTaskName
 }

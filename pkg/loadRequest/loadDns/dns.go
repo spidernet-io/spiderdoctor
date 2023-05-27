@@ -6,6 +6,7 @@ package loadDns
 import (
 	"fmt"
 	"github.com/miekg/dns"
+	"github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/system/v1beta1"
 	"go.uber.org/zap"
 	"time"
 
@@ -35,7 +36,7 @@ type DnsRequestData struct {
 	DurationInSecond      int
 }
 
-func DnsRequest(logger *zap.Logger, reqData *DnsRequestData) (result *Metrics, err error) {
+func DnsRequest(logger *zap.Logger, reqData *DnsRequestData) (result *v1beta1.DNSMetrics, err error) {
 
 	logger.Sugar().Infof("dns ServerAddress=%v, request=%v, ", reqData.DnsServerAddr, reqData)
 

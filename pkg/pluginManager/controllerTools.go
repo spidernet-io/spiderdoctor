@@ -132,6 +132,7 @@ func (s *pluginControllerReconciler) WriteSummaryReport(taskName string, roundNu
 		// add to workqueue to collect all report of last round, for node latestRecord.FailedAgentNodeList and latestRecord.SucceedAgentNodeList
 		reportManager.TriggerSyncReport(fmt.Sprintf("%s.%d", taskName, roundNumber))
 
+		// TODO (Icarus9913): change to use v1beta1.Report ?
 		// write controller summary report
 		msg := plugintypes.PluginReport{
 			TaskName:       strings.ToLower(taskName),
@@ -144,7 +145,7 @@ func (s *pluginControllerReconciler) WriteSummaryReport(taskName string, roundNu
 			StartTimeStamp: newStatus.History[0].StartTimeStamp.Time,
 			EndTimeStamp:   time.Now(),
 			RoundDuraiton:  time.Since(newStatus.History[0].StartTimeStamp.Time).String(),
-			Detail:         newStatus.History[0], // 就是那个CR实例的history[0]
+			Detail:         newStatus.History[0],
 			ReportType:     plugintypes.ReportTypeSummary,
 		}
 

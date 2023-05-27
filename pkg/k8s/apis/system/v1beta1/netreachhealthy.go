@@ -3,6 +3,8 @@
 
 package v1beta1
 
+const NetReachHealthyTaskName = "NetReachHealthyTask"
+
 type NetReachHealthyTask struct {
 	TargetType    string                      `json:"TargetType"`
 	TargetNumber  int64                       `json:"TargetNumber"`
@@ -20,4 +22,8 @@ type NetReachHealthyTaskDetail struct {
 	SucceedRate   float64     `json:"SucceedRate"`
 	FailureReason *string     `json:"FailureReason,omitempty"`
 	Metrics       HttpMetrics `json:"Metrics"`
+}
+
+func (n *NetReachHealthyTask) KindTask() string {
+	return NetReachHealthyTaskName
 }

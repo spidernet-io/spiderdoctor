@@ -7,6 +7,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const NetDNSTaskName = "NetDNSTask"
+
 type NetDNSTask struct {
 	TargetType    string             `json:"targetType"`
 	TargetNumber  int64              `json:"targetNumber"`
@@ -41,4 +43,8 @@ type DNSMetrics struct {
 	DNSMethod    string         `json:"DNSMethod"`
 	FailedCounts int64          `json:"FailedCounts"`
 	ReplyCode    map[string]int `json:"ReplyCode"`
+}
+
+func (n *NetDNSTask) KindTask() string {
+	return NetDNSTaskName
 }

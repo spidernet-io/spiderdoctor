@@ -57,7 +57,7 @@ func (s *pluginAgentReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 		oldStatus := instance.Status.DeepCopy()
 		taskName := instance.Kind + "." + instance.Name
-		if result, newStatus, err := s.HandleAgentTaskRound(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy(), &instance, taskName, instance.Spec); err != nil {
+		if result, newStatus, err := s.HandleAgentTaskRound(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy(), &instance, taskName, instance.Spec.DeepCopy()); err != nil {
 			// requeue
 			logger.Sugar().Errorf("failed to HandleAgentTaskRound, will retry it, error=%v", err)
 			return ctrl.Result{}, err
@@ -94,7 +94,7 @@ func (s *pluginAgentReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 		oldStatus := instance.Status.DeepCopy()
 		taskName := instance.Kind + "." + instance.Name
-		if result, newStatus, err := s.HandleAgentTaskRound(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy(), &instance, taskName, instance.Spec); err != nil {
+		if result, newStatus, err := s.HandleAgentTaskRound(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy(), &instance, taskName, instance.Spec.DeepCopy()); err != nil {
 			// requeue
 			logger.Sugar().Errorf("failed to HandleAgentTaskRound, will retry it, error=%v", err)
 			return ctrl.Result{}, err
@@ -129,7 +129,7 @@ func (s *pluginAgentReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 		oldStatus := instance.Status.DeepCopy()
 		taskName := instance.Kind + "." + instance.Name
-		if result, newStatus, err := s.HandleAgentTaskRound(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy(), &instance, taskName, instance.Spec); err != nil {
+		if result, newStatus, err := s.HandleAgentTaskRound(logger, ctx, oldStatus, instance.Spec.Schedule.DeepCopy(), &instance, taskName, instance.Spec.DeepCopy()); err != nil {
 			// requeue
 			logger.Sugar().Errorf("failed to HandleAgentTaskRound, will retry it, error=%v", err)
 			return ctrl.Result{}, err

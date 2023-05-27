@@ -7,16 +7,18 @@ import (
 	"context"
 	"fmt"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1beta1"
+	"github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/system/v1beta1"
 	"github.com/spidernet-io/spiderdoctor/pkg/loadRequest/loadHttp"
 	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/utils/pointer"
 )
 
-func ParseSuccessCondition(successCondition *crd.NetSuccessCondition, metricResult *loadHttp.Metrics) (failureReason string, err error) {
+func ParseSuccessCondition(successCondition *crd.NetSuccessCondition, metricResult *v1beta1.HttpMetrics) (failureReason string, err error) {
 	switch {
-	case successCondition.SuccessRate != nil && float64(metricResult.Success/metricResult.Requests) < *(successCondition.SuccessRate):
-		failureReason = fmt.Sprintf("Success Rate %v is lower than request %v", metricResult.Success/metricResult.Requests, *(successCondition.SuccessRate))
+	case successCondition.SuccessRate != nil && float64(metricResult.SuccessCounts)/float64(metricResult.RequestCounts) < *(successCondition.SuccessRate):
+		failureReason = fmt.Sprintf("Success Rate %v is lower than request %v", float64(metricResult.SuccessCounts)/float64(metricResult.RequestCounts), *(successCondition.SuccessRate))
 	case successCondition.MeanAccessDelayInMs != nil && int64(metricResult.Latencies.Mean) > *(successCondition.MeanAccessDelayInMs):
 		failureReason = fmt.Sprintf("mean delay %v ms is bigger than request %v ms", metricResult.Latencies.Mean, *(successCondition.MeanAccessDelayInMs))
 	default:
@@ -26,35 +28,33 @@ func ParseSuccessCondition(successCondition *crd.NetSuccessCondition, metricResu
 	return
 }
 
-func SendRequestAndReport(logger *zap.Logger, targetName string, req *loadHttp.HttpRequestData, successCondition *crd.NetSuccessCondition, report map[string]interface{}) (failureReason string) {
-
-	report["TargetName"] = targetName
-	report["TargetUrl"] = req.Url
-	report["TargetMethod"] = req.Method
-	report["Succeed"] = "false"
+func SendRequestAndReport(logger *zap.Logger, targetName string, req *loadHttp.HttpRequestData, successCondition *crd.NetSuccessCondition) (failureReason string, report v1beta1.HttpAppHealthyTaskDetail) {
+	report.TargetName = targetName
+	report.TargetUrl = req.Url
+	report.TargetMethod = string(req.Method)
 
 	result := loadHttp.HttpRequest(logger, req)
-	report["MeanDelay"] = result.Latencies.Mean
-	report["SucceedRate"] = fmt.Sprintf("%v", result.Success/result.Requests)
+	report.MeanDelay = result.Latencies.Mean
+	report.SucceedRate = float64(result.SuccessCounts) / float64(result.RequestCounts)
 
 	var err error
 	failureReason, err = ParseSuccessCondition(successCondition, result)
 	if err != nil {
 		failureReason = fmt.Sprintf("%v", err)
 		logger.Sugar().Errorf("internal error for target %v, error=%v", req.Url, err)
-		report["FailureReason"] = failureReason
+		report.FailureReason = pointer.String(failureReason)
 		return
 	}
 
 	// generate report
 	// notice , upper case for first character of key, or else fail to parse json
-	report["Metrics"] = *result
-	report["FailureReason"] = failureReason
-	if len(report) > 0 {
-		report["Succeed"] = "true"
+	report.Metrics = *result
+	report.FailureReason = pointer.String(failureReason)
+	if report.FailureReason == nil {
+		report.Succeed = true
 		logger.Sugar().Infof("succeed to test %v", req.Url)
 	} else {
-		report["Succeed"] = "false"
+		report.Succeed = false
 		logger.Sugar().Warnf("failed to test %v", req.Url)
 	}
 
@@ -67,9 +67,9 @@ type TestTarget struct {
 	Method loadHttp.HttpMethod
 }
 
-func (s *PluginHttpAppHealthy) AgentExecuteTask(logger *zap.Logger, ctx context.Context, obj runtime.Object) (finalfailureReason string, finalReport types.PluginRoundDetail, err error) {
+func (s *PluginHttpAppHealthy) AgentExecuteTask(logger *zap.Logger, ctx context.Context, obj runtime.Object) (finalfailureReason string, finalReport types.Task, err error) {
 	finalfailureReason = ""
-	finalReport = types.PluginRoundDetail{}
+	task := &v1beta1.HttpAppHealthyTask{}
 	err = nil
 
 	instance, ok := obj.(*crd.HttpAppHealthy)
@@ -87,8 +87,8 @@ func (s *PluginHttpAppHealthy) AgentExecuteTask(logger *zap.Logger, ctx context.
 	successCondition := instance.Spec.SuccessCondition
 
 	logger.Sugar().Infof("load test custom target: Method=%v, Url=%v , qps=%v, PerRequestTimeout=%vs, Duration=%vs", target.Method, target.Host, request.QPS, request.PerRequestTimeoutInMS, request.DurationInSecond)
-	finalReport["TargetType"] = "HttpAppHealthy"
-	finalReport["TargetNumber"] = "1"
+	task.TargetType = "HttpAppHealthy"
+	task.TargetNumber = 1
 	d := &loadHttp.HttpRequestData{
 		Method:              loadHttp.HttpMethod(target.Method),
 		Url:                 target.Host,
@@ -97,20 +97,36 @@ func (s *PluginHttpAppHealthy) AgentExecuteTask(logger *zap.Logger, ctx context.
 		RequestTimeSecond:   request.DurationInSecond,
 		Http2:               target.Http2,
 	}
-	failureReason := SendRequestAndReport(logger, "HttpAppHealthy target", d, successCondition, finalReport)
+	failureReason, itemReport := SendRequestAndReport(logger, "HttpAppHealthy target", d, successCondition)
 	if len(failureReason) > 0 {
 		finalfailureReason = fmt.Sprintf("test HttpAppHealthy target: %v", failureReason)
 	}
 
+	task.Detail = []v1beta1.HttpAppHealthyTaskDetail{itemReport}
 	if len(finalfailureReason) > 0 {
 		logger.Sugar().Errorf("plugin finally failed, %v", finalfailureReason)
-		finalReport["FailureReason"] = finalfailureReason
-		finalReport["Succeed"] = "false"
+		task.FailureReason = pointer.String(finalfailureReason)
+		task.Succeed = false
 	} else {
-		finalReport["FailureReason"] = ""
-		finalReport["Succeed"] = "true"
+		task.Succeed = true
 	}
 
-	return finalfailureReason, finalReport, err
+	return finalfailureReason, task, err
 
+}
+
+func (s *PluginHttpAppHealthy) SetReportWithTask(report *v1beta1.Report, crdSpec interface{}, task types.Task) error {
+	httpAppHealthySpec, ok := crdSpec.(*crd.HttpAppHealthySpec)
+	if !ok {
+		return fmt.Errorf("the given crd spec %#v doesn't match HttpAppHealthySpec", crdSpec)
+	}
+
+	httpAppHealthyTask, ok := task.(*v1beta1.HttpAppHealthyTask)
+	if !ok {
+		return fmt.Errorf("task type %v doesn't match HttpAppHealthyTask", task.KindTask())
+	}
+
+	report.HttpAppHealthyTaskSpec = httpAppHealthySpec
+	report.HttpAppHealthyTask = httpAppHealthyTask
+	return nil
 }
