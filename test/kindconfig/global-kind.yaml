@@ -13,6 +13,7 @@ kubeadmConfigPatches:
     apiServer:
         extraArgs:
           enable-admission-plugins: NodeRestriction,MutatingAdmissionWebhook,ValidatingAdmissionWebhook
+          enable-aggregator-routing: "true"
 
 nodes:
   - role: control-plane

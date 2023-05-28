@@ -23,6 +23,7 @@ endef
 build_all_bin:
 	make build_controller_bin
 	make build_agent_bin
+	make build_apiserver_bin
 
 
 .PHONY: build_controller_bin
@@ -33,6 +34,11 @@ build_controller_bin:
 .PHONY: build_agent_bin
 build_agent_bin: CMD_BIN_DIR := $(ROOT_DIR)/cmd/agent
 build_agent_bin:
+	$(BUILD_BIN)
+
+.PHONY: build_apiserver_bin
+build_apiserver_bin: CMD_BIN_DIR := $(ROOT_DIR)/pkg/apiserver/cmd/apiserver
+build_apiserver_bin:
 	$(BUILD_BIN)
 
 # ------------
@@ -61,7 +67,7 @@ endef
 
 
 .PHONY: build_local_image
-build_local_image: build_local_agent_image build_local_controller_image
+build_local_image: build_local_agent_image build_local_controller_image build_local_apiserver_image
 
 .PHONY: build_local_agent_image
 build_local_agent_image: IMAGE_NAME := ${REGISTER}/${GIT_REPO}-agent
@@ -77,6 +83,12 @@ build_local_controller_image: IMAGE_TAG := $(GIT_COMMIT_VERSION)
 build_local_controller_image:
 	$(BUILD_FINAL_IMAGE)
 
+.PHONY: build_local_apiserver_image
+build_local_apiserver_image: IMAGE_NAME := ${REGISTER}/${GIT_REPO}-apiserver
+build_local_apiserver_image: DOCKERFILE_PATH := $(ROOT_DIR)/images/apiserver/Dockerfile
+build_local_apiserver_image: IMAGE_TAG := $(GIT_COMMIT_VERSION)
+build_local_apiserver_image:
+	$(BUILD_FINAL_IMAGE)
 
 #---------
 

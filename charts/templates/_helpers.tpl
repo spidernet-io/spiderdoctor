@@ -25,11 +25,23 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{/*
-spiderdoctorAgent Common labels
+spiderdoctorController Common labels
 */}}
 {{- define "project.spiderdoctorController.labels" -}}
 helm.sh/chart: {{ include "project.chart" . }}
 {{ include "project.spiderdoctorController.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
+spiderdoctorApiserver Common labels
+*/}}
+{{- define "project.spiderdoctorApiserver.labels" -}}
+helm.sh/chart: {{ include "project.chart" . }}
+{{ include "project.spiderdoctorApiserver.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -46,7 +58,7 @@ app.kubernetes.io/component: {{ .Values.spiderdoctorAgent.name | trunc 63 | trim
 {{- end }}
 
 {{/*
-spiderdoctorAgent Selector labels
+spiderdoctorController Selector labels
 */}}
 {{- define "project.spiderdoctorController.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "project.name" . }}
@@ -54,6 +66,14 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/component: {{ .Values.spiderdoctorController.name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
+{{/*
+spiderdoctorApiserver Selector labels
+*/}}
+{{- define "project.spiderdoctorApiserver.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "project.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/component: {{ .Values.spiderdoctorApiserver.name | trunc 63 | trimSuffix "-" }}
+{{- end }}
 
 {{/* vim: set filetype=mustache: */}}
 {{/*
@@ -155,6 +175,29 @@ return the spiderdoctorController image
 {{- end -}}
 {{- end -}}
 
+{{/*
+return the spiderdoctorApiserver image
+*/}}
+{{- define "project.spiderdoctorApiserver.image" -}}
+{{- $registryName := .Values.spiderdoctorApiserver.image.registry -}}
+{{- $repositoryName := .Values.spiderdoctorApiserver.image.repository -}}
+{{- if .Values.global.imageRegistryOverride }}
+    {{- printf "%s/%s" .Values.global.imageRegistryOverride $repositoryName -}}
+{{ else if $registryName }}
+    {{- printf "%s/%s" $registryName $repositoryName -}}
+{{- else -}}
+    {{- printf "%s" $repositoryName -}}
+{{- end -}}
+{{- if .Values.spiderdoctorApiserver.image.digest }}
+    {{- print "@" .Values.spiderdoctorApiserver.image.digest -}}
+{{- else if .Values.global.imageTagOverride -}}
+    {{- printf ":%s" .Values.global.imageTagOverride -}}
+{{- else if .Values.spiderdoctorApiserver.image.tag -}}
+    {{- printf ":%s" .Values.spiderdoctorApiserver.image.tag -}}
+{{- else -}}
+    {{- printf ":v%s" .Chart.AppVersion -}}
+{{- end -}}
+{{- end -}}
 
 {{/*
 generate the CA cert
