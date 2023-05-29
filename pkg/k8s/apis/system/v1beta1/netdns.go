@@ -7,7 +7,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const NetDNSTaskName = "NetDNSTask"
+const NetDNSTaskName = "Netdns"
 
 type NetDNSTask struct {
 	TargetType    string             `json:"targetType"`

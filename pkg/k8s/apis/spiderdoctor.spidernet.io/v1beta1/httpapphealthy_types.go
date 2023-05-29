@@ -47,7 +47,7 @@ type HttpAppHealthyTarget struct {
 }
 
 // scope(Namespaced or Cluster)
-// +kubebuilder:resource:categories={spiderdoctor},path="httpapphealthys",singular="httpapphealthy",shortName={netah},scope="Cluster"
+// +kubebuilder:resource:categories={spiderdoctor},path="httpapphealthies",singular="httpapphealthy",shortName={netah},scope="Cluster"
 // +kubebuilder:printcolumn:JSONPath=".status.finish",description="finish",name="finish",type=boolean
 // +kubebuilder:printcolumn:JSONPath=".status.expectedRound",description="expectedRound",name="expectedRound",type=integer
 // +kubebuilder:printcolumn:JSONPath=".status.doneRound",description="doneRound",name="doneRound",type=integer

@@ -5,7 +5,7 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: (unknown)
   creationTimestamp: null
-  name: netdnss.spiderdoctor.spidernet.io
+  name: netdnses.spiderdoctor.spidernet.io
 spec:
   group: spiderdoctor.spidernet.io
   names:
@@ -13,7 +13,7 @@ spec:
     - spiderdoctor
     kind: Netdns
     listKind: NetdnsList
-    plural: netdnss
+    plural: netdnses
     singular: netdns
   scope: Cluster
   versions:

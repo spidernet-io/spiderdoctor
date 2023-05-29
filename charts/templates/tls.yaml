@@ -37,7 +37,7 @@ webhooks:
           - CREATE
           - UPDATE
         resources:
-          - httpapphealthys
+          - httpapphealthies
   - admissionReviewVersions:
       - v1
     clientConfig:
@@ -65,7 +65,7 @@ webhooks:
           - UPDATE
         resources:
           # ====modify==== crdName
-          - netreachhealthys
+          - netreachhealthies
   - admissionReviewVersions:
       - v1
     clientConfig:
@@ -92,7 +92,7 @@ webhooks:
           - CREATE
           - UPDATE
         resources:
-          - netdnss
+          - netdnses
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
@@ -128,7 +128,7 @@ webhooks:
           - CREATE
           - UPDATE
         resources:
-          - httpapphealthys
+          - httpapphealthies
   - admissionReviewVersions:
       - v1
     clientConfig:
@@ -154,7 +154,7 @@ webhooks:
           - CREATE
           - UPDATE
         resources:
-          - netreachhealthys
+          - netreachhealthies
   - admissionReviewVersions:
       - v1
     clientConfig:
@@ -180,7 +180,7 @@ webhooks:
           - CREATE
           - UPDATE
         resources:
-          - netdnss
+          - netdnses
 
 {{- if eq .Values.spiderdoctorController.tls.method "certmanager" -}}
 ---

@@ -5,18 +5,18 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: (unknown)
   creationTimestamp: null
-  name: netreachhealthys.spiderdoctor.spidernet.io
+  name: httpapphealthies.spiderdoctor.spidernet.io
 spec:
   group: spiderdoctor.spidernet.io
   names:
     categories:
     - spiderdoctor
-    kind: NetReachHealthy
-    listKind: NetReachHealthyList
-    plural: netreachhealthys
+    kind: HttpAppHealthy
+    listKind: HttpAppHealthyList
+    plural: httpapphealthies
     shortNames:
-    - netrh
-    singular: netreachhealthy
+    - netah
+    singular: httpapphealthy
   scope: Cluster
   versions:
   - additionalPrinterColumns:
@@ -107,30 +107,33 @@ spec:
                 type: object
               target:
                 properties:
-                  clusterIP:
-                    default: true
-                    type: boolean
-                  endpoint:
-                    default: true
-                    type: boolean
-                  ingress:
+                  body:
+                    type: string
+                  header:
+                    items:
+                      type: string
+                    type: array
+                  host:
+                    type: string
+                  http2:
                     default: false
                     type: boolean
-                  ipv4:
-                    default: true
-                    type: boolean
-                  ipv6:
-                    default: false
-                    type: boolean
-                  loadBalancer:
-                    default: false
-                    type: boolean
-                  multusInterface:
-                    default: false
-                    type: boolean
-                  nodePort:
-                    default: true
-                    type: boolean
+                  method:
+                    enum:
+                    - GET
+                    - POST
+                    - PUT
+                    - DELETE
+                    - CONNECT
+                    - OPTIONS
+                    - PATCH
+                    - HEAD
+                    type: string
+                  tls-ca:
+                    type: string
+                required:
+                - host
+                - method
                 type: object
             type: object
           status:

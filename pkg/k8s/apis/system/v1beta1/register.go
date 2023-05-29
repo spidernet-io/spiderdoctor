@@ -9,11 +9,16 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-// GroupName is the group name used in this package.
-const GroupName = "system.spiderdoctor.spidernet.io"
+const (
+	// GroupName is the group name used in this package.
+	GroupName            = "system.spiderdoctor.spidernet.io"
+	V1betaVersion        = "v1beta1"
+	KindPluginReport     = "PluginReport"
+	KindPluginReportList = "PluginReportList"
+)
 
 // SchemeGroupVersion is group version used to register these objects.
-var SchemeGroupVersion = schema.GroupVersion{Group: GroupName, Version: "v1beta1"}
+var SchemeGroupVersion = schema.GroupVersion{Group: GroupName, Version: V1betaVersion}
 
 var (
 	// SchemeBuilder points to a list of functions added to Scheme.

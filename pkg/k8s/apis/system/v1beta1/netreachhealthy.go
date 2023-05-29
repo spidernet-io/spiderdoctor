@@ -3,7 +3,7 @@
 
 package v1beta1
 
-const NetReachHealthyTaskName = "NetReachHealthyTask"
+const NetReachHealthyTaskName = "NetReachHealthy"
 
 type NetReachHealthyTask struct {
 	TargetType    string                      `json:"TargetType"`

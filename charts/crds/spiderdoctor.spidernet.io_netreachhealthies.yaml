@@ -5,18 +5,18 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: (unknown)
   creationTimestamp: null
-  name: httpapphealthys.spiderdoctor.spidernet.io
+  name: netreachhealthies.spiderdoctor.spidernet.io
 spec:
   group: spiderdoctor.spidernet.io
   names:
     categories:
     - spiderdoctor
-    kind: HttpAppHealthy
-    listKind: HttpAppHealthyList
-    plural: httpapphealthys
+    kind: NetReachHealthy
+    listKind: NetReachHealthyList
+    plural: netreachhealthies
     shortNames:
-    - netah
-    singular: httpapphealthy
+    - netrh
+    singular: netreachhealthies
   scope: Cluster
   versions:
   - additionalPrinterColumns:
@@ -107,33 +107,30 @@ spec:
                 type: object
               target:
                 properties:
-                  body:
-                    type: string
-                  header:
-                    items:
-                      type: string
-                    type: array
-                  host:
-                    type: string
-                  http2:
+                  clusterIP:
+                    default: true
+                    type: boolean
+                  endpoint:
+                    default: true
+                    type: boolean
+                  ingress:
                     default: false
                     type: boolean
-                  method:
-                    enum:
-                    - GET
-                    - POST
-                    - PUT
-                    - DELETE
-                    - CONNECT
-                    - OPTIONS
-                    - PATCH
-                    - HEAD
-                    type: string
-                  tls-ca:
-                    type: string
-                required:
-                - host
-                - method
+                  ipv4:
+                    default: true
+                    type: boolean
+                  ipv6:
+                    default: false
+                    type: boolean
+                  loadBalancer:
+                    default: false
+                    type: boolean
+                  multusInterface:
+                    default: false
+                    type: boolean
+                  nodePort:
+                    default: true
+                    type: boolean
                 type: object
             type: object
           status:

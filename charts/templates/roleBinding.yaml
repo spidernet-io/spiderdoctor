@@ -24,7 +24,7 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ include "project.name" . }}
+  name: {{ .Values.spiderdoctorApiserver.name | trunc 63 | trimSuffix "-" }}
 subjects:
   - kind: ServiceAccount
     name: {{ .Values.spiderdoctorApiserver.name | trunc 63 | trimSuffix "-" }}

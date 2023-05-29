@@ -57,7 +57,8 @@ func DaemonMain() {
 	s.RunControllerController(int(types.ControllerConfig.HttpPort), int(types.ControllerConfig.WebhookPort), filepath.Dir(types.ControllerConfig.TlsServerCertPath))
 
 	// ------------
-	rootLogger.Info("finish initialization")
+	rootLogger.Info("finish spiderdoctor-controller initialization")
+
 	// sleep forever
 	select {}
 }

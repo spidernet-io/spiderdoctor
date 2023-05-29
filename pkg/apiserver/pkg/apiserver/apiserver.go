@@ -12,11 +12,13 @@ import (
 	"k8s.io/apiserver/pkg/apis/audit/install"
 	"k8s.io/apiserver/pkg/registry/rest"
 	genericapiserver "k8s.io/apiserver/pkg/server"
+	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/spidernet-io/spiderdoctor/pkg/apiserver/pkg/filters"
 	"github.com/spidernet-io/spiderdoctor/pkg/apiserver/pkg/registry"
 	"github.com/spidernet-io/spiderdoctor/pkg/apiserver/pkg/registry/spidedoctor/pluginreport"
 	"github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/system/v1beta1"
+	"github.com/spidernet-io/spiderdoctor/pkg/k8s/client/clientset/versioned"
 )
 
 const DefaultPluginReportPath = "/report"
@@ -67,6 +69,11 @@ func (cfg *Config) Complete() CompletedConfig {
 }
 
 func (c completedConfig) New() (*SpiderDoctorServer, error) {
+	clientSet, err := versioned.NewForConfig(ctrl.GetConfigOrDie())
+	if nil != err {
+		return nil, err
+	}
+
 	handlerChainFunc := c.GenericConfig.BuildHandlerChainFunc
 	c.GenericConfig.BuildHandlerChainFunc = func(apiHandler http.Handler, c *genericapiserver.Config) http.Handler {
 		handler := handlerChainFunc(apiHandler, c)
@@ -86,7 +93,7 @@ func (c completedConfig) New() (*SpiderDoctorServer, error) {
 	apiGroupInfo := genericapiserver.NewDefaultAPIGroupInfo(GroupName, Scheme, metav1.ParameterCodec, Codecs)
 
 	v1beta1storage := map[string]rest.Storage{}
-	v1beta1storage["pluginreports"] = registry.RESTInPeace(pluginreport.NewREST(Scheme, c.GenericConfig.RESTOptionsGetter))
+	v1beta1storage["pluginreports"] = registry.RESTInPeace(pluginreport.NewREST(clientSet, Scheme, c.GenericConfig.RESTOptionsGetter))
 	apiGroupInfo.VersionedResourcesStorageMap["v1beta1"] = v1beta1storage
 
 	err = s.GenericAPIServer.InstallAPIGroup(&apiGroupInfo)
