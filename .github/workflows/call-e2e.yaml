@@ -51,6 +51,10 @@ jobs:
           TMP=` date +%m%d%H%M%S `
           E2E_CLUSTER_NAME="project${TMP}"
           echo "RUN_KIND_CLUSTER_NAME=${E2E_CLUSTER_NAME}" >> $GITHUB_ENV
+          TMP=${{ inputs.kind_node_image }}
+          VAR=${TMP##*:}
+          VAR=${VAR//./_}
+          echo "RUN_VAR=${VAR}" >> $GITHUB_ENV
 
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -139,7 +143,7 @@ jobs:
       - name: Upload e2e cluster log
         uses: actions/upload-artifact@v3.1.1
         with:
-          name: ${{ inputs.ipfamily }}-debuglog-${{ inputs.kind_node_image }}.txt
+          name: ${{ inputs.ipfamily }}-debuglog-${{ env.RUN_VAR }}.txt
           path: ${{ env.E2E_LOG_PATH }}
           retention-days: 30
 
@@ -147,7 +151,7 @@ jobs:
         if: ${{ env.RUN_UPLOAD_LOG == 'true' }}
         uses: actions/upload-artifact@v3.1.1
         with:
-          name: ${{ inputs.ipfamily }}-e2ereport-${{ inputs.kind_node_image }}.json
+          name: ${{ inputs.ipfamily }}-e2ereport-${{ env.RUN_VAR }}.json
           path: ${{ env.E2E_GINKGO_REPORT_PATH }}
           retention-days: 30
 
