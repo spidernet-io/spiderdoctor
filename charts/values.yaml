@@ -589,40 +589,6 @@ spiderdoctorController:
       ## @param spiderdoctorController.tls.auto.extraDnsNames extra DNS names of server cert for auto method
       extraDnsNames: []
 
-## @section spiderdoctorApiserver parameters
-##
-spiderdoctorApiserver:
-  ## @param spiderdoctorApiserver.name the spiderdoctorApiserver name
-  name: "spiderdoctor-apiserver"
-
-  ## @param spiderdoctorApiserver.apiServiceName the spiderdoctorApiserver APIService name
-  apiServiceName: "v1beta1.system.spiderdoctor.spidernet.io"
-
-  ## @param spiderdoctorApiserver.group the spiderdoctorApiserver group
-  group: "system.spiderdoctor.spidernet.io"
-
-  image:
-    ## @param spiderdoctorApiserver.image.registry the image registry of spiderdoctorApiserver
-    registry: ghcr.io
-
-    ## @param spiderdoctorApiserver.image.repository the image repository of spiderdoctorApiserver
-    repository: spidernet-io/spiderdoctor-apiserver
-
-    ## @param spiderdoctorApiserver.image.pullPolicy the image pullPolicy of spiderdoctorApiserver
-    pullPolicy: IfNotPresent
-
-    ## @param spiderdoctorApiserver.image.digest the image digest of spiderdoctorApiserver, which takes preference over tag
-    digest: ""
-
-    ## @param spiderdoctorApiserver.image.tag the image tag of spiderdoctorApiserver, overrides the image tag whose default is the chart appVersion.
-    tag: ""
-
-    ## @param spiderdoctorApiserver.image.imagePullSecrets the image imagePullSecrets of spiderdoctorApiserver
-    imagePullSecrets: []
-    # - name: "image-pull-secret"
-
-  serviceAccount:
-    ## @param spiderdoctorApiserver.serviceAccount.create create the service account for the spiderdoctorApiserver
-    create: true
-    ## @param spiderdoctorApiserver.serviceAccount.annotations the annotations of spiderdoctorApiserver service account
-    annotations: {}
+  apiserver:
+    ## @param spiderdoctorApiserver.name the spiderdoctorApiserver name
+    name: "spiderdoctor-apiserver"

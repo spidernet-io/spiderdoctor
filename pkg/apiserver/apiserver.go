@@ -1,7 +1,11 @@
+// Copyright 2023 Authors of spidernet-io
+// SPDX-License-Identifier: Apache-2.0
+
 package apiserver
 
 import (
 	"net/http"
+	"os"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -12,11 +16,12 @@ import (
 	"k8s.io/apiserver/pkg/apis/audit/install"
 	"k8s.io/apiserver/pkg/registry/rest"
 	genericapiserver "k8s.io/apiserver/pkg/server"
+	genericoptions "k8s.io/apiserver/pkg/server/options"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	"github.com/spidernet-io/spiderdoctor/pkg/apiserver/pkg/filters"
-	"github.com/spidernet-io/spiderdoctor/pkg/apiserver/pkg/registry"
-	"github.com/spidernet-io/spiderdoctor/pkg/apiserver/pkg/registry/spidedoctor/pluginreport"
+	"github.com/spidernet-io/spiderdoctor/pkg/apiserver/filters"
+	"github.com/spidernet-io/spiderdoctor/pkg/apiserver/registry"
+	"github.com/spidernet-io/spiderdoctor/pkg/apiserver/registry/spidedoctor/pluginreport"
 	"github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/system/v1beta1"
 	"github.com/spidernet-io/spiderdoctor/pkg/k8s/client/clientset/versioned"
 )
@@ -28,6 +33,48 @@ var (
 	Codecs    = serializer.NewCodecFactory(Scheme)
 	GroupName = v1beta1.GroupName
 )
+
+const defaultEtcdPathPrefix = ""
+
+type SpiderDoctorServerOptions struct {
+	RecommendedOptions *genericoptions.RecommendedOptions
+}
+
+func NewSpiderDoctorServerOptions() *SpiderDoctorServerOptions {
+	s := &SpiderDoctorServerOptions{
+		RecommendedOptions: genericoptions.NewRecommendedOptions(
+			defaultEtcdPathPrefix,
+			Codecs.LegacyCodec(v1beta1.SchemeGroupVersion),
+		),
+	}
+	s.RecommendedOptions.Etcd.StorageConfig.EncodeVersioner = runtime.NewMultiGroupVersioner(v1beta1.SchemeGroupVersion, schema.GroupKind{Group: v1beta1.GroupName})
+
+	return s
+}
+
+func (s *SpiderDoctorServerOptions) Config() (*Config, error) {
+	serverConfig := genericapiserver.NewRecommendedConfig(Codecs)
+
+	err := s.RecommendedOptions.ApplyTo(serverConfig)
+	if nil != err {
+		return nil, err
+	}
+
+	pluginReportDir := DefaultPluginReportPath
+	env, ok := os.LookupEnv("ENV_CONTROLLER_REPORT_STORAGE_PATH")
+	if ok {
+		pluginReportDir = env
+	}
+
+	config := &Config{
+		GenericConfig: serverConfig,
+		ExtraConfig: ExtraConfig{
+			DirPathControllerReport: pluginReportDir,
+		},
+	}
+
+	return config, nil
+}
 
 type ExtraConfig struct {
 	DirPathControllerReport string

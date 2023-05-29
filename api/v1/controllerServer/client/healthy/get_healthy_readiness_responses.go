@@ -78,6 +78,11 @@ func (o *GetHealthyReadinessOK) IsCode(code int) bool {
 	return code == 200
 }
 
+// Code gets the status code for the get healthy readiness o k response
+func (o *GetHealthyReadinessOK) Code() int {
+	return 200
+}
+
 func (o *GetHealthyReadinessOK) Error() string {
 	return fmt.Sprintf("[GET /healthy/readiness][%d] getHealthyReadinessOK ", 200)
 }
@@ -127,6 +132,11 @@ func (o *GetHealthyReadinessInternalServerError) IsServerError() bool {
 // IsCode returns true when this get healthy readiness internal server error response a status code equal to that given
 func (o *GetHealthyReadinessInternalServerError) IsCode(code int) bool {
 	return code == 500
+}
+
+// Code gets the status code for the get healthy readiness internal server error response
+func (o *GetHealthyReadinessInternalServerError) Code() int {
+	return 500
 }
 
 func (o *GetHealthyReadinessInternalServerError) Error() string {

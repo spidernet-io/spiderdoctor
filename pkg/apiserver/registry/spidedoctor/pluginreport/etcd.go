@@ -1,3 +1,6 @@
+// Copyright 2023 Authors of spidernet-io
+// SPDX-License-Identifier: Apache-2.0
+
 package pluginreport
 
 import (
@@ -22,7 +25,7 @@ import (
 	"k8s.io/apiserver/pkg/storage/storagebackend/factory"
 	"k8s.io/klog/v2"
 
-	"github.com/spidernet-io/spiderdoctor/pkg/apiserver/pkg/registry"
+	"github.com/spidernet-io/spiderdoctor/pkg/apiserver/registry"
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1beta1"
 	"github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/system/v1beta1"
 	"github.com/spidernet-io/spiderdoctor/pkg/k8s/client/clientset/versioned"
@@ -104,7 +107,6 @@ func (p pluginReportStorage) Watch(ctx context.Context, key string, opts storage
 }
 
 func (p pluginReportStorage) Get(ctx context.Context, key string, opts storage.GetOptions, objPtr runtime.Object) error {
-	fmt.Println("11111111111111111111111================")
 	klog.Infof("Get called with key: %v on resource %v\n", key, p.resourceName)
 
 	var taskStatus *crd.TaskStatus
@@ -155,7 +157,6 @@ func (p pluginReportStorage) Get(ctx context.Context, key string, opts storage.G
 		taskType = v1beta1.HttpAppHealthyTaskName
 	}
 
-	fmt.Println("22222222222222222222222222==============")
 	if taskStatus == nil {
 		return fmt.Errorf("no crd instance %s found", name)
 	}
@@ -184,12 +185,11 @@ func (p pluginReportStorage) Get(ctx context.Context, key string, opts storage.G
 			continue
 		}
 
-		if strings.Contains(item.Name(), name) {
+		if strings.Contains(item.Name(), name) && !strings.Contains(item.Name(), summary) {
 			fileNameList = append(fileNameList, item.Name())
 		}
 	}
 
-	fmt.Println("333333333333333333333333333======================")
 	getReports, latestRoundNumber, err := p.getLatestRoundReports(name, fileNameList)
 	if nil != err {
 		return fmt.Errorf("failed to get latest round reports: %w", err)
@@ -198,7 +198,6 @@ func (p pluginReportStorage) Get(ctx context.Context, key string, opts storage.G
 		return fmt.Errorf("no '%s' reports found", name)
 	}
 
-	fmt.Println("44444444444444444444444444========================")
 	pluginReport := objPtr.(*v1beta1.PluginReport)
 	pluginReport.Spec = v1beta1.PluginReportSpec{
 		TaskName:            name,

@@ -327,7 +327,7 @@ func (s *PluginNetReachHealthy) AgentExecuteTask(logger *zap.Logger, ctx context
 		task.Succeed = true
 	}
 
-	return finalfailureReason, finalReport, err
+	return finalfailureReason, task, err
 
 }
 

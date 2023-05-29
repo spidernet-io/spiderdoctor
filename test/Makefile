@@ -163,9 +163,6 @@ deploy_project:
 		HELM_OPTION+=" --set spiderdoctorAgent.debug.logLevel=debug --set spiderdoctorController.debug.logLevel=debug " ; \
 		HELM_OPTION+=" --set spiderdoctorAgent.prometheus.enabled=true --set spiderdoctorController.prometheus.enabled=true  " ; \
 		HELM_OPTION+=" --set feature.aggregateReport.controller.pvc.enabled=true " ; \
-		HELM_OPTION+=" --set feature.aggregateReport.controller.pvc.storageClass=local " ; \
-		HELM_OPTION+=" --set feature.aggregateReport.controller.pvc.storageRequests="100Mi" " ; \
-		HELM_OPTION+=" --set feature.aggregateReport.controller.pvc.storageLimits="500Mi" " ; \
 		helm --kubeconfig=$(KIND_KUBECONFIG) install project $(ROOT_DIR)/charts \
 				-n kube-system --wait --debug \
 				--set global.imageTagOverride=$(PROJECT_IMAGE_VERSION) \

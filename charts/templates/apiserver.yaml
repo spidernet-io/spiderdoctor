@@ -1,98 +1,23 @@
+---
 apiVersion: apiregistration.k8s.io/v1
 kind: APIService
 metadata:
-  name: {{ .Values.spiderdoctorApiserver.apiServiceName | trunc 63 | trimSuffix "-" }}
+  name: v1beta1.system.spiderdoctor.spidernet.io
   labels:
-    {{- include "project.spiderdoctorApiserver.labels" . | nindent 4 }}
-    {{- if .Values.global.commonLabels }}
-    {{- include "tplvalues.render" ( dict "value" .Values.global.commonLabels "context" $ ) | nindent 4 }}
-    {{- end }}
+    {{- include "project.spiderdoctorController.labels" . | nindent 4 }}
+      {{- if .Values.global.commonLabels }}
+      {{- include "tplvalues.render" ( dict "value" .Values.global.commonLabels "context" $ ) | nindent 4 }}
+      {{- end }}
   {{- if .Values.global.commonAnnotations }}
   annotations:
     {{- include "tplvalues.render" ( dict "value" .Values.global.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
   insecureSkipTLSVerify: true
-  group: {{ .Values.spiderdoctorApiserver.group | trunc 63 | trimSuffix "-" }}
+  group: system.spiderdoctor.spidernet.io
   groupPriorityMinimum: 1000
   versionPriority: 100
   service:
-    name: spiderdoctor-apiserver
-    namespace: kube-system
+    name: {{ .Values.spiderdoctorController.name | trunc 63 | trimSuffix "-" }}
+    namespace: {{ .Release.Namespace | quote }}
   version: v1beta1
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: {{ .Values.spiderdoctorApiserver.name | trunc 63 | trimSuffix "-" }}
-  namespace: {{ .Release.Namespace }}
-  labels:
-    {{- include "project.spiderdoctorApiserver.labels" . | nindent 4 }}
-    {{- if .Values.global.commonLabels }}
-    {{- include "tplvalues.render" ( dict "value" .Values.global.commonLabels "context" $ ) | nindent 4 }}
-    {{- end }}
-  {{- if .Values.global.commonAnnotations }}
-  annotations:
-    {{- include "tplvalues.render" ( dict "value" .Values.global.commonAnnotations "context" $ ) | nindent 4 }}
-  {{- end }}
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      apiserver: "true"
-  template:
-    metadata:
-      labels:
-        apiserver: "true"
-    spec:
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
-      serviceAccountName: {{ .Values.spiderdoctorApiserver.name | trunc 63 | trimSuffix "-" }}
-      containers:
-        - name: {{ .Values.spiderdoctorApiserver.name | trunc 63 | trimSuffix "-" }}
-          image: {{ include "project.spiderdoctorApiserver.image" . | quote }}
-          imagePullPolicy: {{ .Values.spiderdoctorApiserver.image.pullPolicy }}
-          command:
-            - /usr/bin/apiserver
-          args:
-            - --v=6
-          volumeMounts:
-            {{- if .Values.feature.aggregateReport.enabled }}
-            - name: report-data
-              mountPath: /report
-            {{- end }}
-      volumes:
-        {{- if .Values.feature.aggregateReport.enabled }}
-        {{- if .Values.feature.aggregateReport.controller.pvc.enabled }}
-        - name: report-data
-          persistentVolumeClaim:
-            claimName: {{ .Values.spiderdoctorController.name | trunc 63 | trimSuffix "-" }}
-        {{- else }}
-        - name: report-data
-          hostPath:
-            path: {{ .Values.feature.aggregateReport.controller.reportHostPath }}
-            type: DirectoryOrCreate
-        {{- end }}
-        {{- end }}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ .Values.spiderdoctorApiserver.name | trunc 63 | trimSuffix "-" }}
-  namespace: kube-system
-  labels:
-    {{- include "project.spiderdoctorApiserver.labels" . | nindent 4 }}
-    {{- if .Values.global.commonLabels }}
-    {{- include "tplvalues.render" ( dict "value" .Values.global.commonLabels "context" $ ) | nindent 4 }}
-    {{- end }}
-  {{- if .Values.global.commonAnnotations }}
-  annotations:
-    {{- include "tplvalues.render" ( dict "value" .Values.global.commonAnnotations "context" $ ) | nindent 4 }}
-  {{- end }}
-spec:
-  ports:
-    - port: 443
-      protocol: TCP
-      targetPort: 443
-  selector:
-    apiserver: "true"
