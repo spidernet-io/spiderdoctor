@@ -77,7 +77,6 @@ build_local_controller_image: IMAGE_TAG := $(GIT_COMMIT_VERSION)
 build_local_controller_image:
 	$(BUILD_FINAL_IMAGE)
 
-
 #---------
 
 define BUILD_BASE_IMAGE

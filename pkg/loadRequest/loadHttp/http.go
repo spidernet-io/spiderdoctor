@@ -4,10 +4,12 @@
 package loadHttp
 
 import (
-	"go.uber.org/zap"
 	"net/http"
 	"time"
 
+	"go.uber.org/zap"
+
+	"github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/system/v1beta1"
 	config "github.com/spidernet-io/spiderdoctor/pkg/types"
 )
 
@@ -36,7 +38,7 @@ type HttpRequestData struct {
 	DisableCompression  bool
 }
 
-func HttpRequest(logger *zap.Logger, reqData *HttpRequestData) *Metrics {
+func HttpRequest(logger *zap.Logger, reqData *HttpRequestData) *v1beta1.HttpMetrics {
 	logger.Sugar().Infof("http request=%v", reqData)
 	req, _ := http.NewRequest(string(reqData.Method), reqData.Url, nil)
 	duration := time.Duration(reqData.RequestTimeSecond) * time.Second

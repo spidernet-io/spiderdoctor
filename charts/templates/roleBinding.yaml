@@ -13,3 +13,6 @@ subjects:
   - kind: ServiceAccount
     name: {{ .Values.spiderdoctorController.name | trunc 63 | trimSuffix "-" }}
     namespace: {{ .Release.Namespace }}
+  - kind: ServiceAccount
+    name: {{ .Values.spiderdoctorController.apiserver.name | trunc 63 | trimSuffix "-" }}
+    namespace: {{ .Release.Namespace }}

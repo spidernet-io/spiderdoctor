@@ -588,3 +588,7 @@ spiderdoctorController:
 
       ## @param spiderdoctorController.tls.auto.extraDnsNames extra DNS names of server cert for auto method
       extraDnsNames: []
+
+  apiserver:
+    ## @param spiderdoctorApiserver.name the spiderdoctorApiserver name
+    name: "spiderdoctor-apiserver"

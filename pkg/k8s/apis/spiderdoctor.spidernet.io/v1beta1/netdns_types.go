@@ -80,7 +80,7 @@ type NetdnsRequest struct {
 }
 
 // scope(Namespaced or Cluster)
-// +kubebuilder:resource:categories={spiderdoctor},path="netdnss",singular="netdns",scope="Cluster"
+// +kubebuilder:resource:categories={spiderdoctor},path="netdnses",singular="netdns",scope="Cluster"
 // +kubebuilder:printcolumn:JSONPath=".status.finish",description="finish",name="finish",type=boolean
 // +kubebuilder:printcolumn:JSONPath=".status.expectedRound",description="expectedRound",name="expectedRound",type=integer
 // +kubebuilder:printcolumn:JSONPath=".status.doneRound",description="doneRound",name="doneRound",type=integer

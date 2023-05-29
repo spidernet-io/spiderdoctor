@@ -1,15 +1,21 @@
-// Copyright 2022 Authors of spidernet-io
+// Copyright 2023 Authors of spidernet-io
 // SPDX-License-Identifier: Apache-2.0
 
 package cmd
 
 import (
 	"context"
+	"os"
+
+	"go.opentelemetry.io/otel/attribute"
+	genericapiserver "k8s.io/apiserver/pkg/server"
+	"k8s.io/klog/v2"
+	"path/filepath"
+
+	"github.com/spidernet-io/spiderdoctor/pkg/apiserver"
 	"github.com/spidernet-io/spiderdoctor/pkg/debug"
 	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
-	"go.opentelemetry.io/otel/attribute"
-	"path/filepath"
 )
 
 func SetupUtility() {
@@ -57,7 +63,26 @@ func DaemonMain() {
 	s.RunControllerController(int(types.ControllerConfig.HttpPort), int(types.ControllerConfig.WebhookPort), filepath.Dir(types.ControllerConfig.TlsServerCertPath))
 
 	// ------------
-	rootLogger.Info("finish initialization")
+	rootLogger.Info("finish spiderdoctor-controller initialization")
+
+	// start apiserver
+	stopCh := genericapiserver.SetupSignalHandler()
+	apiserverConfig, err := apiserver.NewSpiderDoctorServerOptions().Config()
+	if nil != err {
+		rootLogger.Sugar().Fatal("Error creating server configuration: %v", err)
+	}
+	server, err := apiserverConfig.Complete().New()
+	if nil != err {
+		rootLogger.Sugar().Fatal("Error creating server: %v", err)
+	}
+
+	rootLogger.Info("running spiderdoctor-apiserver")
+	err = server.Run(stopCh)
+	if nil != err {
+		klog.Errorf("Error creating server: %v", err)
+		os.Exit(1)
+	}
+
 	// sleep forever
-	select {}
+	//select {}
 }

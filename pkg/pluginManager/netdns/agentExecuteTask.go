@@ -6,25 +6,28 @@ package netdns
 import (
 	"context"
 	"fmt"
-	"github.com/miekg/dns"
-	k8sObjManager "github.com/spidernet-io/spiderdoctor/pkg/k8ObjManager"
-	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1beta1"
-	"github.com/spidernet-io/spiderdoctor/pkg/loadRequest/loadDns"
-	"github.com/spidernet-io/spiderdoctor/pkg/lock"
-	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
-	"go.uber.org/zap"
-	"k8s.io/apimachinery/pkg/runtime"
 	"net"
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/miekg/dns"
+	"go.uber.org/zap"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/utils/pointer"
+
+	k8sObjManager "github.com/spidernet-io/spiderdoctor/pkg/k8ObjManager"
+	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1beta1"
+	"github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/system/v1beta1"
+	"github.com/spidernet-io/spiderdoctor/pkg/loadRequest/loadDns"
+	"github.com/spidernet-io/spiderdoctor/pkg/lock"
+	"github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 )
 
-func ParseSuccessCondition(successCondition *crd.NetSuccessCondition, metricResult *loadDns.Metrics) (failureReason string, err error) {
-
+func ParseSuccessCondition(successCondition *crd.NetSuccessCondition, metricResult *v1beta1.DNSMetrics) (failureReason string, err error) {
 	switch {
-	case successCondition.SuccessRate != nil && float64(metricResult.Success/metricResult.Requests) < *(successCondition.SuccessRate):
-		failureReason = fmt.Sprintf("Success Rate %v is lower than request %v", metricResult.Success/metricResult.Requests, *(successCondition.SuccessRate))
+	case successCondition.SuccessRate != nil && float64(metricResult.SuccessCounts)/float64(metricResult.SuccessCounts) < *(successCondition.SuccessRate):
+		failureReason = fmt.Sprintf("Success Rate %v is lower than request %v", float64(metricResult.SuccessCounts)/float64(metricResult.SuccessCounts), *(successCondition.SuccessRate))
 	case successCondition.MeanAccessDelayInMs != nil && int64(metricResult.Latencies.Mean) > *(successCondition.MeanAccessDelayInMs):
 		failureReason = fmt.Sprintf("mean delay %v ms is bigger than request %v ms", metricResult.Latencies.Mean, *(successCondition.MeanAccessDelayInMs))
 	default:
@@ -35,40 +38,37 @@ func ParseSuccessCondition(successCondition *crd.NetSuccessCondition, metricResu
 	return
 }
 
-func SendRequestAndReport(logger *zap.Logger, targetName string, req *loadDns.DnsRequestData, successCondition *crd.NetSuccessCondition, report map[string]interface{}) (failureReason string) {
-
-	report["TargetName"] = targetName
-	report["TargetServer"] = req.DnsServerAddr
-	report["TargetProtocol"] = req.Protocol
-	report["Succeed"] = "false"
+func SendRequestAndReport(logger *zap.Logger, targetName string, req *loadDns.DnsRequestData, successCondition *crd.NetSuccessCondition) (failureReason string, report v1beta1.NetDNSTaskDetail) {
+	report.TargetName = targetName
+	report.TargetServer = req.DnsServerAddr
+	report.TargetProtocol = string(req.Protocol)
 
 	result, err := loadDns.DnsRequest(logger, req)
 	if err != nil {
-		failureReason = fmt.Sprintf("%v", err)
 		logger.Sugar().Errorf("internal error for target %v, error=%v", req.DnsServerAddr, err)
-		report["FailureReason"] = failureReason
+		report.FailureReason = pointer.String(err.Error())
 		return
 	}
-	report["MeanDelay"] = result.Latencies.Mean
-	report["SucceedRate"] = fmt.Sprintf("%v", result.Success/result.Requests)
+
+	report.MeanDelay = result.Latencies.Mean
+	report.SucceedRate = float64(result.SuccessCounts) / float64(result.RequestCounts)
 
 	failureReason, err = ParseSuccessCondition(successCondition, result)
 	if err != nil {
-		failureReason = fmt.Sprintf("%v", err)
 		logger.Sugar().Errorf("internal error for target %v, error=%v", req.DnsServerAddr, err)
-		report["FailureReason"] = failureReason
+		report.FailureReason = pointer.String(err.Error())
 		return
 	}
 
 	// generate report
 	// notice , upper case for first character of key, or else fail to parse json
-	report["Metrics"] = *result
-	report["FailureReason"] = failureReason
-	if len(report) > 0 {
-		report["Succeed"] = "true"
+	report.Metrics = *result
+	report.FailureReason = pointer.String(failureReason)
+	if report.FailureReason == nil {
+		report.Succeed = true
 		logger.Sugar().Infof("succeed to test %v", req.DnsServerAddr)
 	} else {
-		report["Succeed"] = "false"
+		report.Succeed = false
 		logger.Sugar().Warnf("failed to test %v", req.DnsServerAddr)
 	}
 
@@ -80,10 +80,8 @@ type testTarget struct {
 	Request *loadDns.DnsRequestData
 }
 
-func (s *PluginNetDns) AgentExecuteTask(logger *zap.Logger, ctx context.Context, obj runtime.Object) (finalfailureReason string, finalReport types.PluginRoundDetail, err error) {
+func (s *PluginNetDns) AgentExecuteTask(logger *zap.Logger, ctx context.Context, obj runtime.Object) (finalfailureReason string, finalReport types.Task, err error) {
 	finalfailureReason = ""
-	finalReport = types.PluginRoundDetail{}
-	err = nil
 
 	instance, ok := obj.(*crd.Netdns)
 	if !ok {
@@ -194,16 +192,15 @@ func (s *PluginNetDns) AgentExecuteTask(logger *zap.Logger, ctx context.Context,
 
 	}
 
-	var reportList []interface{}
+	var reportList []v1beta1.NetDNSTaskDetail
 
 	var wg sync.WaitGroup
 	var l lock.Mutex
 	for _, item := range testTargetList {
 		wg.Add(1)
 		go func(wg *sync.WaitGroup, l *lock.Mutex, t testTarget) {
-			itemReport := map[string]interface{}{}
 			logger.Sugar().Debugf("implement test %v, request %v ", t.Name, *t.Request)
-			failureReason := SendRequestAndReport(logger, t.Name, t.Request, instance.Spec.SuccessCondition, itemReport)
+			failureReason, itemReport := SendRequestAndReport(logger, t.Name, t.Request, instance.Spec.SuccessCondition)
 			if failureReason != "" {
 				finalfailureReason = fmt.Sprintf("test %v: %v", t.Name, failureReason)
 			}
@@ -218,17 +215,33 @@ func (s *PluginNetDns) AgentExecuteTask(logger *zap.Logger, ctx context.Context,
 	logger.Sugar().Infof("plugin finished all http request tests")
 
 	// ----------------------- aggregate report
-	finalReport["Detail"] = reportList
-	finalReport["TargetType"] = "spiderdoctor agent"
-	finalReport["TargetNumber"] = fmt.Sprintf("%d", len(testTargetList))
+	task := &v1beta1.NetDNSTask{}
+	task.Detail = reportList
+	task.TargetType = "spiderdoctor agent"
+	task.TargetNumber = int64(len(testTargetList))
 	if len(finalfailureReason) > 0 {
 		logger.Sugar().Errorf("plugin finally failed, %v", finalfailureReason)
-		finalReport["FailureReason"] = finalfailureReason
-		finalReport["Succeed"] = "false"
+		task.FailureReason = pointer.String(finalfailureReason)
+		task.Succeed = false
 	} else {
-		finalReport["FailureReason"] = ""
-		finalReport["Succeed"] = "true"
+		task.Succeed = true
 	}
 
-	return finalfailureReason, finalReport, err
+	return finalfailureReason, task, err
+}
+
+func (s *PluginNetDns) SetReportWithTask(report *v1beta1.Report, crdSpec interface{}, task types.Task) error {
+	netdnsSpec, ok := crdSpec.(*crd.NetdnsSpec)
+	if !ok {
+		return fmt.Errorf("the given crd spec %#v doesn't match NetdnsSpec", crdSpec)
+	}
+
+	netDNSTask, ok := task.(*v1beta1.NetDNSTask)
+	if !ok {
+		return fmt.Errorf("task type %v doesn't match NetDNSTask", task.KindTask())
+	}
+
+	report.NetDNSTaskSpec = netdnsSpec
+	report.NetDNSTask = netDNSTask
+	return nil
 }

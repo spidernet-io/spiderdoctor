@@ -76,6 +76,11 @@ func (o *GetSpiderdoctoragentOK) IsCode(code int) bool {
 	return code == 200
 }
 
+// Code gets the status code for the get spiderdoctoragent o k response
+func (o *GetSpiderdoctoragentOK) Code() int {
+	return 200
+}
+
 func (o *GetSpiderdoctoragentOK) Error() string {
 	return fmt.Sprintf("[GET /spiderdoctoragent][%d] getSpiderdoctoragentOK  %+v", 200, o.Payload)
 }

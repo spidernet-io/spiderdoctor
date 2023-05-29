@@ -25,7 +25,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{/*
-spiderdoctorAgent Common labels
+spiderdoctorController Common labels
 */}}
 {{- define "project.spiderdoctorController.labels" -}}
 helm.sh/chart: {{ include "project.chart" . }}
@@ -46,7 +46,7 @@ app.kubernetes.io/component: {{ .Values.spiderdoctorAgent.name | trunc 63 | trim
 {{- end }}
 
 {{/*
-spiderdoctorAgent Selector labels
+spiderdoctorController Selector labels
 */}}
 {{- define "project.spiderdoctorController.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "project.name" . }}
@@ -154,7 +154,6 @@ return the spiderdoctorController image
     {{- printf ":v%s" .Chart.AppVersion -}}
 {{- end -}}
 {{- end -}}
-
 
 {{/*
 generate the CA cert

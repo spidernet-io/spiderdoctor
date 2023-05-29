@@ -5,7 +5,9 @@ package loadDns
 
 import (
 	"github.com/miekg/dns"
+	"github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/system/v1beta1"
 	"github.com/spidernet-io/spiderdoctor/pkg/utils/stats"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sync"
 	"time"
 )
@@ -17,39 +19,6 @@ type result struct {
 	err      error
 	duration time.Duration
 	msg      *dns.Msg
-}
-
-type Metrics struct {
-	StartTime    time.Time           `json:"start"`
-	EndTime      time.Time           `json:"end"`
-	TargetDomain string              `json:"target_domain"`
-	DnsServer    string              `json:"dns_server"`
-	DnsMethod    string              `json:"Method"`
-	Duration     string              `json:"duration"`
-	Requests     int64               `json:"requests"`
-	Success      int64               `json:"success"`
-	Failed       int64               `json:"failed"`
-	TPS          float64             `json:"TPS"`
-	Latencies    latencyDistribution `json:"latencies"`
-	Errors       map[string]int      `json:"errors"`
-	ReplyCode    map[string]int      `json:"reply_code"`
-}
-
-type latencyDistribution struct {
-	// Mean is the mean request latency.
-	Mean float32 `json:"Mean_inMs"`
-	// P50 is the 50th percentile request latency.
-	P50 float32 `json:"P50_inMs"`
-	// P90 is the 90th percentile request latency.
-	P90 float32 `json:"P90_inMs"`
-	// P95 is the 95th percentile request latency.
-	P95 float32 `json:"P95_inMs"`
-	// P99 is the 99th percentile request latency.
-	P99 float32 `json:"P99_inMs"`
-	// Max is the maximum observed request latency.
-	Max float32 `json:"Max_inMs"`
-	// Min is the minimum observed request latency.
-	Min float32 `json:"Min_inMs"`
 }
 
 type Work struct {
@@ -71,8 +40,7 @@ type Work struct {
 	initOnce  sync.Once
 	results   chan *result
 	stopCh    chan struct{}
-	start     time.Duration
-	startTime time.Time
+	startTime metav1.Time
 	report    *report
 }
 
@@ -88,8 +56,7 @@ func (b *Work) Init() {
 // all work is done.
 func (b *Work) Run() {
 	b.Init()
-	b.startTime = time.Now()
-	b.start = time.Since(b.startTime)
+	b.startTime = metav1.Now()
 	b.report = newReport(b.results)
 	// Run the reporter first, it polls the result channel until it is closed.
 	go func() {
@@ -109,7 +76,7 @@ func (b *Work) Stop() {
 
 func (b *Work) Finish() {
 	close(b.results)
-	total := b.now() - b.start
+	total := metav1.Now().Sub(b.startTime.Time)
 	// Wait until the reporter is done.
 	<-b.report.done
 	b.report.finalize(total)
@@ -171,18 +138,8 @@ func (b *Work) runWorkers() {
 
 }
 
-func (b *Work) now() time.Duration { return time.Since(b.startTime) }
-
-func (b *Work) AggregateMetric() *Metrics {
-	metric := &Metrics{}
-	metric.Requests = b.report.totalCount
-	metric.StartTime = b.startTime
-	metric.EndTime = b.startTime.Add(b.report.total)
-	metric.Duration = b.report.total.String()
-	metric.Failed = b.report.failedCount
-	metric.Success = b.report.successCount
-	metric.TPS = b.report.tps
-	latency := latencyDistribution{}
+func (b *Work) AggregateMetric() *v1beta1.DNSMetrics {
+	latency := v1beta1.LatencyDistribution{}
 
 	t, _ := stats.Mean(b.report.lats)
 	latency.Mean = t
@@ -191,7 +148,6 @@ func (b *Work) AggregateMetric() *Metrics {
 	latency.Max = t
 
 	t, _ = stats.Min(b.report.lats)
-
 	latency.Min = t
 
 	t, _ = stats.Percentile(b.report.lats, 50)
@@ -206,17 +162,21 @@ func (b *Work) AggregateMetric() *Metrics {
 	t, _ = stats.Percentile(b.report.lats, 99)
 	latency.P99 = t
 
-	metric.Latencies = latency
-
-	metric.Errors = b.report.errorDist
-
-	metric.ReplyCode = b.report.ReplyCode
-
-	metric.TargetDomain = b.Msg.Question[0].Name
-
-	metric.DnsMethod = b.Protocol
-
-	metric.DnsServer = b.ServerAddr
+	metric := &v1beta1.DNSMetrics{
+		StartTime:     b.startTime,
+		EndTime:       metav1.NewTime(b.startTime.Add(b.report.total)),
+		Duration:      b.report.total.String(),
+		RequestCounts: b.report.totalCount,
+		SuccessCounts: b.report.successCount,
+		TPS:           b.report.tps,
+		Errors:        b.report.errorDist,
+		Latencies:     latency,
+		TargetDomain:  b.Msg.Question[0].Name,
+		DNSServer:     b.ServerAddr,
+		DNSMethod:     b.Protocol,
+		FailedCounts:  b.report.failedCount,
+		ReplyCode:     b.report.ReplyCode,
+	}
 
 	return metric
 }

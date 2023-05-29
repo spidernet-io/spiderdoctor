@@ -114,5 +114,9 @@ spec:
       port: {{ .Values.spiderdoctorController.webhookPort }}
       targetPort: webhook
       protocol: TCP
+    - name: apiserver
+      port: 443
+      targetPort: apiserver
+      protocol: TCP
   selector:
     {{- include "project.spiderdoctorController.selectorLabels" . | nindent 4 }}

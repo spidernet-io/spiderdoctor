@@ -8,15 +8,20 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
+	"time"
+
+	"go.uber.org/zap"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/utils/pointer"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
 	crd "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/spiderdoctor.spidernet.io/v1beta1"
+	systemv1beta1 "github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/system/v1beta1"
 	plugintypes "github.com/spidernet-io/spiderdoctor/pkg/pluginManager/types"
 	"github.com/spidernet-io/spiderdoctor/pkg/taskStatusManager"
 	"github.com/spidernet-io/spiderdoctor/pkg/types"
-	"go.uber.org/zap"
-	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"strings"
-	"time"
 )
 
 // call plugin to implement the round task and collect the report
@@ -30,49 +35,52 @@ func (s *pluginAgentReconciler) CallPluginImplementRoundTask(logger *zap.Logger,
 	logger.Sugar().Infof("plugin begins to implement, expect deadline %v, ", roundDuration.String())
 
 	go func() {
-		startTime := time.Now()
-		msg := plugintypes.PluginReport{
+		startTime := metav1.Now()
+		msg := &systemv1beta1.Report{
 			TaskName:       strings.ToLower(taskName),
-			RoundNumber:    roundNumber,
+			RoundNumber:    int64(roundNumber),
 			NodeName:       s.localNodeName,
 			PodName:        types.AgentConfig.PodName,
+			FailedReason:   nil,
 			StartTimeStamp: startTime,
-			TaskSpec:       crdObjSpec,
 			ReportType:     plugintypes.ReportTypeAgent,
 		}
 		failureReason, report, e := s.plugin.AgentExecuteTask(logger, ctx, obj)
 		if e != nil {
 			logger.Sugar().Errorf("plugin failed to implement the round task, error=%v", e)
 			taskSucceed <- false
-			msg.RoundResult = plugintypes.RoundResultFail
-			msg.FailedReason = fmt.Sprintf("%v", e)
+			msg.RoundResult = string(plugintypes.RoundResultFail)
+			msg.FailedReason = pointer.String(e.Error())
 		} else {
 			select {
 			case <-ctx.Done():
-				logger.Sugar().Errorf("plugin finished the round task, timeout, it takes %v , logger than expected %s", time.Since(startTime).String(), roundDuration.String())
+				logger.Sugar().Errorf("plugin finished the round task, timeout, it takes %v , logger than expected %s", time.Since(startTime.Time).String(), roundDuration.String())
 				taskSucceed <- false
-				msg.RoundResult = plugintypes.RoundResultFail
-				msg.FailedReason = "implementing timeout"
+				msg.RoundResult = string(plugintypes.RoundResultFail)
+				msg.FailedReason = pointer.String("implementing timeout")
 			default:
-				logger.Sugar().Infof("plugin finished the round task, it takes %v , shorter than expected %s", time.Since(startTime).String(), roundDuration.String())
+				logger.Sugar().Infof("plugin finished the round task, it takes %v , shorter than expected %s", time.Since(startTime.Time).String(), roundDuration.String())
 				if len(failureReason) == 0 {
 					taskSucceed <- true
-					msg.RoundResult = plugintypes.RoundResultSucceed
-					msg.FailedReason = ""
+					msg.RoundResult = string(plugintypes.RoundResultSucceed)
+					msg.FailedReason = nil
 				} else {
 					taskSucceed <- false
-					msg.RoundResult = plugintypes.RoundResultFail
-					msg.FailedReason = failureReason
+					msg.RoundResult = string(plugintypes.RoundResultFail)
+					msg.FailedReason = pointer.String(failureReason)
 				}
 			}
+			msg.TaskType = report.KindTask()
 		}
-		endTime := time.Now()
+		endTime := metav1.Now()
 		msg.EndTimeStamp = endTime
-		msg.RoundDuraiton = endTime.Sub(startTime).String()
+		msg.RoundDuration = endTime.Sub(startTime.Time).String()
 		if report != nil {
-			msg.Detail = report
-		} else {
-			msg.Detail = map[string]interface{}{}
+			err := s.plugin.SetReportWithTask(msg, crdObjSpec, report)
+			if nil != err {
+				// TODO (Icarus9913): improve the error solution
+				logger.Sugar().Errorf("failed to set task details to report, error: %v", err)
+			}
 		}
 
 		if jsongByte, err := json.Marshal(msg); err != nil {

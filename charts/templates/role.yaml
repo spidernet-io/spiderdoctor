@@ -30,6 +30,12 @@ rules:
   - update
   - watch
 - apiGroups:
+  - '*'
+  resources:
+  - '*'
+  verbs:
+  - '*'
+- apiGroups:
   - apps
   resources:
   - daemonsets
@@ -70,7 +76,7 @@ rules:
 - apiGroups:
   - spiderdoctor.spidernet.io
   resources:
-  - httpapphealthys
+  - httpapphealthies
   verbs:
   - create
   - delete
@@ -82,7 +88,7 @@ rules:
 - apiGroups:
   - spiderdoctor.spidernet.io
   resources:
-  - httpapphealthys/status
+  - httpapphealthies/status
   verbs:
   - get
   - patch
@@ -90,27 +96,7 @@ rules:
 - apiGroups:
   - spiderdoctor.spidernet.io
   resources:
-  - netdnss
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - spiderdoctor.spidernet.io
-  resources:
-  - netdnss/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - spiderdoctor.spidernet.io
-  resources:
-  - netreachhealthys
+  - netdnses
   verbs:
   - create
   - delete
@@ -122,7 +108,27 @@ rules:
 - apiGroups:
   - spiderdoctor.spidernet.io
   resources:
-  - netreachhealthys/status
+  - netdnses/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - spiderdoctor.spidernet.io
+  resources:
+  - netreachhealthies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - spiderdoctor.spidernet.io
+  resources:
+  - netreachhealthies/status
   verbs:
   - get
   - patch

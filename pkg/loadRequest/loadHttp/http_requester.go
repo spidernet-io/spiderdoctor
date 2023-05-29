@@ -21,8 +21,10 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"github.com/spidernet-io/spiderdoctor/pkg/k8s/apis/system/v1beta1"
 	"golang.org/x/net/http2"
 	"io"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"math"
 	"net/http"
 	"net/http/httptrace"
@@ -126,7 +128,7 @@ type Work struct {
 	results   chan *result
 	stopCh    chan struct{}
 	start     time.Duration
-	startTime time.Time
+	startTime metav1.Time
 	report    *report
 }
 
@@ -142,8 +144,8 @@ func (b *Work) Init() {
 // all work is done.
 func (b *Work) Run() {
 	b.Init()
-	b.startTime = time.Now()
-	b.start = time.Since(b.startTime)
+	b.startTime = metav1.Now()
+	b.start = time.Since(b.startTime.Time)
 	b.report = newReport(b.results, math.MaxInt32)
 	// Run the reporter first, it polls the result channel until it is closed.
 	go func() {
@@ -287,23 +289,11 @@ func (b *Work) runWorkers() {
 }
 
 // Returns the time since the start of the task
-func (b *Work) now() time.Duration { return time.Since(b.startTime) }
+func (b *Work) now() time.Duration { return time.Since(b.startTime.Time) }
 
 // AggregateMetric Aggregate metric information and return
-func (b *Work) AggregateMetric() *Metrics {
-	metric := &Metrics{}
-	metric.Requests = b.report.totalCount
-	metric.StartTime = b.startTime
-	metric.EndTime = b.startTime.Add(b.report.total)
-	metric.Duration = b.report.total.String()
-	var errNum int64
-	for _, v := range b.report.errorDist {
-		errNum += int64(v)
-	}
-	metric.Success = b.report.totalCount - errNum
-	metric.TPS = b.report.tps
-	metric.StatusCodes = b.report.statusCodes
-	latency := latencyDistribution{}
+func (b *Work) AggregateMetric() *v1beta1.HttpMetrics {
+	latency := v1beta1.LatencyDistribution{}
 
 	t, _ := stats.Mean(b.report.latencies)
 	latency.Mean = t
@@ -312,7 +302,6 @@ func (b *Work) AggregateMetric() *Metrics {
 	latency.Max = t
 
 	t, _ = stats.Min(b.report.latencies)
-
 	latency.Min = t
 
 	t, _ = stats.Percentile(b.report.latencies, 50)
@@ -327,11 +316,24 @@ func (b *Work) AggregateMetric() *Metrics {
 	t, _ = stats.Percentile(b.report.latencies, 99)
 	latency.P99 = t
 
-	metric.Latencies = latency
+	var errNum int64
+	for _, v := range b.report.errorDist {
+		errNum += int64(v)
+	}
 
-	metric.Errors = b.report.errorDist
+	metric := &v1beta1.HttpMetrics{
+		StartTime:     b.startTime,
+		EndTime:       metav1.NewTime(b.startTime.Add(b.report.total)),
+		Duration:      b.report.total.String(),
+		RequestCounts: b.report.totalCount,
+		SuccessCounts: b.report.totalCount - errNum,
+		TPS:           b.report.tps,
+		Errors:        b.report.errorDist,
+		Latencies:     latency,
+		TotalDataSize: strconv.Itoa(int(b.report.sizeTotal)) + " byte",
+		StatusCodes:   b.report.statusCodes,
+	}
 
-	metric.TotalDataSize = strconv.Itoa(int(b.report.sizeTotal)) + " byte"
 	return metric
 }
 
