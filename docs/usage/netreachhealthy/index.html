@@ -15,7 +15,7 @@
         <link rel="next" href="../performance/">
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.8">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.15">
     
     
       
@@ -23,10 +23,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ded33207.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.26e3688c.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.a0c5b2b5.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ecc896b0.min.css">
       
       
 
@@ -216,7 +216,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../install/" class="md-tabs__link md-tabs__link--active">
+      <a href="../httpapphealthy/" class="md-tabs__link md-tabs__link--active">
         Usage
       </a>
     </li>
@@ -470,6 +470,8 @@
         
           
         
+          
+        
       
       
         <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
@@ -483,6 +485,20 @@
           Usage
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../httpapphealthy/" class="md-nav__link">
+        Nethttp
+      </a>
+    </li>
+  
+
+            
           
             
               
@@ -689,65 +705,52 @@
 It could specify success condition to tell the result succeed or fail. 
 And, more detailed report will print to spiderdoctor agent stdout, or save to disc by spiderdoctor controller.</p>
 <p>the following is the spec of nethttp</p>
-<pre><code class="language-shell">apiVersion: v1
-items:
-- apiVersion: spiderdoctor.spidernet.io/v1beta1
-  kind: Nethttp
-  metadata:
-    generation: 1
-    name: testhttp1
-  spec:
-    schedule:
-      schedule: &quot;*/1 * * * *&quot;
-      roundNumber: 2
-      roundTimeoutMinute: 1
-      sourceAgentNodeSelector:
-        matchExpressions:
-          - { key: &quot;kubernetes.io/hostname&quot;, operator: In, values: [&quot;spiderdoctor-worker&quot;] }
-    request:
-      durationInSecond: 5
-      perRequestTimeoutInMS: 1000
-      qps: 10
-    target:
-      targetUser:
-        method: GET
-        url: http://172.80.1.2
-      targetPod:
-        podLabelSelector:
-          matchExpressions:
-            - { key: &quot;app&quot;, operator: In, values: [&quot;http-server&quot;] }
-        httpPort: 80
-        utlPath: &quot;/&quot;
-        method: GET
-        testIPv4: true
-        testIPv6: true
-        testMultusInterface: false
-      targetAgent:
-        testClusterIp: true
-        testEndpoint: true
-        testIPv4: true
-        testIPv6: true
-        testIngress: false
-        testMultusInterface: false
-        testNodePort: true
-    success:
-      meanAccessDelayInMs: 10000
-      successRate: 1
-  status:
-    doneRound: 1
-    expectedRound: 2
-    finish: false
-    lastRoundStatus: succeed
-    history:
-    - deadLineTimeStamp: &quot;2022-11-21T06:19:53Z&quot;
-      duration: 10.117152806s
-      startTimeStamp: &quot;2022-11-21T06:18:53Z&quot;
-      endTimeStamp: &quot;2022-11-21T06:19:03Z&quot;
-      failedAgentNodeList: []
-      notReportAgentNodeList: []
-      roundNumber: 2
-      status: notstarted
-      succeedAgentNodeList: []
+<pre><code class="language-shell">apiVersion: spiderdoctor.spidernet.io/v1beta1
+kind: NetReachHealthy
+metadata:
+  creationTimestamp: &quot;2023-05-24T08:11:13Z&quot;
+  generation: 1
+  name: netreach
+  resourceVersion: &quot;1427617&quot;
+  uid: 2f5da0d6-0252-4229-adca-a43a5d2ac4ff
+spec:
+  request:
+    durationInSecond: 10
+    perRequestTimeoutInMS: 1000
+    qps: 10
+  schedule:
+    roundNumber: 2
+    roundTimeoutMinute: 1
+    schedule: 1 1
+  success:
+    meanAccessDelayInMs: 10000
+    successRate: 1
+  target:
+    clusterIP: true
+    endpoint: true
+    ingress: false
+    ipv4: true
+    ipv6: true
+    loadBalancer: false
+    multusInterface: false
+    nodePort: true
+status:
+  doneRound: 2
+  expectedRound: 2
+  finish: true
+  history:
+  - deadLineTimeStamp: &quot;2023-05-24T08:14:13Z&quot;
+    duration: 20.089468009s
+    endTimeStamp: &quot;2023-05-24T08:13:33Z&quot;
+    expectedActorNumber: 2
+    failedAgentNodeList: []
+    notReportAgentNodeList: []
+    roundNumber: 2
+    startTimeStamp: &quot;2023-05-24T08:13:13Z&quot;
+    status: succeed
+    succeedAgentNodeList:
+    - spiderdoctor-worker
+    - spiderdoctor-control-plane
 </code></pre>
 <ul>
 <li>
@@ -767,38 +770,20 @@ items:
 </li>
 <li>
 <p>spec.target: set the target of http request. it could not set targetUser and targetAgent at the same time</p>
-<p>targetUser [optional]: set an user-defined URL for the http request</p>
-<pre><code>url: the url for http
+<p>target: [optional]: set the http tareget to spiderdoctor agents</p>
+<pre><code>clusterIP: send http request to the cluster ipv4 or ipv6 address of spiderdoctor agnent, according to ipv4 and ipv6.
 
-method: http method, must be one of GET POST PUT DELETE CONNECT OPTIONS PATCH HEAD
-</code></pre>
-<p>targetPod: [optional]: set pods for the http request</p>
-<pre><code>podLabelSelector: select the target pods
+endpoint: send http request to other spiderdoctor agnent ipv4 or ipv6 address according to testIPv4 and testIPv6.
 
-httpPort: http port
+multusInterface: whether send http request to all interfaces ip in testEndpoint case.
 
-method: http method
+ipv4: test any IPv4 address. Notice, the 'enableIPv4' in configmap  spiderdocter must be enabled
 
-testIPv4: test any IPv4 address. Notice, the 'enableIPv4' in configmap  spiderdocter must be enabled
+ipv6: test any IPv6 address. Notice, the 'enableIPv6' in configmap  spiderdocter must be enabled
 
-testIPv6: test any IPv6 address. Notice, the 'enableIPv6' in configmap  spiderdocter must be enabled
+ingress: send http request to the ingress ipv4 or ipv6 address of spiderdoctor agnent
 
-testMultusInterface: whether send http request to all interfaces ip.
-</code></pre>
-<p>targetAgent: [optional]: set the http tareget to spiderdoctor agents</p>
-<pre><code>testClusterIp: send http request to the cluster ipv4 or ipv6 address of spiderdoctor agnent, according to testIPv4 and testIPv6.
-
-testEndpoint: send http request to other spiderdoctor agnent ipv4 or ipv6 address according to testIPv4 and testIPv6.
-
-testMultusInterface: whether send http request to all interfaces ip in testEndpoint case.
-
-testIPv4: test any IPv4 address. Notice, the 'enableIPv4' in configmap  spiderdocter must be enabled
-
-testIPv6: test any IPv6 address. Notice, the 'enableIPv6' in configmap  spiderdocter must be enabled
-
-testIngress: send http request to the ingress ipv4 or ipv6 address of spiderdoctor agnent
-
-testNodePort: send http request to the nodePort ipv4 or ipv6 address with each local node of spiderdoctor agnent , according to testIPv4 and testIPv6.
+nodePort: send http request to the nodePort ipv4 or ipv6 address with each local node of spiderdoctor agnent , according to testIPv4 and testIPv6.
 
 &gt;notice: when test targetAgent case, it will send http request to all targets at the same time with spec.request.qps for each one. That meaning, the actually QPS may be bigger than spec.request.qps
 </code></pre>
@@ -837,198 +822,83 @@ succeedAgentNodeList: the node list where successful spiderdoctor agent locate
 <h2 id="example">example</h2>
 <p>a quick task to test spiderdoctor agent, to verify the whole network is ok, each agent could reach each other</p>
 <pre><code class="language-shell">
-cat &lt;&lt;EOF &gt; nethttp-test-agent.yaml
+cat &lt;&lt;EOF &gt; netreachhealthy-test-agent.yaml
 apiVersion: spiderdoctor.spidernet.io/v1beta1
-kind: Nethttp
+kind: NetReachHealthy
 metadata:
-  name: test-agent
+  generation: 1
+  name: netreach
 spec:
-  schedule:
-    schedule: &quot;1 1&quot;
-    roundNumber: 2
-    roundTimeoutMinute: 1
-  request:
-    durationInSecond: 2
-    qps: 2
-    perRequestTimeoutInMS: 1000
-  success:
-    successRate: 1
-    meanAccessDelayInMs: 10000
-EOF
-kubectl apply -f nethttp-test-agent.yaml
-
-</code></pre>
-<p>a detail task to test spiderdoctor agent</p>
-<pre><code class="language-shell">cat &lt;&lt;EOF &gt; test-detail-agent.yaml
-apiVersion: spiderdoctor.spidernet.io/v1beta1
-kind: Nethttp
-metadata:
-  name: test-detail-agent
-spec:
-  schedule:
-    schedule: &quot;1 1&quot;
-    roundNumber: 2
-    roundTimeoutMinute: 1
-  target:
-    targetAgent:
-      testIPv4: true
-      testIPv6: true
-      testEndpoint: true
-      testMultusInterface: true
-      testClusterIp: true
-      testNodePort: true
-      testLoadBalancer: true
-      testIngress: true
-  request:
-    durationInSecond: 2
-    qps: 2
-    perRequestTimeoutInMS: 1000
-  success:
-    successRate: 1
-    meanAccessDelayInMs: 10000
-EOF
-kubectl apply -f test-detail-agent.yaml
-
-</code></pre>
-<p>test custom URL</p>
-<pre><code class="language-shell">
-cat &lt;&lt;EOF &gt; test-custom.yaml
-apiVersion: spiderdoctor.spidernet.io/v1beta1
-kind: Nethttp
-metadata:
-  name: test-custom
-spec:
-  schedule:
-    schedule: &quot;1 1&quot;
-    roundNumber: 2
-    roundTimeoutMinute: 1
-  target:
-    targetUser:
-      url: &quot;http://172.80.1.2&quot;
-      method: &quot;GET&quot;
   request:
     durationInSecond: 10
-    qps: 10
     perRequestTimeoutInMS: 1000
-  success:
-    successRate: 1
-    meanAccessDelayInMs: 5000
-EOF
-kubectl apply -f test-custom.yaml
-
-</code></pre>
-<p>use the spicified spiderdoctor agents to send the http request</p>
-<pre><code class="language-shell">
-cat &lt;&lt;EOF &gt; source-agent.yaml
-apiVersion: spiderdoctor.spidernet.io/v1beta1
-kind: Nethttp
-metadata:
-  name: source-agent
-spec:
+    qps: 10
   schedule:
-    schedule: &quot;1 1&quot;
     roundNumber: 2
     roundTimeoutMinute: 1
-    sourceAgentNodeSelector:
-        matchExpressions:
-          - { key: &quot;kubernetes.io/hostname&quot;, operator: In, values: [&quot;spiderdoctor-worker&quot;] }
-  target:
-    targetUser:
-      url: &quot;http://172.80.1.2&quot;
-      method: &quot;GET&quot;
-  request:
-    durationInSecond: 10
-    qps: 10
-    perRequestTimeoutInMS: 1000
+    schedule: 1 1
   success:
-    successRate: 1
-    meanAccessDelayInMs: 1000
-EOF
-kubectl apply -f source-agent.yaml
-
-</code></pre>
-<p>test pod</p>
-<pre><code class="language-shell">cat &lt;&lt;EOF &gt; test-pod.yaml
-apiVersion: spiderdoctor.spidernet.io/v1beta1
-kind: Nethttp
-metadata:
-  name: test-pod
-spec:
-  schedule:
-    schedule: &quot;1 1&quot;
-    roundNumber: 2
-    roundTimeoutMinute: 1
-  target:
-    targetPod:
-      podLabelSelector:
-          matchExpressions:
-            - { key: &quot;app&quot;, operator: In, values: [&quot;test&quot;] }
-      method: &quot;GET&quot;
-      utlPath: &quot;/&quot;
-      httpPort: 80
-      testIPv4: true
-      testIPv6: true
-      testMultusInterface: true
-  request:
-    durationInSecond: 2
-    qps: 2
-    perRequestTimeoutInMS: 1000
-  success:
-    successRate: 1
     meanAccessDelayInMs: 10000
+    successRate: 1
+  target:
+    clusterIP: true
+    endpoint: true
+    ingress: false
+    ipv4: true
+    ipv6: true
+    loadBalancer: false
+    multusInterface: false
+    nodePort: true
 EOF
-kubectl apply -f test-pod.yaml
+kubectl apply -f netreachhealthy-test-agent.yaml
 
 </code></pre>
 <h2 id="debug">debug</h2>
 <p>when something wrong happen, see the log for your task with following command</p>
 <pre><code class="language-shell">#get log 
-CRD_KIND=&quot;nethttp&quot;
-CRD_NAME=&quot;test1&quot;
+CRD_KIND=&quot;netreachhealthy&quot;
+CRD_NAME=&quot;netreach&quot;
 kubectl logs -n kube-system  spiderdoctor-agent-v4vzx | grep -i &quot;${CRD_KIND}.${CRD_NAME}&quot;
 
 </code></pre>
 <h2 id="report">report</h2>
 <p>when the spiderdoctor is not enabled to aggerate reports, all reports will be printed in the stdout of spiderdoctor agent.
 Use the following command to get its report</p>
-<pre><code class="language-shell">kubectl logs -n kube-system  spiderdoctor-agent-v4vzx | jq 'select( .TaskName==&quot;nethttp.testhttp1&quot; )'
+<pre><code class="language-shell">kubectl logs -n kube-system  spiderdoctor-agent-v4vzx | jq 'select( .TaskName==&quot;netreachhealthy.netreach&quot; )'
 </code></pre>
 <p>when the spiderdoctor is enabled to aggregate reports, all reports will be collected in the PVC or hostPath of spiderdoctor controller.</p>
 <p>metric introduction</p>
-<pre><code class="language-shell">
+<pre><code class="language-shell">      {
+        &quot;FailureReason&quot;: &quot;&quot;,
+        &quot;MeanDelay&quot;: 106.84,
         &quot;Metrics&quot;: {
+          &quot;start&quot;: &quot;2023-05-24T08:13:13.530015031Z&quot;,
+          &quot;end&quot;: &quot;2023-05-24T08:13:28.560982373Z&quot;,
+          &quot;duration&quot;: &quot;15.030967342s&quot;,
+          &quot;requestCount&quot;: 150,
+          &quot;successCount&quot;: 150,
+          &quot;tps&quot;: 9.979397638691244,
+          &quot;total_request_data&quot;: &quot;34866 byte&quot;,
           &quot;latencies&quot;: {
-            &quot;total&quot;: 27964545,
-            &quot;mean&quot;: 2796454,
-            &quot;50th&quot;: 2821970,
-            &quot;90th&quot;: 3102803,
-            &quot;95th&quot;: 3188759,
-            &quot;99th&quot;: 3188759,
-            &quot;max&quot;: 3188759,
-            &quot;min&quot;: 2362429
+            &quot;P50_inMs&quot;: 103,
+            &quot;P90_inMs&quot;: 199,
+            &quot;P95_inMs&quot;: 202,
+            &quot;P99_inMs&quot;: 204,
+            &quot;Max_inMx&quot;: 205,
+            &quot;Min_inMs&quot;: 3,
+            &quot;Mean_inMs&quot;: 106.84
           },
-          &quot;bytes_in&quot;: {
-            &quot;total&quot;: 2357,
-            &quot;mean&quot;: 235.7
-          },
-          &quot;bytes_out&quot;: {
-            &quot;total&quot;: 0,
-            &quot;mean&quot;: 0
-          },
-          &quot;earliest&quot;: &quot;2022-11-18T04:55:20.22108713Z&quot;,
-          &quot;latest&quot;: &quot;2022-11-18T04:55:24.721276724Z&quot;,
-          &quot;end&quot;: &quot;2022-11-18T04:55:24.723858358Z&quot;,
-          &quot;duration&quot;: 4500189594,
-          &quot;wait&quot;: 2581634, # Wait is the extra time waiting for responses from targets.
-          &quot;requests&quot;: 10, #the total number of requests executed
-          &quot;rate&quot;: 2.222128599500068, #Rate is the rate of sent requests per second.
-          &quot;throughput&quot;: 2.220854556815161, #Throughput is the rate of successful requests per second.
-          &quot;success&quot;: 1, #percentage of non-error responses
           &quot;status_codes&quot;: {
-            &quot;200&quot;: 10
+            &quot;200&quot;: 150
           },
-          &quot;errors&quot;: []
-        }
+          &quot;errors&quot;: {}
+        },
+        &quot;Succeed&quot;: &quot;true&quot;,
+        &quot;SucceedRate&quot;: &quot;1&quot;,
+        &quot;TargetMethod&quot;: &quot;GET&quot;,
+        &quot;TargetName&quot;: &quot;AgentClusterV4IP_172.41.156.187:80&quot;,
+        &quot;TargetUrl&quot;: &quot;http://172.41.156.187:80&quot;
+      }
 </code></pre>
 
 
@@ -1075,7 +945,7 @@ Use the following command to get its report</p>
     <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.indexes", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "search.highlight", "search.suggest", "search.share"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.51198bba.min.js"></script>
+      <script src="../../assets/javascripts/bundle.b4d07000.min.js"></script>
       
     
   </body>
