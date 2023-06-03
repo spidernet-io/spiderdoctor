@@ -9,11 +9,11 @@
       
       
       
-        <link rel="prev" href="../nethttp/">
+        <link rel="prev" href="../netreachhealthy/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.8">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.15">
     
     
       
@@ -21,10 +21,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ded33207.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.26e3688c.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.a0c5b2b5.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ecc896b0.min.css">
       
       
 
@@ -214,7 +214,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../install/" class="md-tabs__link md-tabs__link--active">
+      <a href="../httpapphealthy/" class="md-tabs__link md-tabs__link--active">
         Usage
       </a>
     </li>
@@ -468,6 +468,8 @@
         
           
         
+          
+        
       
       
         <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
@@ -481,6 +483,20 @@
           Usage
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../httpapphealthy/" class="md-nav__link">
+        Nethttp
+      </a>
+    </li>
+  
+
+            
           
             
               
@@ -516,7 +532,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../nethttp/" class="md-nav__link">
+      <a href="../netreachhealthy/" class="md-nav__link">
         Nethttp
       </a>
     </li>
@@ -673,7 +689,36 @@
 </tbody>
 </table>
 <h1 id="nethttp">Nethttp</h1>
-<p>In a pod with a CPU of 1</p>
+<p>In a pod with a CPU of 1 </p>
+<p>The test server is a server that sleeps for one second and then returns</p>
+<h2 id="http11">Http1.1</h2>
+<table>
+<thead>
+<tr>
+<th>client</th>
+<th>time</th>
+<th>requests</th>
+<th>qps</th>
+<th>Memory</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>spiderdoctor</td>
+<td>0.5m</td>
+<td>81912</td>
+<td>2988.67</td>
+<td>210Mb</td>
+</tr>
+<tr>
+<td>hey</td>
+<td>0.5m</td>
+<td>58423</td>
+<td>1947.42</td>
+<td>210Mb</td>
+</tr>
+</tbody>
+</table>
 <table>
 <thead>
 <tr>
@@ -688,16 +733,16 @@
 <tr>
 <td>spiderdoctor</td>
 <td>1m</td>
-<td>67346</td>
-<td>1122.43</td>
-<td>2Gi</td>
+<td>179634</td>
+<td>2,993.9</td>
+<td>210Mb</td>
 </tr>
 <tr>
-<td>wrk</td>
+<td>hey</td>
 <td>1m</td>
-<td>53612</td>
-<td>892.85</td>
-<td>2Mb</td>
+<td>118452</td>
+<td>1974.2</td>
+<td>220Mb</td>
 </tr>
 </tbody>
 </table>
@@ -715,16 +760,44 @@
 <tr>
 <td>spiderdoctor</td>
 <td>5m</td>
-<td>272403</td>
-<td>908.01</td>
-<td>2.6Gi</td>
+<td>897979</td>
+<td>2993.26</td>
+<td>210Mb</td>
 </tr>
 <tr>
-<td>wrk</td>
+<td>hey</td>
 <td>5m</td>
-<td>265551</td>
-<td>884.92</td>
-<td>5Mb</td>
+<td>596077</td>
+<td>1986.92</td>
+<td>270Mb</td>
+</tr>
+</tbody>
+</table>
+<h2 id="http2">Http2</h2>
+<table>
+<thead>
+<tr>
+<th>client</th>
+<th>time</th>
+<th>requests</th>
+<th>qps</th>
+<th>Memory</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>spiderdoctor</td>
+<td>0.5m</td>
+<td>238787</td>
+<td>7959.57</td>
+<td>350Mb</td>
+</tr>
+<tr>
+<td>hey</td>
+<td>0.5m</td>
+<td>7213</td>
+<td>240.44</td>
+<td>110Mb</td>
 </tr>
 </tbody>
 </table>
@@ -741,17 +814,44 @@
 <tbody>
 <tr>
 <td>spiderdoctor</td>
-<td>10m</td>
-<td>467254</td>
-<td>778.75</td>
-<td>4.5Gi</td>
+<td>1m</td>
+<td>481070</td>
+<td>8017.83</td>
+<td>370Mb</td>
 </tr>
 <tr>
-<td>wrk</td>
-<td>10m</td>
-<td>565638</td>
-<td>942.58</td>
-<td>5Mb</td>
+<td>hey</td>
+<td>1m</td>
+<td>14665</td>
+<td>244.42</td>
+<td>120Mb</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>client</th>
+<th>time</th>
+<th>requests</th>
+<th>qps</th>
+<th>Memory</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>spiderdoctor</td>
+<td>5m</td>
+<td>2419874</td>
+<td>8066.25</td>
+<td>390Mb</td>
+</tr>
+<tr>
+<td>hey</td>
+<td>5m</td>
+<td>74776</td>
+<td>249.25</td>
+<td>130Mb</td>
 </tr>
 </tbody>
 </table>
@@ -772,7 +872,7 @@
 <td>spiderdoctor</td>
 <td>1m</td>
 <td>1855511</td>
-<td>30,925.18</td>
+<td>30925.18</td>
 <td>23Mb</td>
 </tr>
 <tr>
@@ -799,7 +899,7 @@
 <td>spiderdoctor</td>
 <td>5m</td>
 <td>9171699</td>
-<td>30,572.33</td>
+<td>30572.33</td>
 <td>100Mb</td>
 </tr>
 <tr>
@@ -826,7 +926,7 @@
 <td>spiderdoctor</td>
 <td>10m</td>
 <td>18561282</td>
-<td>30,935.47</td>
+<td>30935.47</td>
 <td>173Mb</td>
 </tr>
 <tr>
@@ -883,7 +983,7 @@
     <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.indexes", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "search.highlight", "search.suggest", "search.share"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.51198bba.min.js"></script>
+      <script src="../../assets/javascripts/bundle.b4d07000.min.js"></script>
       
     
   </body>
