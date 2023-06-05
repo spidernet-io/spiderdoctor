@@ -6,8 +6,8 @@ require (
 	github.com/google/gops v0.3.26
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/miekg/dns v1.1.50
-	github.com/onsi/ginkgo/v2 v2.9.5
-	github.com/onsi/gomega v1.27.6
+	github.com/onsi/ginkgo/v2 v2.9.7
+	github.com/onsi/gomega v1.27.7
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.14.0
 	github.com/pyroscope-io/client v0.7.0
