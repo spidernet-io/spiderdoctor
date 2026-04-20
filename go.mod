@@ -1,6 +1,6 @@
 module github.com/spidernet-io/spiderdoctor
 
-go 1.20
+go 1.24.0
 
 require (
 	github.com/google/gops v0.3.26
@@ -46,7 +46,7 @@ require (
 
 require (
 	github.com/go-openapi/analysis v0.21.4 // indirect
-	github.com/go-openapi/errors v0.20.3
+	github.com/go-openapi/errors v0.22.7
 	github.com/go-openapi/inflect v0.19.0 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.20.0 // indirect
