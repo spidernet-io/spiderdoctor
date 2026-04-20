@@ -28,7 +28,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v0.33.0
 	go.opentelemetry.io/otel/trace v1.14.0 // indirect
 	go.opentelemetry.io/proto/otlp v0.19.0 // indirect
-	go.uber.org/zap v1.24.0
+	go.uber.org/zap v1.27.1
 	golang.org/x/net v0.10.0
 	google.golang.org/grpc v1.53.0
 	google.golang.org/protobuf v1.30.0
@@ -141,8 +141,7 @@ require (
 	go.etcd.io/etcd/client/pkg/v3 v3.5.6 // indirect
 	go.etcd.io/etcd/client/v3 v3.5.6 // indirect
 	go.mongodb.org/mongo-driver v1.11.3 // indirect
-	go.uber.org/atomic v1.10.0 // indirect
-	go.uber.org/multierr v1.8.0 // indirect
+	go.uber.org/multierr v1.10.0 // indirect
 	golang.org/x/crypto v0.5.0 // indirect
 	golang.org/x/mod v0.10.0 // indirect
 	golang.org/x/oauth2 v0.4.0 // indirect
